@@ -97,21 +97,17 @@ header { background: transparent !important; }
 
 
 /* ══════════════════════════════════════════════════════════════════════════
-   🚀 BULLETPROOF DASHBOARD TILE ENGINE
+   🚀 STATIC DASHBOARD TILES
    ══════════════════════════════════════════════════════════════════════════ */
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] { position: relative !important; }
-
 .dash-card {
     height: 110px !important; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; padding: 16px 20px; position: relative; overflow: hidden;
     transition: all 0.3s ease; margin: 0 !important; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03); display: flex; flex-direction: column; justify-content: center; z-index: 1;
 }
 
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="stButton"] { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; z-index: 10 !important; }
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="stButton"] button { width: 100% !important; height: 100% !important; opacity: 0 !important; cursor: pointer !important; background: transparent !important; border: none !important; box-shadow: none !important; color: transparent !important; }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card { transform: translateY(-4px); background: rgba(255, 255, 255, 0.95); box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 0 15px rgba(255,255,255,0.6); border-color: #ffffff; }
 
-.dash-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: transparent; transition: background 0.3s ease; }
+.dash-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: transparent; transition: background 0.4s ease; }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
@@ -289,7 +285,7 @@ def show_sidebar():
         st.markdown("<div style='height:1px;background:rgba(15, 23, 42, 0.06);margin:20px 12px 16px;'></div>", unsafe_allow_html=True)
         
         if st.button("🚪  Sign Out", use_container_width=True):
-            for k in ["logged_in","username","role","full_name","user_id","dash_view"]: st.session_state.pop(k, None)
+            for k in ["logged_in","username","role","full_name","user_id"]: st.session_state.pop(k, None)
             st.rerun()
 
     return page
@@ -301,59 +297,59 @@ def show_sidebar():
 
 def page_dashboard():
     st.markdown('<p class="page-title">Dashboard</p>', unsafe_allow_html=True)
-    st.markdown(f'<p class="page-sub">Welcome back, {st.session_state.get("full_name","User")}. Click a tile below to filter your client list.</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="page-sub">Welcome back, {st.session_state.get("full_name","User")}. Use the filters below to manage your workflow.</p>', unsafe_allow_html=True)
 
     total = db.get_total_clients()
     today_df  = db.get_todays_followups()
     over_df   = db.get_overdue_followups()
 
-    if "dash_view" not in st.session_state: st.session_state.dash_view = "total"
-
+    # ── STATIC METRIC TILES (No buttons, no hacks, 100% bug-free) ──
     c1, c2, c3 = st.columns(3)
 
     with c1:
         st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
-        if st.button("\u200B", key="t_tot", use_container_width=True): st.session_state.dash_view = "total"
 
     with c2:
         st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Due Today</p></div>', unsafe_allow_html=True)
-        if st.button("\u200B\u200B", key="t_tod", use_container_width=True): st.session_state.dash_view = "today"
 
     with c3:
         st.markdown(f'<div class="dash-card red pulse-alert"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Tasks</p></div>', unsafe_allow_html=True)
-        if st.button("\u200B\u200B\u200B", key="t_ovr", use_container_width=True): st.session_state.dash_view = "overdue"
 
 
-    st.markdown("<hr style='margin: 15px 0 15px 0; border-top: 1px solid rgba(15,23,42,0.06);'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin: 25px 0 15px 0; border-top: 1px solid rgba(15,23,42,0.06);'>", unsafe_allow_html=True)
 
-    view = st.session_state.dash_view
-
-    # ── THE INTEGRATED DIRECTORY GRID ──
-    fc1, fc2, fc3, fc4 = st.columns([2.5, 1.5, 1.5, 1])
-    with fc1: search = st.text_input("🔍 Search", placeholder="Search by name, company...", label_visibility="collapsed")
-    with fc2: cat    = st.selectbox("Filter", ["All","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
-    with fc3: srt    = st.selectbox("Sort By", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
+    # ── THE INTEGRATED DIRECTORY GRID WITH STATUS FILTER ──
+    st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>👥 Client Directory</h5>", unsafe_allow_html=True)
     
-    df = db.get_all_clients(search=search or None, category=cat if cat != "All" else None, sort_by=srt)
+    # 5 Column layout for new Status filter
+    fc1, fc2, fc3, fc4, fc5 = st.columns([2, 1.5, 1.5, 1.5, 1])
+    with fc1: search = st.text_input("🔍 Search", placeholder="Search by name, company...", label_visibility="collapsed")
+    with fc2: status_filter = st.selectbox("Status", ["All", "Due Today", "Overdue", "Upcoming"], label_visibility="collapsed")
+    with fc3: cat    = st.selectbox("Filter", ["All Categories","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
+    with fc4: srt    = st.selectbox("Sort By", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
+    
+    # Clean Category String
+    clean_cat = None if cat == "All Categories" else cat
+
+    # Fetch Base Data
+    df = db.get_all_clients(search=search or None, category=clean_cat, sort_by=srt)
 
     if not df.empty:
         df["Status"] = df.apply(status_label, axis=1)
 
-        # Dynamic Titles and Filtering based on clicked Tile
-        if view == "today":
+        # Apply Status Filter Logic
+        if status_filter == "Due Today":
             df = df[df["Status"].str.contains("🟡", na=False)]
-            st.markdown("<h5 style='color:#3b82f6; font-weight:800; margin-bottom:12px;'>⚡ Tasks Due Today</h5>", unsafe_allow_html=True)
-        elif view == "overdue":
+        elif status_filter == "Overdue":
             df = df[df["Status"].str.contains("🔴", na=False)]
-            st.markdown("<h5 style='color:#ef4444; font-weight:800; margin-bottom:12px;'>⚠️ Overdue Tasks</h5>", unsafe_allow_html=True)
-        else:
-            st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>👥 Full Client Directory</h5>", unsafe_allow_html=True)
+        elif status_filter == "Upcoming":
+            df = df[df["Status"].str.contains("🟢", na=False)]
 
-        with fc4: 
+        with fc5: 
             st.download_button("📥 Export", data=to_excel(df) if not df.empty else b"", file_name=f"Export.xlsx", use_container_width=True)
 
         if df.empty:
-            st.info("📭 No clients match this view/filter.")
+            st.info("📭 No clients match the current filters.")
         else:
             df_display = df.copy()
             df_display["Deal Value"] = df_display["deal_value"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
@@ -369,7 +365,6 @@ def page_dashboard():
             # --- HIDDEN MANAGEMENT CONSOLE ---
             with st.expander("⚙️ Manage & Edit Selected Client", expanded=False):
                 st.markdown("<div style='font-size:0.85rem; font-weight:700; color:#0f172a; margin-bottom:8px;'>Select Client to Edit</div>", unsafe_allow_html=True)
-                # The dropdown only shows names that are CURRENTLY visible in the filtered table
                 sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
                 
                 if sel:
