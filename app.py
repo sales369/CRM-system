@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── 2. LOGO LOADER UTILITY (UPGRADED SIZES) ────────────────────────────────────
+# ── 2. LOGO LOADER UTILITY ─────────────────────────────────────────────────────
 def get_logo_html(width="100px", margin_bottom="16px", centered=True):
     """Loads logo.png if it exists, otherwise falls back to a default CSS icon."""
     align = "margin: 0 auto;" if centered else "margin: 0;"
@@ -28,7 +28,7 @@ def get_logo_html(width="100px", margin_bottom="16px", centered=True):
     except Exception:
         pass
     
-    # Fallback if logo.png is not found (Adjusts text size based on container width)
+    # Fallback if logo.png is not found
     return f"""<div style="width: {width}; height: {width}; background: linear-gradient(135deg, #4f46e5, #9333ea); 
                border-radius: 25%; display: flex; align-items: center; justify-content: center; 
                font-size: calc(max(20px, {width}/2.5)); {align} margin-bottom: {margin_bottom}; 
@@ -187,7 +187,6 @@ header { background: transparent !important; }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
 
 .metric-icon { font-size: 1.6rem; margin-bottom: 4px; line-height: 1; text-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 .metric-val  { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; line-height: 1; letter-spacing: -0.03em; }
@@ -274,7 +273,7 @@ def to_excel(df: pd.DataFrame) -> bytes:
     return out.getvalue()
 
 def status_label(row) -> str:
-    """Calculates status exactly to the hour and minute"""
+    """Calculates status dynamically up to the minute to support precise Time pickers"""
     nf_val = row.get("next_followup")
     if pd.isna(nf_val) or not nf_val: return "—"
     try:
@@ -291,8 +290,9 @@ def status_label(row) -> str:
             diff = nf - now
             if diff.days > 0: return f"🟢 In {diff.days}d"
             hrs = diff.seconds // 3600
+            mins = (diff.seconds % 3600) // 60
             if hrs > 0: return f"🟡 Today (in {hrs}h)"
-            return "🟡 Imminent"
+            return f"🟡 In {mins}m"
     except:
         return "—"
 
@@ -405,13 +405,13 @@ def page_dashboard():
     total = db.get_total_clients()
     today_df  = db.get_todays_followups()
     over_df   = db.get_overdue_followups()
-    upc_df    = db.get_upcoming_followups(7)
 
     if "dash_view" not in st.session_state: st.session_state.dash_view = "today"
 
-    c1, c2, c3, c4 = st.columns(4)
+    # Reduced to 3 columns to save horizontal space and make them wider
+    c1, c2, c3 = st.columns(3)
 
-    # Invisible buttons layered flawlessly by CSS overlay
+    # Completely invisible buttons layered flawlessly by CSS overlay
     with c1:
         st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
         if st.button("\u200B", key="t_tot", use_container_width=True): st.session_state.dash_view = "total"
@@ -424,9 +424,6 @@ def page_dashboard():
         st.markdown(f'<div class="dash-card red pulse-alert"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Tasks</p></div>', unsafe_allow_html=True)
         if st.button("\u200B\u200B\u200B", key="t_ovr", use_container_width=True): st.session_state.dash_view = "overdue"
 
-    with c4:
-        st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">Upcoming (7 Days)</p></div>', unsafe_allow_html=True)
-        if st.button("\u200B\u200B\u200B\u200B", key="t_upc", use_container_width=True): st.session_state.dash_view = "upcoming"
 
     st.markdown("<hr style='margin: 15px 0 15px 0; border-top: 1px solid rgba(15,23,42,0.06);'>", unsafe_allow_html=True)
 
@@ -437,6 +434,7 @@ def page_dashboard():
         if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:1.5rem;margin-bottom:2px;opacity:0.9;">☕</div><p class="strip-title">All caught up</p><p class="strip-meta">No tasks due today.</p></div>', unsafe_allow_html=True)
         else:
             for _, r in today_df.iterrows():
+                # Show specific time due!
                 time_str = pd.to_datetime(r['next_followup']).strftime('%I:%M %p')
                 st.markdown(f"""
                 <div class="strip strip-today">
@@ -464,16 +462,9 @@ def page_dashboard():
             df["Status"] = df.apply(status_label, axis=1)
             st.dataframe(df[["name", "company", "category", "Status", "next_followup", "deal_value"]], use_container_width=True, hide_index=True)
 
-    elif view == "upcoming":
-        st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>📅 Upcoming (7 Days)</h5>", unsafe_allow_html=True)
-        if upc_df.empty: st.info("No upcoming tasks in the next 7 days.")
-        else:
-            upc_df["Days Until"] = upc_df["next_followup"].apply(lambda x: (pd.to_datetime(x).date() - date.today()).days)
-            st.dataframe(upc_df[["name", "company", "category", "next_followup", "Days Until"]], use_container_width=True, hide_index=True)
-
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  ADD CLIENT (With Specific Time Scheduling)
+#  ADD CLIENT
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_add_client():
@@ -504,19 +495,15 @@ def page_add_client():
             with sc1:
                 next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed")
             with sc2:
-                # Automatically defaults to exactly 4 hours from current time for fast same-day scheduling
+                # Automatically defaults to exactly 4 hours from current time!
                 default_time = (datetime.now() + timedelta(hours=4)).time()
                 next_t = st.time_input("Time", value=default_time, label_visibility="collapsed")
             
             deal_value = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000)
             
         with c4:
-            # Combine Date and Time
+            # Combine the exact Date and Time the user selected
             nf_datetime = datetime.combine(next_d, next_t)
-            
-            # DB logic backwards compatibility
-            f_days = (nf_datetime.date() - date.today()).days
-            f_days = f_days if f_days > 0 else 0
             
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(f"""
@@ -537,6 +524,10 @@ def page_add_client():
     if submitted:
         if not name.strip(): st.error("❌ Full Name is required.")
         else:
+            # Calculate days just for DB legacy support, real logic relies on next_followup datetime
+            f_days = (nf_datetime.date() - date.today()).days
+            f_days = f_days if f_days > 0 else 0
+            
             ok = db.add_client({
                 "name": name, "email": email, "phone": phone, "company": company, "category": category, "source": source, 
                 "last_contacted": str(datetime.now()), "followup_days": f_days, "next_followup": str(nf_datetime), 
@@ -569,7 +560,6 @@ def page_all_clients():
     with hc1: st.markdown(f"<p style='color:#64748b; font-size:0.9rem; font-weight:600; padding-top:10px;'>{len(df)} Clients found</p>", unsafe_allow_html=True)
     with hc2: st.download_button("📥 Export to Excel", data=to_excel(df), file_name=f"CRM_Export_{date.today()}.xlsx", use_container_width=True)
 
-    # Format dataframe for beautiful display
     df["Status"]     = df.apply(status_label, axis=1)
     df["Deal Value"] = df["deal_value"].apply(lambda x: f"${x:,.0f}" if x else "—")
     df["next_followup"] = pd.to_datetime(df["next_followup"]).dt.strftime('%b %d, %I:%M %p')
@@ -590,8 +580,8 @@ def page_all_clients():
     with rc2: 
         st.markdown("<div style='font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;'>New Date & Time</div>", unsafe_allow_html=True)
         sc1, sc2 = st.columns(2)
-        with sc1: new_d = st.date_input("Date", value=date.today() + timedelta(days=1), label_visibility="collapsed")
-        with sc2: new_t = st.time_input("Time", value=datetime.now().time(), label_visibility="collapsed")
+        with sc1: new_d = st.date_input("Date", value=date.today(), label_visibility="collapsed", key="ov_date")
+        with sc2: new_t = st.time_input("Time", value=(datetime.now() + timedelta(hours=4)).time(), label_visibility="collapsed", key="ov_time")
         new_dt = datetime.combine(new_d, new_t)
     with rc3:
         st.markdown("<br style='line-height:1'>", unsafe_allow_html=True)
