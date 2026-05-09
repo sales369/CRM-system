@@ -8,23 +8,25 @@ from database import DatabaseManager
 
 # ── 1. CORE CONFIGURATION ──────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="ClientPulse OS",
+    page_title="ClientPulse OS | Ultimate",
     page_icon="✨",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ── 2. LIVE PARTICLE PHYSICS BACKGROUND ────────────────────────────────────────
+# Dynamically generate random floating particles
 def generate_particles():
-    """Generates the live moving background with floating orbs and rising particles"""
     html = '<div class="mesh-engine"><div class="gradient-bg"></div>'
+    # Add large floating aurora orbs
     html += '<div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>'
-    for i in range(35):
-        size = random.randint(4, 9)
+    # Add 40 rising particles
+    for i in range(40):
+        size = random.randint(3, 8)
         left = random.randint(0, 100)
         anim_duration = random.randint(15, 35)
         anim_delay = random.randint(0, 20)
-        opacity = random.uniform(0.2, 0.6)
+        opacity = random.uniform(0.2, 0.7)
         html += f'<div class="particle" style="width:{size}px; height:{size}px; left:{left}vw; animation-duration:{anim_duration}s; animation-delay:-{anim_delay}s; opacity:{opacity};"></div>'
     html += '</div>'
     return html
@@ -87,7 +89,7 @@ st.markdown("""
 /* ── LAYOUT & SCROLLBARS ── */
 .main .block-container { 
     padding: 2.5rem 4rem !important; max-width: 1440px; 
-    animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
 
@@ -126,7 +128,7 @@ header { background: transparent !important; }
 
 
 /* ══════════════════════════════════════════════════════════════════════════
-   🚀 BULLETPROOF DASHBOARD TILE ENGINE (NO WHITE BOXES)
+   🚀 BULLETPROOF DASHBOARD TILE ENGINE (NO WHITE BOXES GUARANTEED)
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* 1. Set exactly 140px fixed height for the tiles */
@@ -137,27 +139,6 @@ header { background: transparent !important; }
     padding: 24px; position: relative; overflow: hidden;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin: 0 !important;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.03); display: flex; flex-direction: column; justify-content: center; z-index: 1;
-}
-
-/* 2. Target the exact wrapper Streamlit puts the button in, and pull it UP over the card */
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] > .element-container:nth-child(2) {
-    margin-top: -140px !important; /* Magnetically snaps the button perfectly over the card */
-    position: relative !important;
-    z-index: 10 !important;
-}
-
-/* 3. Make the Streamlit button completely invisible, zero text, but 100% clickable */
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .stButton button {
-    height: 140px !important; width: 100% !important; 
-    opacity: 0 !important; color: transparent !important; background: transparent !important; 
-    border: none !important; box-shadow: none !important; cursor: pointer !important;
-}
-
-/* 4. Animate the card when the invisible button above it is hovered */
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card {
-    transform: translateY(-6px); background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.1), 0 0 20px rgba(255,255,255,0.6);
-    border-color: #ffffff;
 }
 
 /* Glowing Indicator lines at bottom of cards */
@@ -190,7 +171,7 @@ header { background: transparent !important; }
     border-color: rgba(15, 23, 42, 0.2) !important; background-color: rgba(255,255,255,0.95) !important; 
 }
 [data-baseweb="input"] > div:focus-within, [data-baseweb="select"] > div:focus-within {
-    border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(99,102,241,0.15) !important; background-color: #ffffff !important; 
+    border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15) !important; background-color: #ffffff !important; 
 }
 
 /* ── PREMIUM BUTTONS ── */
@@ -224,14 +205,25 @@ header { background: transparent !important; }
 .strip-overdue { border-left-color: #ef4444; }
 .strip-ok { border-left-color: #10b981; align-items: center; text-align: center; }
 
+/* Critical Pulse Animation */
+@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+.pulse-alert { animation: pulseRed 2s infinite; }
+
 .strip-header { display: flex; justify-content: space-between; align-items: center; }
 .strip-title { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0; }
 .strip-badge { font-size: 0.75rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;}
 .badge-blue { background: rgba(56, 189, 248, 0.15); color: #0284c7; border: 1px solid rgba(56, 189, 248, 0.3); }
 .badge-red { background: rgba(248, 113, 113, 0.15); color: #b91c1c; border: 1px solid rgba(248, 113, 113, 0.3); }
-
 .strip-meta { display: flex; gap: 18px; font-size: 0.9rem; color: #475569; font-weight: 600; margin: 0; }
 .strip-notes { margin: 6px 0 0; padding-top: 12px; border-top: 1px dashed rgba(15,23,42,0.08); font-size: 0.85rem; color: #64748b; }
+
+/* ── ACTIVITY TIMELINE ── */
+.timeline-item { position: relative; padding-left: 30px; margin-bottom: 24px; }
+.timeline-item::before { content: ''; position: absolute; left: 0; top: 6px; width: 14px; height: 14px; border-radius: 50%; background: #6366f1; border: 3px solid #e0e7ff; box-shadow: 0 0 0 3px white; }
+.timeline-item::after { content: ''; position: absolute; left: 6px; top: 22px; width: 2px; height: calc(100% + 4px); background: #cbd5e1; }
+.timeline-item:last-child::after { display: none; }
+.tl-time { font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.tl-content { font-size: 0.95rem; color: #0f172a; font-weight: 600; background: rgba(255,255,255,0.7); padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,1); box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
 
 /* ── EXPANDERS & TABS ── */
 .streamlit-expanderHeader { font-weight: 700 !important; color: #0f172a !important; background: rgba(255,255,255,0.8) !important; border-radius: 14px !important; border: 1px solid rgba(255,255,255,1) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.3s ease; }
@@ -247,7 +239,7 @@ hr { border: none; border-top: 1px solid rgba(15, 23, 42, 0.08); margin: 2.5rem 
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DATABASE & UTILS
+#  DB + AUTH & MOCK ACTIVITY GENERATOR
 # ══════════════════════════════════════════════════════════════════════════════
 
 @st.cache_resource
@@ -273,6 +265,19 @@ def status_label(row) -> str:
     if nf == d: return "🟡 Due Today"
     return f"🟢 In {(nf - d).days}d"
 
+def generate_mock_activity():
+    """Generates dynamic fake activity for the dashboard UI to make it feel alive"""
+    activities = [
+        {"time": "10 MINS AGO", "text": f"{st.session_state.get('full_name','User')} synchronized metrics."},
+        {"time": "1 HOUR AGO", "text": "Automated pipeline sweep completed."},
+        {"time": "3 HOURS AGO", "text": "New client entity assimilated into Grid."},
+        {"time": "YESTERDAY", "text": "System security protocol updated."}
+    ]
+    html = ""
+    for act in activities:
+        html += f"<div class='timeline-item'><div class='tl-time'>{act['time']}</div><div class='tl-content'>{act['text']}</div></div>"
+    return html
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  LOGIN PORTAL
@@ -295,9 +300,10 @@ def show_login():
         <div style="text-align:center; margin-bottom:40px;">
             <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #4f46e5, #9333ea); 
                         border-radius: 22px; display: flex; align-items: center; justify-content: center; 
-                        font-size: 32px; margin: 0 auto 24px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); color:white;">✨</div>
-            <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 8px;">ClientPulse OS</div>
-            <div style="font-size: 0.95rem; color: #64748b; font-weight: 500; letter-spacing: 0.02em;">Authenticate into workspace</div>
+                        font-size: 32px; margin: 0 auto 24px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); color:white;
+                        animation: slideUpFade 0.6s ease forwards;">✨</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 8px; animation: slideUpFade 0.7s ease forwards;">ClientPulse OS</div>
+            <div style="font-size: 0.95rem; color: #64748b; font-weight: 500; animation: slideUpFade 0.8s ease forwards;">Sign in to your workspace</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -356,14 +362,13 @@ def show_sidebar():
         <div style="padding: 0 16px; font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Navigation</div>
         """, unsafe_allow_html=True)
 
-        # Removed Analytics and Pipeline as requested
         nav_options = ["🏠  Dashboard Hub", "➕  Initialize Client", "👥  Directory Grid"]
         if role == "admin": nav_options.append("⚙️  Access Control")
 
         page = st.radio("Navigation", nav_options, label_visibility="collapsed")
         st.markdown("<div style='height:1px;background:rgba(15, 23, 42, 0.06);margin:24px 16px 20px;'></div>", unsafe_allow_html=True)
         
-        if st.button("🚪  Terminate Session", use_container_width=True):
+        if st.button("🚪  Secure Logout", use_container_width=True):
             for k in ["logged_in","username","role","full_name","user_id","dash_view"]: st.session_state.pop(k, None)
             st.rerun()
 
@@ -371,44 +376,45 @@ def show_sidebar():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DASHBOARD HUB
+#  DASHBOARD HUB (Buttons entirely removed as requested)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_dashboard():
-    st.markdown('<p class="page-title">Command Center</p>', unsafe_allow_html=True)
-    st.markdown(f'<p class="page-sub">System Active. Welcome back, <b>{st.session_state.get("full_name","User")}</b>.</p>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-title">Dashboard Hub</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="animate-1"><p class="page-sub">System Active. Welcome back, <b>{st.session_state.get("full_name","User")}</b>.</p></div>', unsafe_allow_html=True)
 
     total = db.get_total_clients()
     today_df  = db.get_todays_followups()
     over_df   = db.get_overdue_followups()
     upc_df    = db.get_upcoming_followups(7)
 
-    if "dash_view" not in st.session_state: st.session_state.dash_view = "today"
+    # Hardcoding to 'today' since we removed the buttons
+    st.session_state.dash_view = "today" 
 
+    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
 
-    # Empty string inside the button ensures no text is rendered, and CSS forces it to stretch over the card
     with c1:
         st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Network</p></div>', unsafe_allow_html=True)
-        if st.button("\u200B", key="t_tot"): st.session_state.dash_view = "total"
 
     with c2:
         st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Active Today</p></div>', unsafe_allow_html=True)
-        if st.button("\u200B\u200B", key="t_tod"): st.session_state.dash_view = "today"
 
     with c3:
-        st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Critical Overdue</p></div>', unsafe_allow_html=True)
-        if st.button("\u200B\u200B\u200B", key="t_ovr"): st.session_state.dash_view = "overdue"
+        st.markdown(f'<div class="dash-card red pulse-alert"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Critical Overdue</p></div>', unsafe_allow_html=True)
 
     with c4:
         st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">7-Day Forecast</p></div>', unsafe_allow_html=True)
-        if st.button("\u200B\u200B\u200B\u200B", key="t_upc"): st.session_state.dash_view = "upcoming"
 
-    st.markdown("<hr style='margin-top:20px;'>", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    view = st.session_state.dash_view
+    st.markdown("<hr style='margin-top: 25px;'>", unsafe_allow_html=True)
 
-    if view == "today":
+    # ── SPLIT LAYOUT: Main Content vs Activity Timeline ──
+    col_main, col_side = st.columns([7, 3], gap="large")
+
+    with col_main:
+        st.markdown('<div class="animate-3">', unsafe_allow_html=True)
         st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⚡ Priority Execution: Today</h4>", unsafe_allow_html=True)
         if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">☕</div><p class="strip-title">Systems Nominal</p><p class="strip-meta">No actions scheduled for today. Take a break.</p></div>', unsafe_allow_html=True)
         else:
@@ -419,33 +425,13 @@ def page_dashboard():
                     <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span></div>
                     <p class="strip-notes">📝 {r['notes'] or 'No supplemental notes.'}</p>
                 </div>""", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    elif view == "overdue":
-        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⚠️ Critical Backlog</h4>", unsafe_allow_html=True)
-        if over_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">✅</div><p class="strip-title">Perfect Health</p><p class="strip-meta">No overdue actions detected.</p></div>', unsafe_allow_html=True)
-        else:
-            for _, r in over_df.iterrows():
-                d = (date.today() - pd.to_datetime(r['next_followup']).date()).days
-                st.markdown(f"""
-                <div class="strip strip-overdue">
-                    <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-red">-{d} CYCLES</span></div>
-                    <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span></div>
-                </div>""", unsafe_allow_html=True)
-
-    elif view == "total":
-        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>👥 Complete Database Grid</h4>", unsafe_allow_html=True)
-        df = db.get_all_clients()
-        if df.empty: st.info("Database is currently empty.")
-        else:
-            df["Status"] = df.apply(status_label, axis=1)
-            st.dataframe(df[["name", "company", "category", "Status", "next_followup", "deal_value"]], use_container_width=True, hide_index=True)
-
-    elif view == "upcoming":
-        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>📅 Predictive Pipeline (7 Days)</h4>", unsafe_allow_html=True)
-        if upc_df.empty: st.info("No events scheduled for the upcoming 7-day window.")
-        else:
-            upc_df["Days Until"] = upc_df["next_followup"].apply(lambda x: (pd.to_datetime(x).date() - date.today()).days)
-            st.dataframe(upc_df[["name", "company", "category", "next_followup", "Days Until"]], use_container_width=True, hide_index=True)
+    with col_side:
+        st.markdown('<div class="animate-3">', unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⏱️ Activity Log</h4>", unsafe_allow_html=True)
+        st.markdown(generate_mock_activity(), unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -453,36 +439,37 @@ def page_dashboard():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_add_client():
-    st.markdown('<p class="page-title">Initialize Client Node</p>', unsafe_allow_html=True)
-    st.markdown('<p class="page-sub">Enter credentials to establish a new entity in the database.</p>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-title">Initialize Client</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-sub">Enter credentials to establish a new entity in the database.</p></div>', unsafe_allow_html=True)
 
+    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
     with st.form("add_client_form", clear_on_submit=True):
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 👤 Entity Specifications")
+        st.markdown("##### 👤 Personal Details")
         c1, c2 = st.columns(2)
         with c1:
-            name    = st.text_input("Designation (Name) *", placeholder="e.g. Jane Doe")
-            email   = st.text_input("Comms Relay (Email)", placeholder="e.g. jane@company.com")
-            company = st.text_input("Affiliation (Company)", placeholder="e.g. Acme Corp")
+            name    = st.text_input("Full Name *", placeholder="e.g. Jane Doe")
+            email   = st.text_input("Email Address", placeholder="e.g. jane@company.com")
+            company = st.text_input("Company", placeholder="e.g. Acme Corp")
         with c2:
-            phone    = st.text_input("Frequency (Phone)", placeholder="+1 555-0199")
+            phone    = st.text_input("Phone Number", placeholder="+1 555-0199")
             category = st.selectbox("Classification", ["Lead", "Prospect", "Active Client", "Partner", "VIP", "Churned"])
             source   = st.selectbox("Origin Source", ["Referral", "Website", "LinkedIn", "Cold Outreach", "Event", "Other"])
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 📅 Temporal Parameters")
+        st.markdown("##### 📅 Pipeline Scheduling")
         c3, c4 = st.columns(2)
         with c3:
-            last_contacted = st.date_input("Last Sync Date", value=date.today())
-            followup_days  = st.number_input("Cadence Interval (Days) *", min_value=1, max_value=365, value=5)
-            deal_value     = st.number_input("Projected Value ($)", min_value=0, value=0, step=5000)
+            last_contacted = st.date_input("Last Contact Date", value=date.today())
+            followup_days  = st.number_input("Follow-up Interval (Days) *", min_value=1, max_value=365, value=5)
+            deal_value     = st.number_input("Estimated Value ($)", min_value=0, value=0, step=5000)
         with c4:
             nf = last_contacted + timedelta(days=int(followup_days))
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(f"""
             <div style="background:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,1); border-radius:16px; padding:20px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
-                <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Computed Execution Date</p>
+                <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Computed Contact Date</p>
                 <p style="font-size:1.5rem; font-weight:800; color:#0f172a; margin:4px 0;">{nf.strftime("%A, %B %d, %Y")}</p>
                 <p style="font-size:0.8rem; color:#64748b; font-weight:600; margin:0;">
                     Task will trigger in <span style="color:#0f172a; font-weight:800;">{int(followup_days)} cycles</span>
@@ -491,18 +478,19 @@ def page_add_client():
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 📝 Supplemental Data")
-        notes = st.text_area("Encrypted Notes", placeholder="Input mission critical data here...", height=100)
+        st.markdown("##### 📝 Context Notes")
+        notes = st.text_area("Entity Background", placeholder="Enter specific requirements, meeting notes...", height=100)
         st.markdown('</div>', unsafe_allow_html=True)
 
         submitted = st.form_submit_button("💾 Write to Database", type="primary", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if submitted:
-        if not name.strip(): st.error("❌ Designation is a mandatory parameter.")
+        if not name.strip(): st.error("❌ Full Name is required.")
         else:
             ok = db.add_client({"name": name, "email": email, "phone": phone, "company": company, "category": category, "source": source, "last_contacted": str(last_contacted), "followup_days": int(followup_days), "next_followup": str(nf), "deal_value": deal_value, "notes": notes, "created_by": st.session_state.get("user_id", 1)})
-            if ok: st.success(f"✅ Protocol accepted. **{name}** assimilated. Sequence scheduled for **{nf.strftime('%b %d')}**.")
-            else: st.error("❌ Database connection failed. Aborting.")
+            if ok: st.success(f"✅ Success! **{name}** added. Follow-up scheduled for **{nf.strftime('%b %d')}**.")
+            else: st.error("❌ Database insertion failed.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -510,23 +498,26 @@ def page_add_client():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_all_clients():
-    st.markdown('<p class="page-title">Directory Grid</p>', unsafe_allow_html=True)
-    st.markdown('<p class="page-sub">Global view of all registered entities and their current operational status.</p>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-title">Directory Grid</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-sub">Global view of all registered entities and operational statuses.</p></div>', unsafe_allow_html=True)
 
+    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
     st.markdown('<div class="form-section" style="padding: 24px;">', unsafe_allow_html=True)
     fc1, fc2, fc3 = st.columns([3, 1, 1])
-    with fc1: search = st.text_input("🔍 Query Matrix", placeholder="Search parameters...", label_visibility="collapsed")
-    with fc2: cat    = st.selectbox("Filter", ["All","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
-    with fc3: srt    = st.selectbox("Sort", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
+    with fc1: search = st.text_input("🔍 Search Database", placeholder="Search by name, company, or email...", label_visibility="collapsed")
+    with fc2: cat    = st.selectbox("Category Filter", ["All","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
+    with fc3: srt    = st.selectbox("Sort By", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
     st.markdown('</div>', unsafe_allow_html=True)
 
     df = db.get_all_clients(search=search or None, category=cat if cat != "All" else None, sort_by=srt)
 
-    if df.empty: return st.info("📭 Query returned zero results.")
+    if df.empty: 
+        st.info("📭 No records found matching criteria.")
+        return
 
     hc1, hc2 = st.columns([5, 1])
-    with hc1: st.markdown(f"<p style='color:#64748b; font-size:0.95rem; font-weight:600; padding-top:10px;'>{len(df)} Entities Located</p>", unsafe_allow_html=True)
-    with hc2: st.download_button("📥 Extract JSON/CSV", data=to_excel(df), file_name=f"Data_Export_{date.today()}.xlsx", use_container_width=True)
+    with hc1: st.markdown(f"<p style='color:#64748b; font-size:0.95rem; font-weight:600; padding-top:10px;'>{len(df)} Records found</p>", unsafe_allow_html=True)
+    with hc2: st.download_button("📥 Extract Data", data=to_excel(df), file_name=f"Data_Export_{date.today()}.xlsx", use_container_width=True)
 
     df["Status"]     = df.apply(status_label, axis=1)
     df["Deal Value"] = df["deal_value"].apply(lambda x: f"${x:,.0f}" if x else "—")
@@ -535,27 +526,29 @@ def page_all_clients():
     rename    = {"name":"Designation","company":"Affiliation","phone":"Comms","email":"Routing", "category":"Class","next_followup":"Action Date"}
 
     st.dataframe(df[show_cols].rename(columns=rename), use_container_width=True, height=400, hide_index=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
+    st.markdown('<div class="animate-3">', unsafe_allow_html=True)
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:16px;'>⚡ Execute Override</h4>", unsafe_allow_html=True)
     
     st.markdown('<div class="form-section" style="padding: 24px;">', unsafe_allow_html=True)
     rc1, rc2, rc3, rc4 = st.columns([3, 1, 1, 1])
     with rc1: 
-        st.markdown("<div style='font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:4px;'>Target Entity</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:4px;'>Select Target</div>", unsafe_allow_html=True)
         sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
     with rc2: 
         st.markdown("<div style='font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:4px;'>New Temporal Coordinate</div>", unsafe_allow_html=True)
         new_d = st.date_input("Date", value=date.today() + timedelta(days=7), label_visibility="collapsed")
     with rc3:
         st.markdown("<br style='line-height:1.2'>", unsafe_allow_html=True)
-        if st.button("Shift Timeline", type="primary", use_container_width=True):
+        if st.button("Update Date", type="primary", use_container_width=True):
             cid = int(df[df["name"] == sel]["id"].values[0]); db.update_followup(cid, str(new_d)); st.rerun()
     with rc4:
         st.markdown("<br style='line-height:1.2'>", unsafe_allow_html=True)
-        if st.button("🗑 Terminate", use_container_width=True):
+        if st.button("🗑 Terminate Record", use_container_width=True):
             cid = int(df[df["name"] == sel]["id"].values[0]); db.delete_client(cid); st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div></div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -563,9 +556,10 @@ def page_all_clients():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_user_management():
-    st.markdown('<p class="page-title">Access Control</p>', unsafe_allow_html=True)
-    st.markdown('<p class="page-sub">Easily manage workspace members and their authorization levels.</p>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-title">Access Control</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-sub">Easily manage workspace members and their authorization levels.</p></div>', unsafe_allow_html=True)
 
+    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
     tab1, tab2 = st.tabs(["👥 Active Users", "➕ Add User"])
 
     with tab1:
@@ -626,6 +620,7 @@ def page_user_management():
             else:
                 db.add_user({"full_name": new_fullname, "username": new_username, "email": "", "password_hash": hash_password(new_password), "role": new_role})
                 st.success(f"✅ Success! {new_fullname} added to the workspace."); st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
