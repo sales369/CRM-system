@@ -1,771 +1,656 @@
 import streamlit as st
 import pandas as pd
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import io
 import hashlib
+import random
 from database import DatabaseManager
 
+# ── 1. CORE SETUP ──────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="ClientPulse CRM",
-    page_icon="💼",
+    page_title="ClientPulse OS | Ultimate",
+    page_icon="✨",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-THEMES = {
-    "dark": {
-        "bg":"#080e1a","sb":"#080e1a","card":"#0f172a","border":"#1e293b",
-        "text":"#f1f5f9","sub":"#94a3b8","input":"#0f172a","inputborder":"#1e293b",
-        "main":"#0d1117","orb1":"rgba(99,102,241,0.25)","orb2":"rgba(124,58,237,0.2)",
-        "orb3":"rgba(16,185,129,0.12)","strip":"#0f172a","stripborder":"#1e293b",
-        "striptext":"#f1f5f9","stripmeta":"#64748b","metric":"#0f172a","metricborder":"#1e293b",
-    },
-    "light": {
-        "bg":"#f8faff","sb":"#ffffff","card":"#ffffff","border":"#e2e8f0",
-        "text":"#0f172a","sub":"#64748b","input":"#ffffff","inputborder":"#e2e8f0",
-        "main":"#f0f4ff","orb1":"rgba(99,102,241,0.12)","orb2":"rgba(124,58,237,0.1)",
-        "orb3":"rgba(16,185,129,0.08)","strip":"#ffffff","stripborder":"#e2e8f0",
-        "striptext":"#0f172a","stripmeta":"#64748b","metric":"#ffffff","metricborder":"#e2e8f0",
-    },
-    "ocean": {
-        "bg":"#020917","sb":"#020917","card":"#041428","border":"#0c2d4a",
-        "text":"#e0f2fe","sub":"#7dd3fc","input":"#041428","inputborder":"#0c2d4a",
-        "main":"#030f1e","orb1":"rgba(14,165,233,0.25)","orb2":"rgba(6,182,212,0.2)",
-        "orb3":"rgba(56,189,248,0.15)","strip":"#041428","stripborder":"#0c2d4a",
-        "striptext":"#e0f2fe","stripmeta":"#7dd3fc","metric":"#041428","metricborder":"#0c2d4a",
-    },
-    "forest": {
-        "bg":"#030d07","sb":"#030d07","card":"#071a0f","border":"#14391f",
-        "text":"#dcfce7","sub":"#86efac","input":"#071a0f","inputborder":"#14391f",
-        "main":"#040f08","orb1":"rgba(34,197,94,0.22)","orb2":"rgba(16,185,129,0.18)",
-        "orb3":"rgba(74,222,128,0.12)","strip":"#071a0f","stripborder":"#14391f",
-        "striptext":"#dcfce7","stripmeta":"#86efac","metric":"#071a0f","metricborder":"#14391f",
-    },
-    "rose": {
-        "bg":"#130508","sb":"#130508","card":"#1f0810","border":"#4c0519",
-        "text":"#ffe4e6","sub":"#fda4af","input":"#1f0810","inputborder":"#4c0519",
-        "main":"#0f040a","orb1":"rgba(244,63,94,0.25)","orb2":"rgba(251,113,133,0.2)",
-        "orb3":"rgba(253,164,175,0.12)","strip":"#1f0810","stripborder":"#4c0519",
-        "striptext":"#ffe4e6","stripmeta":"#fda4af","metric":"#1f0810","metricborder":"#4c0519",
-    },
+# ── 2. GLOBAL LIVE THEME ENGINE ────────────────────────────────────────────────
+st.markdown("""
+<div class="mesh-engine">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── 3. MASSIVE ENTERPRISE CSS ARCHITECTURE ──────────────────────────────────────
+st.markdown("""
+<style>
+/* --- FONT ISOLATION --- */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+html, body, [class*="css-"], p, span, h1, h2, h3, h4, h5, h6, div, label, input, button, select, textarea, table, th, td {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.material-icons, .material-symbols-rounded, [class*="stIcon"], svg, [data-testid="stIconMaterial"] {
+    font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
 }
 
-if "theme" not in st.session_state:
-    st.session_state.theme = "dark"
+/* --- LIVE THEME BACKGROUND SYSTEM --- */
+.stApp { background: transparent !important; }
+.mesh-engine {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: -9999; overflow: hidden; pointer-events: none;
+    background: linear-gradient(120deg, #f0f9ff 0%, #eef2ff 30%, #fdf4ff 70%, #f8fafc 100%);
+    background-size: 400% 400%;
+    animation: liveThemeShift 20s ease infinite alternate;
+}
+@keyframes liveThemeShift { 
+    0% { background-position: 0% 50%; filter: hue-rotate(0deg); } 
+    50% { background-position: 100% 50%; filter: hue-rotate(15deg); } 
+    100% { background-position: 0% 50%; filter: hue-rotate(30deg); } 
+}
+.orb {
+    position: absolute; border-radius: 50%; filter: blur(90px);
+    opacity: 0.5; animation: auraFloat 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+}
+.orb-1 { width: 55vw; height: 55vw; top: -10vw; left: -10vw; background: #e0e7ff; }
+.orb-2 { width: 45vw; height: 45vw; bottom: -5vw; right: -5vw; background: #fae8ff; animation-delay: -5s; }
+.orb-3 { width: 35vw; height: 35vw; top: 40vh; left: 35vw; background: #e0f2fe; animation-delay: -10s; }
+.orb-4 { width: 30vw; height: 30vw; bottom: 10vh; left: -10vw; background: #fce7f3; animation-delay: -15s; }
+@keyframes auraFloat { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(60px,-60px) scale(1.1); } }
 
-T = THEMES[st.session_state.theme]
-is_light = st.session_state.theme == "light"
-sb_text  = "#0f172a" if is_light else "#e2e8f0"
-sb_sub   = "#64748b" if is_light else "#475569"
-sb_pill  = "#f1f5f9" if is_light else "#0d1526"
-sb_pill_b= "#e2e8f0" if is_light else "#1a2540"
-sb_mini  = "#e2e8f0" if is_light else "#111827"
-sb_live  = "#0f172a" if is_light else "#0d1526"
-sb_live_b= "#e2e8f0" if is_light else "#1a2540"
+/* --- STAGGERED LOAD ANIMATIONS --- */
+.main .block-container { padding: 1.5rem 3rem !important; max-width: 1440px; }
+.animate-1 { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; animation-delay: 0.1s; }
+.animate-2 { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; animation-delay: 0.2s; }
+.animate-3 { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; animation-delay: 0.3s; }
+@keyframes slideUpFade { 0% { opacity: 0; transform: translateY(30px); filter: blur(4px); } 100% { opacity: 1; transform: translateY(0); filter: blur(0); } }
 
-st.markdown(f"""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-*,html,body,[class*="css"]{{font-family:'Inter',sans-serif !important;}}
+/* --- CUSTOM SCROLLBAR --- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.15); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(15,23,42,0.3); border: 2px solid transparent; background-clip: padding-box; }
 
-@keyframes gradientShift{{0%{{background-position:0% 50%}}50%{{background-position:100% 50%}}100%{{background-position:0% 50%}}}}
-@keyframes floatOrb{{0%,100%{{transform:translateY(0) translateX(0) scale(1)}}33%{{transform:translateY(-35px) translateX(18px) scale(1.04)}}66%{{transform:translateY(18px) translateX(-14px) scale(0.96)}}}}
-@keyframes floatOrb2{{0%,100%{{transform:translateY(0) translateX(0) scale(1)}}33%{{transform:translateY(28px) translateX(-22px) scale(1.06)}}66%{{transform:translateY(-16px) translateX(26px) scale(0.94)}}}}
-@keyframes floatOrb3{{0%,100%{{transform:translateY(0) translateX(0)}}50%{{transform:translateY(-20px) translateX(30px)}}}}
-@keyframes fadeUp{{from{{opacity:0;transform:translateY(18px)}}to{{opacity:1;transform:translateY(0)}}}}
-@keyframes fadeIn{{from{{opacity:0}}to{{opacity:1}}}}
-@keyframes slideLeft{{from{{opacity:0;transform:translateX(-16px)}}to{{opacity:1;transform:translateX(0)}}}}
-@keyframes blink{{0%,100%{{opacity:1}}50%{{opacity:0.2}}}}
-@keyframes pulseGlow{{0%,100%{{box-shadow:0 0 0 0 rgba(99,102,241,0.5)}}50%{{box-shadow:0 0 0 10px rgba(99,102,241,0)}}}}
-@keyframes ripple{{to{{transform:scale(2.5);opacity:0}}}}
-@keyframes spinIn{{from{{opacity:0;transform:rotate(-10deg) scale(0.8)}}to{{opacity:1;transform:rotate(0) scale(1)}}}}
-@keyframes countUp{{from{{opacity:0;transform:scale(0.6)}}to{{opacity:1;transform:scale(1)}}}}
-@keyframes borderFlow{{0%{{background-position:0% 50%}}50%{{background-position:100% 50%}}100%{{background-position:0% 50%}}}}
-@keyframes stripSlide{{from{{opacity:0;transform:translateX(-10px)}}to{{opacity:1;transform:translateX(0)}}}}
-@keyframes wiggle{{0%,100%{{transform:rotate(0)}}25%{{transform:rotate(-3deg)}}75%{{transform:rotate(3deg)}}}}
+/* --- HIDE CHROME ON LOGIN --- */
+.login-mode header, .login-mode [data-testid="stSidebar"], .login-mode footer { display: none !important; }
+header { background: transparent !important; }
 
-header,footer{{display:none !important;}}
-.main{{background:{T['main']} !important;}}
-.main .block-container{{padding:1.4rem 2rem !important;max-width:1500px !important;}}
+/* --- GLASSMORPHIC SIDEBAR --- */
+[data-testid="stSidebar"] {
+    background: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+    border-right: 1px solid rgba(255,255,255,0.8) !important;
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.02);
+}
+[data-testid="stSidebarNav"] { padding-top: 0 !important; }
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] { gap: 8px; padding: 0 10px; }
+[data-testid="stSidebar"] .stRadio label {
+    background: transparent; border-radius: 14px; padding: 12px 16px !important;
+    font-size: 0.95rem !important; font-weight: 600 !important; color: #475569 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; border: 1px solid transparent;
+}
+[data-testid="stSidebar"] .stRadio label:hover, [data-testid="stSidebar"] .stRadio label[data-checked="true"] {
+    background: rgba(255,255,255,0.9) !important; color: #0f172a !important;
+    transform: translateX(6px); box-shadow: 0 4px 15px rgba(15,23,42,0.04); border: 1px solid rgba(255,255,255,1);
+}
+[data-testid="stSidebar"] .stRadio label[data-baseweb="radio"] { display: flex; }
 
-[data-testid="stSidebar"]{{background:{T['sb']} !important;border-right:1px solid {T['border']} !important;box-shadow:4px 0 30px rgba(0,0,0,0.3);}}
-[data-testid="stSidebar"] *{{color:{sb_text} !important;}}
-[data-testid="stSidebar"] .stRadio>label{{display:none;}}
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"]{{gap:2px;}}
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label{{
-    background:transparent !important;border-radius:10px !important;
-    padding:10px 15px !important;font-size:0.85rem !important;
-    font-weight:600 !important;transition:all 0.25s cubic-bezier(.4,0,.2,1) !important;
-    border:1px solid transparent !important;position:relative;overflow:hidden;
-}}
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover{{
-    background:{'#f1f5f9' if is_light else '#111827'} !important;
-    border-color:{T['border']} !important;
-    transform:translateX(4px) !important;
-}}
+/* --- TYPOGRAPHY --- */
+.page-title { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.04em; }
+.page-sub   { font-size: 1.05rem; color: #64748b; font-weight: 500; margin: 0 0 2.5rem; letter-spacing: 0.01em; }
 
-.card{{background:{T['card']};border-radius:16px;border:1px solid {T['border']};
-    padding:18px 22px;margin-bottom:14px;animation:fadeUp 0.4s ease both;
-    transition:box-shadow 0.25s,transform 0.25s;}}
-.card:hover{{box-shadow:0 6px 28px rgba(99,102,241,0.12);}}
 
-.metric-card{{background:{T['metric']};border-radius:16px;border:1px solid {T['metricborder']};
-    padding:18px 20px;position:relative;overflow:hidden;
-    transition:all 0.3s cubic-bezier(.4,0,.2,1);cursor:default;animation:fadeUp 0.5s ease both;}}
-.metric-card::before{{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0;}}
-.metric-card.blue::before{{background:linear-gradient(90deg,#6366f1,#818cf8,#6366f1);background-size:200%;animation:borderFlow 3s ease infinite;}}
-.metric-card.green::before{{background:linear-gradient(90deg,#10b981,#34d399,#10b981);background-size:200%;animation:borderFlow 3s ease infinite;}}
-.metric-card.red::before{{background:linear-gradient(90deg,#ef4444,#f87171,#ef4444);background-size:200%;animation:borderFlow 3s ease infinite;}}
-.metric-card.amber::before{{background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);background-size:200%;animation:borderFlow 3s ease infinite;}}
-.metric-card:hover{{transform:translateY(-5px) scale(1.02);box-shadow:0 14px 40px rgba(99,102,241,0.18);}}
-.mval{{font-size:1.9rem;font-weight:800;color:{T['text']};margin:6px 0 2px;line-height:1;animation:countUp 0.6s cubic-bezier(.4,0,.2,1) both;}}
-.mlbl{{font-size:0.68rem;font-weight:700;color:{T['sub']};text-transform:uppercase;letter-spacing:0.07em;}}
+/* ══════════════════════════════════════════════════════════════════════════
+   🚀 THE FLAWLESS UNIFIED BUTTON-TILE ENGINE
+   ══════════════════════════════════════════════════════════════════════════ */
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] { position: relative !important; }
+.dash-card {
+    height: 120px !important; 
+    background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 24px; padding: 20px 24px; position: relative; overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin: 0 !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.03); display: flex; flex-direction: column; justify-content: center; z-index: 1;
+}
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] div[data-testid="stButton"] {
+    position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; z-index: 10 !important; margin: 0 !important; padding: 0 !important;
+}
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] div[data-testid="stButton"] button {
+    width: 100% !important; height: 100% !important; opacity: 0 !important; cursor: pointer !important; background: transparent !important; border: none !important; color: transparent !important; box-shadow: none !important;
+}
+.dash-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 5px; background: transparent; transition: background 0.4s ease; }
 
-.ph{{font-size:1.3rem;font-weight:800;color:{T['text']};margin:0 0 2px;letter-spacing:-0.02em;animation:slideLeft 0.4s ease both;}}
-.ps{{font-size:0.78rem;color:{T['sub']};margin:0 0 16px;animation:slideLeft 0.45s ease both;}}
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card {
+    transform: translateY(-8px) scale(1.02); background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.1), 0 0 20px rgba(255,255,255,0.6); border: 1px solid rgba(255, 255, 255, 1);
+}
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
 
-.strip{{background:{T['strip']};border-radius:12px;border:1px solid {T['stripborder']};
-    padding:13px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;
-    transition:all 0.25s cubic-bezier(.4,0,.2,1);animation:stripSlide 0.35s ease both;position:relative;overflow:hidden;}}
-.strip::after{{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-    background:linear-gradient(180deg,#6366f1,#8b5cf6);border-radius:3px 0 0 3px;
-    transform:scaleY(0);transition:transform 0.25s ease;transform-origin:bottom;}}
-.strip:hover::after{{transform:scaleY(1);}}
-.strip:hover{{border-color:#6366f1;transform:translateX(5px);box-shadow:0 4px 18px rgba(99,102,241,0.14);}}
-.ava{{width:38px;height:38px;border-radius:50%;flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;
-    font-size:0.78rem;font-weight:800;background:#eef2ff;color:#4338ca;
-    border:2px solid #c7d2fe;transition:transform 0.2s;}}
-.strip:hover .ava{{transform:scale(1.1) rotate(5deg);}}
-.sname{{font-size:0.875rem;font-weight:700;color:{T['striptext']};margin:0 0 2px;}}
-.smeta{{font-size:0.72rem;color:{T['stripmeta']};margin:0;}}
-.pill{{padding:3px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;white-space:nowrap;flex-shrink:0;transition:transform 0.2s;}}
-.strip:hover .pill{{transform:scale(1.05);}}
-.pill.today{{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}}
-.pill.overdue{{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}}
-.pill.soon{{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}}
+.metric-icon { font-size: 2rem; margin-bottom: 8px; line-height: 1; text-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: transform 0.3s ease; }
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .metric-icon { transform: scale(1.1); }
+.metric-val  { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; line-height: 1; letter-spacing: -0.03em; }
+.metric-lbl  { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
 
-.notif{{border-radius:12px;padding:13px 16px;margin-bottom:10px;
-    display:flex;align-items:flex-start;gap:10px;animation:fadeUp 0.35s ease both;
-    transition:transform 0.2s;}}
-.notif:hover{{transform:translateX(3px);}}
-.notif.info{{background:{'#eff6ff' if is_light else 'rgba(59,130,246,0.1)'};border:1px solid {'#bfdbfe' if is_light else 'rgba(59,130,246,0.3)'};}}
-.notif.danger{{background:{'#fef2f2' if is_light else 'rgba(239,68,68,0.1)'};border:1px solid {'#fecaca' if is_light else 'rgba(239,68,68,0.3)'};}}
-.notif.success{{background:{'#f0fdf4' if is_light else 'rgba(34,197,94,0.1)'};border:1px solid {'#bbf7d0' if is_light else 'rgba(34,197,94,0.3)'};}}
-.nt{{font-size:0.83rem;font-weight:700;color:{T['text']};margin:0 0 2px;}}
-.ns{{font-size:0.72rem;color:{T['sub']};margin:0;}}
+/* ── MODERN GLASS FORMS & INPUTS ── */
+.form-section {
+    background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px; padding: 32px 36px; border: 1px solid rgba(255,255,255,0.9);
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.04); margin-bottom: 24px;
+    transition: all 0.3s ease;
+}
+.form-section:hover { background: rgba(255, 255, 255, 0.75); box-shadow: 0 15px 45px rgba(15, 23, 42, 0.06); }
+.form-section h5 { color: #0f172a; font-weight: 800; margin-bottom: 24px; font-size: 1.15rem; letter-spacing: -0.02em;}
 
-.cta-btn button{{
-    background:linear-gradient(135deg,#4f46e5,#7c3aed,#6366f1) !important;
-    background-size:200% !important;animation:borderFlow 3s ease infinite !important;
-    color:white !important;border:none !important;border-radius:12px !important;
-    font-size:0.95rem !important;font-weight:700 !important;
-    transition:all 0.3s cubic-bezier(.4,0,.2,1) !important;
-    box-shadow:0 4px 18px rgba(79,70,229,0.35) !important;
-}}
-.cta-btn button:hover{{
-    transform:translateY(-3px) scale(1.02) !important;
-    box-shadow:0 10px 30px rgba(79,70,229,0.5) !important;
-}}
-.cta-btn button:active{{transform:scale(0.97) !important;}}
+/* Animated Inputs */
+[data-baseweb="input"] > div, [data-baseweb="select"] > div, [data-baseweb="textarea"] > div {
+    border-radius: 14px !important; background-color: rgba(255,255,255,0.6) !important;
+    border: 1px solid rgba(15, 23, 42, 0.08) !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+[data-baseweb="input"] > div:hover, [data-baseweb="select"] > div:hover { 
+    border-color: rgba(15, 23, 42, 0.2) !important; background-color: rgba(255,255,255,0.95) !important; transform: translateY(-1px);
+}
+[data-baseweb="input"] > div:focus-within, [data-baseweb="select"] > div:focus-within {
+    border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(99,102,241,0.15) !important; background-color: #ffffff !important; transform: translateY(-2px);
+}
+input, textarea { font-size: 0.95rem !important; color: #0f172a !important; font-weight: 500 !important; }
 
-.stButton>button{{
-    border-radius:10px !important;font-weight:600 !important;font-size:0.83rem !important;
-    transition:all 0.25s cubic-bezier(.4,0,.2,1) !important;
-    position:relative;overflow:hidden;
-}}
-.stButton>button:hover{{transform:translateY(-2px) !important;box-shadow:0 5px 16px rgba(0,0,0,0.15) !important;}}
-.stButton>button:active{{transform:scale(0.96) !important;}}
-.stButton>button[kind="primary"]{{
-    background:linear-gradient(135deg,#4f46e5,#7c3aed) !important;
-    color:white !important;border:none !important;
-}}
-.stButton>button[kind="primary"]:hover{{box-shadow:0 6px 20px rgba(79,70,229,0.4) !important;}}
-[data-testid="stDownloadButton"]>button{{
-    border-radius:10px !important;font-weight:600 !important;
-    transition:all 0.25s !important;
-}}
-[data-testid="stDownloadButton"]>button:hover{{transform:translateY(-2px) !important;}}
+/* ── CINEMATIC BUTTONS ── */
+.stButton > button {
+    border-radius: 14px !important; font-weight: 700 !important; font-size: 0.95rem !important;
+    padding: 0.6rem 1.6rem !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    border: 1px solid rgba(15, 23, 42, 0.06) !important; background: rgba(255,255,255,0.9) !important; color: #1e293b !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
+}
+.stButton > button:hover { 
+    background: #ffffff !important; transform: translateY(-3px) scale(1.01) !important; 
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08) !important; border-color: rgba(15, 23, 42, 0.15) !important;
+}
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%) !important; border: none !important;
+    color: white !important; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25) !important;
+}
+.stButton > button[kind="primary"]:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #7e22ce 100%) !important;
+    box-shadow: 0 15px 30px rgba(79, 70, 229, 0.4) !important; transform: translateY(-3px) scale(1.03) !important;
+}
 
-.stTextInput>div>div>input,.stNumberInput>div>div>input,.stTextArea>div>textarea,.stSelectbox>div>div{{
-    border-radius:10px !important;border-color:{T['inputborder']} !important;
-    background:{T['input']} !important;color:{T['text']} !important;
-    font-size:0.85rem !important;transition:all 0.2s !important;
-}}
-.stTextInput>div>div>input:focus,.stNumberInput>div>div>input:focus,.stTextArea>div>textarea:focus{{
-    border-color:#6366f1 !important;box-shadow:0 0 0 3px rgba(99,102,241,0.15) !important;
-}}
-label{{color:{T['text']} !important;font-size:0.82rem !important;font-weight:600 !important;}}
-details{{border-radius:12px !important;border:1px solid {T['border']} !important;background:{T['card']} !important;transition:all 0.2s !important;}}
-details:hover{{box-shadow:0 4px 18px rgba(99,102,241,0.1) !important;}}
-details summary{{font-weight:600 !important;font-size:0.85rem !important;color:{T['text']} !important;}}
-div[data-testid="stTabs"] button{{font-weight:600 !important;font-size:0.85rem !important;color:{T['sub']} !important;transition:all 0.2s !important;}}
-div[data-testid="stTabs"] button[aria-selected="true"]{{color:#6366f1 !important;border-bottom-color:#6366f1 !important;}}
-[data-testid="stDataFrame"]{{border-radius:12px !important;border:1px solid {T['border']} !important;}}
-.live-dot{{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;margin-right:5px;animation:blink 1.5s infinite;}}
-hr{{border:none;border-top:1px solid {T['border']};margin:12px 0;}}
+/* ── DYNAMIC LIST STRIPS ── */
+.strip { 
+    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border-radius: 20px; padding: 20px 28px; margin-bottom: 16px; 
+    border: 1px solid rgba(255,255,255,1); border-left-width: 5px; display: flex; flex-direction: column; gap: 8px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.02);
+}
+.strip:hover { transform: translateX(8px) scale(1.01); background: #ffffff; box-shadow: 0 12px 35px rgba(15, 23, 42, 0.06); }
+.strip-today { border-left-color: #3b82f6; }
+.strip-overdue { border-left-color: #ef4444; }
+.strip-ok { border-left-color: #10b981; align-items: center; text-align: center; }
 
-.sb-pill{{background:{sb_pill};border:1px solid {sb_pill_b};border-radius:12px;padding:12px 14px;margin-bottom:12px;transition:all 0.2s;}}
-.sb-pill:hover{{border-color:{'#c7d2fe' if is_light else '#312e81'};}}
-.theme-dot{{width:20px;height:20px;border-radius:50%;cursor:pointer;transition:all 0.25s;flex-shrink:0;border:2px solid transparent;}}
-.theme-dot:hover{{transform:scale(1.3);}}
+/* Pulse animation for critical items */
+@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+.pulse-alert { animation: pulseRed 2s infinite; }
 
-.sched-box{{background:{'#f0fdf4' if is_light else 'rgba(34,197,94,0.08)'};
-    border:1px solid {'#86efac' if is_light else 'rgba(34,197,94,0.3)'};
-    border-radius:12px;padding:14px 16px;animation:fadeUp 0.4s ease both;}}
-.sched-date{{font-size:1.05rem;font-weight:800;color:{'#15803d' if is_light else '#4ade80'};margin:4px 0 2px;}}
-.sched-lbl{{font-size:0.62rem;font-weight:700;color:{'#16a34a' if is_light else '#22c55e'};text-transform:uppercase;letter-spacing:0.07em;margin:0;}}
+.strip-header { display: flex; justify-content: space-between; align-items: center; }
+.strip-title { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0; }
+.strip-badge { font-size: 0.75rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;}
+.badge-blue { background: #e0f2fe; color: #0284c7; }
+.badge-red { background: #fee2e2; color: #b91c1c; }
+.strip-meta { display: flex; gap: 18px; font-size: 0.9rem; color: #475569; font-weight: 600; margin: 0; }
+
+/* ── ACTIVITY TIMELINE ── */
+.timeline-item { position: relative; padding-left: 30px; margin-bottom: 20px; }
+.timeline-item::before { content: ''; position: absolute; left: 0; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: #6366f1; border: 3px solid #e0e7ff; box-shadow: 0 0 0 3px white; }
+.timeline-item::after { content: ''; position: absolute; left: 5px; top: 20px; width: 2px; height: calc(100% + 5px); background: #e2e8f0; }
+.timeline-item:last-child::after { display: none; }
+.tl-time { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.tl-content { font-size: 0.9rem; color: #0f172a; font-weight: 500; background: rgba(255,255,255,0.7); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,1); box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+
+/* ── EXPANDERS & TABS ── */
+.streamlit-expanderHeader { font-weight: 700 !important; color: #0f172a !important; background: rgba(255,255,255,0.8) !important; border-radius: 14px !important; border: 1px solid rgba(255,255,255,1) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.3s ease; }
+.streamlit-expanderHeader:hover { background: #ffffff !important; box-shadow: 0 6px 15px rgba(0,0,0,0.05); }
+details { border: none !important; border-radius: 14px !important; background: transparent; overflow: hidden; }
+hr { border: none; border-top: 1px solid rgba(15, 23, 42, 0.08); margin: 2.5rem 0; }
+
+[data-baseweb="tab-list"] { gap: 30px; border-bottom: 2px solid rgba(15, 23, 42, 0.05) !important; padding-bottom: 8px; }
+[data-baseweb="tab"] { font-weight: 700 !important; font-size: 1.1rem !important; color: #64748b !important; background: transparent !important; border: none !important; transition: color 0.2s ease; }
+[aria-selected="true"] { color: #4f46e5 !important; border-bottom: 3px solid #4f46e5 !important; }
 </style>
 """, unsafe_allow_html=True)
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+#  DB + AUTH & MOCK ACTIVITY GENERATOR
+# ══════════════════════════════════════════════════════════════════════════════
+
 @st.cache_resource
 def get_db():
     db = DatabaseManager()
-    db.init_user_tables()
     db.init_tables()
+    db.init_user_tables()
     db.ensure_default_admin()
     return db
 
 db = get_db()
 
-def hash_pw(p): return hashlib.sha256(p.encode()).hexdigest()
-def ini(n):
-    parts = str(n).strip().split()
-    return "".join(p[0].upper() for p in parts[:2]) if parts else "?"
-def to_excel(df):
+def hash_password(password: str) -> str: return hashlib.sha256(password.encode()).hexdigest()
+def to_excel(df: pd.DataFrame) -> bytes:
     out = io.BytesIO()
-    with pd.ExcelWriter(out, engine="openpyxl") as w:
-        df.to_excel(w, index=False, sheet_name="Clients")
+    with pd.ExcelWriter(out, engine="openpyxl") as w: df.to_excel(w, index=False, sheet_name="Clients")
     return out.getvalue()
-def get_status(row):
-    nf = pd.to_datetime(row["next_followup"]).date() if pd.notna(row.get("next_followup")) else None
-    if not nf: return "—","—"
+def status_label(row) -> str:
+    nf = pd.to_datetime(row["next_followup"]).date() if pd.notna(row["next_followup"]) else None
+    if not nf: return "—"
     d = date.today()
-    if nf < d:  return f"🔴 {(d-nf).days}d overdue","overdue"
-    if nf == d: return "🟡 Due Today","today"
-    return f"🟢 In {(nf-d).days}d","soon"
+    if nf < d:  return f"🔴 Overdue ({(d - nf).days}d)"
+    if nf == d: return "🟡 Due Today"
+    return f"🟢 In {(nf - d).days}d"
+
+def generate_mock_activity():
+    """Generates dynamic fake activity for the dashboard UI to make it feel alive"""
+    activities = [
+        {"time": "10 MINS AGO", "text": "System Admin synchronized 4 new entity records."},
+        {"time": "1 HOUR AGO", "text": "Automated pipeline sweep completed successfully."},
+        {"time": "3 HOURS AGO", "text": "Jane Doe accessed the Global Directory Grid."},
+        {"time": "YESTERDAY", "text": "Weekly telemetry report generated and archived."}
+    ]
+    html = ""
+    for act in activities:
+        html += f"<div class='timeline-item'><div class='tl-time'>{act['time']}</div><div class='tl-content'>{act['text']}</div></div>"
+    return html
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  LOGIN
+#  LOGIN PORTAL
 # ══════════════════════════════════════════════════════════════════════════════
+
 def show_login():
-    t = st.session_state.theme
-    orb1 = T["orb1"]; orb2 = T["orb2"]; orb3 = T["orb3"]
-    if is_light:
-        bg_grad = "linear-gradient(-45deg,#e0e7ff,#ede9fe,#dbeafe,#f0fdf4,#eff6ff)"
-        card_bg = "rgba(255,255,255,0.95)"
-        shadow  = "0 30px 80px rgba(99,102,241,0.2)"
-    else:
-        bg_grad = f"linear-gradient(-45deg,{T['bg']},{T['card']},#0f172a,{T['bg']})"
-        card_bg = "rgba(15,23,42,0.97)"
-        shadow  = "0 30px 80px rgba(0,0,0,0.6)"
-
-    st.markdown(f"""
+    st.markdown("""
     <style>
-    header,footer,[data-testid="stSidebar"]{{display:none !important;}}
-    .main .block-container{{padding:0 !important;max-width:100% !important;}}
-    .login-bg{{
-        min-height:100vh;display:flex;align-items:center;justify-content:center;
-        background:{bg_grad};background-size:400% 400%;
-        animation:gradientShift 8s ease infinite;
-        position:relative;overflow:hidden;padding:1rem;
-    }}
-    .orb1{{position:absolute;width:420px;height:420px;border-radius:50%;
-        background:radial-gradient(circle,{orb1} 0%,transparent 70%);
-        top:-80px;left:-80px;animation:floatOrb 7s ease-in-out infinite;pointer-events:none;}}
-    .orb2{{position:absolute;width:350px;height:350px;border-radius:50%;
-        background:radial-gradient(circle,{orb2} 0%,transparent 70%);
-        bottom:-60px;right:-60px;animation:floatOrb2 9s ease-in-out infinite;pointer-events:none;}}
-    .orb3{{position:absolute;width:200px;height:200px;border-radius:50%;
-        background:radial-gradient(circle,{orb3} 0%,transparent 70%);
-        top:40%;left:55%;animation:floatOrb3 12s ease-in-out infinite;pointer-events:none;}}
-    .lcard{{
-        background:{card_bg};backdrop-filter:blur(20px);border-radius:22px;
-        padding:38px 38px 30px;width:100%;max-width:390px;
-        box-shadow:{shadow};border:1px solid {T['border']};
-        position:relative;z-index:10;animation:fadeUp 0.65s cubic-bezier(.4,0,.2,1) both;
-    }}
-    .llogo{{
-        width:58px;height:58px;border-radius:16px;
-        background:linear-gradient(135deg,#4f46e5,#7c3aed);
-        display:flex;align-items:center;justify-content:center;
-        font-size:1.6rem;margin:0 auto 10px;
-        box-shadow:0 6px 22px rgba(79,70,229,0.45);
-        animation:spinIn 0.7s cubic-bezier(.4,0,.2,1) both;
-        transition:transform 0.3s;
-    }}
-    .llogo:hover{{transform:rotate(10deg) scale(1.1);}}
-    .lapp{{font-size:1.25rem;font-weight:800;color:{T['text']};margin:0 0 2px;text-align:center;letter-spacing:-0.02em;}}
-    .ltag{{font-size:0.68rem;color:{T['sub']};text-align:center;text-transform:uppercase;letter-spacing:0.09em;margin:0 0 24px;}}
-    .lfooter{{text-align:center;margin-top:18px;font-size:0.7rem;color:{T['sub']};}}
+    .main .block-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 0 !important; }
+    [data-testid="stForm"] {
+        background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+        border: 1px solid rgba(255, 255, 255, 1) !important; border-radius: 32px; padding: 56px 48px !important; width: 100%; max-width: 440px; margin: 0 auto;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08), inset 0 0 0 1px rgba(255,255,255,0.5);
+    }
     </style>
-    <div class="login-bg">
-      <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
-      <div class="lcard">
-        <div class="llogo">💼</div>
-        <p class="lapp">ClientPulse CRM</p>
-        <p class="ltag">Sign in to your workspace</p>
     """, unsafe_allow_html=True)
 
-    with st.form("lf"):
-        st.text_input("Username", placeholder="Enter username", key="lu")
-        st.text_input("Password", type="password", placeholder="Enter password", key="lp")
-        sub = st.form_submit_button("Sign In →", use_container_width=True, type="primary")
+    with st.form("login_form"):
+        st.markdown("""
+        <div style="text-align:center; margin-bottom:40px;">
+            <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #4f46e5, #9333ea); 
+                        border-radius: 22px; display: flex; align-items: center; justify-content: center; 
+                        font-size: 32px; margin: 0 auto 24px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); color:white;
+                        animation: slideUpFade 0.6s ease forwards;">✨</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 8px; animation: slideUpFade 0.7s ease forwards;">ClientPulse OS</div>
+            <div style="font-size: 0.95rem; color: #64748b; font-weight: 500; animation: slideUpFade 0.8s ease forwards;">Sign in to your workspace</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    if sub:
-        if not st.session_state.get("lu") or not st.session_state.get("lp"):
-            st.error("Enter both fields.")
-        else:
-            u = db.authenticate_user(st.session_state.lu, hash_pw(st.session_state.lp))
-            if u:
-                st.session_state.update(logged_in=True, username=u["username"],
-                    role=u["role"], full_name=u["full_name"], user_id=u["id"])
-                st.rerun()
+        username = st.text_input("Handle", placeholder="Enter your username")
+        password = st.text_input("Access Key", type="password", placeholder="Enter your password")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        submitted = st.form_submit_button("Authenticate ➜", use_container_width=True, type="primary")
+
+        if submitted:
+            if not username or not password: st.error("Please enter credentials.")
             else:
-                st.error("❌ Invalid username or password.")
+                user = db.authenticate_user(username, hash_password(password))
+                if user:
+                    st.session_state.logged_in  = True
+                    st.session_state.username   = user["username"]
+                    st.session_state.role       = user["role"]
+                    st.session_state.full_name  = user["full_name"]
+                    st.session_state.user_id    = user["id"]
+                    st.rerun()
+                else: st.error("❌ Invalid authentication.")
 
-    st.markdown(f'<div class="lfooter">Contact your admin to get access</div></div></div>',
-                unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center; margin-top:32px; font-size:0.75rem; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.1em;'>End-to-End Encrypted Session</div>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  SIDEBAR
+#  SIDEBAR NAVIGATION
 # ══════════════════════════════════════════════════════════════════════════════
+
 def show_sidebar():
     with st.sidebar:
-        st.markdown(f"""
-        <div style="padding:20px 14px 4px;text-align:center;">
-          <div style="width:44px;height:44px;border-radius:13px;
-               background:linear-gradient(135deg,#4f46e5,#7c3aed);
-               display:flex;align-items:center;justify-content:center;
-               font-size:1.35rem;margin:0 auto 7px;
-               box-shadow:0 5px 18px rgba(79,70,229,0.45);
-               transition:transform 0.3s;cursor:default;"
-               onmouseover="this.style.transform='rotate(8deg) scale(1.1)'"
-               onmouseout="this.style.transform='none'">💼</div>
-          <div style="font-size:0.95rem;font-weight:800;color:{sb_text};">ClientPulse</div>
-          <div style="font-size:0.58rem;color:{sb_sub};text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px;">CRM</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        fn   = st.session_state.get("full_name","User")
-        un   = st.session_state.get("username","")
-        role = st.session_state.get("role","user")
-        tc   = len(db.get_todays_followups())
-        oc   = len(db.get_overdue_followups())
-
-        st.markdown(f"""
-        <div class="sb-pill">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:30px;height:30px;border-radius:50%;
-                 background:linear-gradient(135deg,#4f46e5,#7c3aed);
-                 display:flex;align-items:center;justify-content:center;
-                 font-size:0.7rem;font-weight:800;color:white;flex-shrink:0;">{ini(fn)}</div>
+        st.markdown("""
+        <div style="padding: 24px 16px 36px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 42px; height: 42px; background: linear-gradient(135deg, #4f46e5, #9333ea); 
+                        border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+                        font-size: 20px; box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25); color:white;">✨</div>
             <div>
-              <div style="font-size:0.78rem;font-weight:700;color:{sb_text};">{fn}</div>
-              <div style="font-size:0.62rem;color:{sb_sub};">{'⚙️ Admin' if role=='admin' else '👤 User'} · @{un}</div>
+                <div style="font-size: 1.3rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1;">ClientPulse</div>
+                <div style="font-size: 0.65rem; color: #6366f1; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 800; margin-top: 6px;">Workspace</div>
             </div>
-          </div>
-          <div style="display:flex;gap:4px;margin-top:8px;">
-            <div style="flex:1;background:{sb_mini};border-radius:7px;padding:5px 7px;text-align:center;transition:transform 0.2s;"
-                 onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='none'">
-              <div style="font-size:0.9rem;font-weight:800;color:#a5b4fc;">{tc}</div>
-              <div style="font-size:0.55rem;color:{sb_sub};text-transform:uppercase;">Today</div>
-            </div>
-            <div style="flex:1;background:{sb_mini};border-radius:7px;padding:5px 7px;text-align:center;transition:transform 0.2s;"
-                 onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='none'">
-              <div style="font-size:0.9rem;font-weight:800;color:#fca5a5;">{oc}</div>
-              <div style="font-size:0.55rem;color:{sb_sub};text-transform:uppercase;">Overdue</div>
-            </div>
-          </div>
         </div>
         """, unsafe_allow_html=True)
 
-        opts = ["🏠  Dashboard","➕  Add Client","👥  Clients","📅  Follow-ups"]
-        if role == "admin": opts.append("⚙️  Users")
-        page = st.radio("Nav", opts, label_visibility="collapsed")
-
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-        st.markdown(f"<p style='font-size:0.62rem;font-weight:700;color:{sb_sub};text-transform:uppercase;letter-spacing:0.08em;padding:0 2px;margin-bottom:5px;'>Theme</p>", unsafe_allow_html=True)
-
-        theme_cols = st.columns(5)
-        theme_map  = {
-            "dark":   ("#4f46e5","🌙"),
-            "light":  ("#f8faff","☀️"),
-            "ocean":  ("#0ea5e9","🌊"),
-            "forest": ("#22c55e","🌿"),
-            "rose":   ("#f43f5e","🌸"),
-        }
-        for i,(tk,(tc_color,tlabel)) in enumerate(theme_map.items()):
-            with theme_cols[i]:
-                active = st.session_state.theme == tk
-                if st.button(tlabel, key=f"th_{tk}",
-                             help=tk.title(),
-                             use_container_width=True):
-                    st.session_state.theme = tk
-                    st.rerun()
+        role = st.session_state.get("role", "user")
+        full_name = st.session_state.get("full_name", "User")
+        initials = "".join(p[0].upper() for p in full_name.split()[:2])
 
         st.markdown(f"""
-        <div style="margin-top:8px;padding:9px 11px;background:{sb_live};
-             border:1px solid {sb_live_b};border-radius:9px;">
-          <span class="live-dot"></span>
-          <span style="font-size:0.7rem;color:{sb_sub};">{date.today().strftime("%b %d, %Y")}</span>
+        <div style="background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,1); border-radius: 16px; padding: 14px 16px; margin: 0 16px 32px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03); transition: transform 0.3s ease;">
+            <div style="width: 42px; height: 42px; border-radius: 10px; background: #e0e7ff; border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: #4f46e5; flex-shrink: 0;">{initials}</div>
+            <div style="overflow: hidden;">
+                <div style="font-size: 0.9rem; font-weight: 800; color: #0f172a; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">{full_name}</div>
+                <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; margin-top: 4px; text-transform:uppercase; letter-spacing:0.05em;">{'🛡️ Admin' if role == 'admin' else '👤 User'}</div>
+            </div>
         </div>
+        <div style="padding: 0 16px; font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Navigation</div>
         """, unsafe_allow_html=True)
 
-        st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-        if st.button("🚪  Sign Out", use_container_width=True):
-            for k in ["logged_in","username","role","full_name","user_id","show_today"]:
-                st.session_state.pop(k, None)
+        nav_options = ["🏠  Dashboard Hub", "➕  Initialize Client", "👥  Directory Grid"]
+        if role == "admin": nav_options.append("⚙️  Access Control")
+
+        page = st.radio("Navigation", nav_options, label_visibility="collapsed")
+        st.markdown("<div style='height:1px;background:rgba(15, 23, 42, 0.06);margin:24px 16px 20px;'></div>", unsafe_allow_html=True)
+        
+        if st.button("🚪  Secure Logout", use_container_width=True):
+            for k in ["logged_in","username","role","full_name","user_id","dash_view"]: st.session_state.pop(k, None)
             st.rerun()
 
     return page
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DASHBOARD
+#  DASHBOARD HUB
 # ══════════════════════════════════════════════════════════════════════════════
+
 def page_dashboard():
-    fn = st.session_state.get("full_name","User")
-    st.markdown(f'<p class="ph">👋 Hi, {fn.split()[0]}</p>', unsafe_allow_html=True)
-    st.markdown(f'<p class="ps">{date.today().strftime("%A, %B %d %Y")} — here\'s your day</p>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-title">Dashboard Hub</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="animate-1"><p class="page-sub">System Active. Welcome back, <b>{st.session_state.get("full_name","User")}</b>.</p></div>', unsafe_allow_html=True)
 
-    total    = db.get_total_clients()
-    today_df = db.get_todays_followups()
-    over_df  = db.get_overdue_followups()
-    upc_df   = db.get_upcoming_followups(7)
+    total = db.get_total_clients()
+    today_df  = db.get_todays_followups()
+    over_df   = db.get_overdue_followups()
+    upc_df    = db.get_upcoming_followups(7)
 
-    c1,c2,c3,c4 = st.columns(4)
-    for col,color,icon,val,lbl in [
-        (c1,"blue",  "👥",total,         "Total Clients"),
-        (c2,"green", "📞",len(today_df), "Due Today"),
-        (c3,"red",   "⚠️",len(over_df),  "Overdue"),
-        (c4,"amber", "📆",len(upc_df),   "This Week"),
-    ]:
-        col.markdown(f"""
-        <div class="metric-card {color}">
-          <div style="font-size:1.3rem;margin-bottom:6px;">{icon}</div>
-          <p class="mval">{val}</p>
-          <p class="mlbl">{lbl}</p>
-        </div>""", unsafe_allow_html=True)
+    if "dash_view" not in st.session_state: st.session_state.dash_view = "today"
 
-    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-    _,mid,_ = st.columns([1,2,1])
-    with mid:
-        st.markdown('<div class="cta-btn">', unsafe_allow_html=True)
-        if st.button("🔔  Who Do I Call Today?", use_container_width=True):
-            st.session_state.show_today = not st.session_state.get("show_today", False)
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
+    c1, c2, c3, c4 = st.columns(4)
 
-    if st.session_state.get("show_today"):
-        st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-        L,R = st.columns(2)
-        with L:
-            st.markdown(f"<p style='font-size:0.82rem;font-weight:700;color:{T['text']};margin-bottom:8px;'>📞 Call Today ({len(today_df)})</p>", unsafe_allow_html=True)
-            if today_df.empty:
-                st.markdown('<div class="notif success"><div><p class="nt">All clear!</p><p class="ns">No calls today.</p></div></div>', unsafe_allow_html=True)
-            else:
-                for _,r in today_df.iterrows():
-                    st.markdown(f"""
-                    <div class="strip">
-                      <div class="ava">{ini(str(r['name']))}</div>
-                      <div style="flex:1;min-width:0;">
-                        <p class="sname">{r['name']}</p>
-                        <p class="smeta">{r.get('company','—') or '—'} · {r.get('phone','—') or '—'}</p>
-                      </div>
-                      <span class="pill today">Today</span>
-                    </div>""", unsafe_allow_html=True)
-        with R:
-            st.markdown(f"<p style='font-size:0.82rem;font-weight:700;color:{T['text']};margin-bottom:8px;'>⚠️ Overdue ({len(over_df)})</p>", unsafe_allow_html=True)
-            if over_df.empty:
-                st.markdown('<div class="notif success"><div><p class="nt">Zero overdue!</p><p class="ns">All caught up.</p></div></div>', unsafe_allow_html=True)
-            else:
-                for _,r in over_df.iterrows():
-                    d = (date.today()-pd.to_datetime(r["next_followup"]).date()).days
-                    st.markdown(f"""
-                    <div class="strip">
-                      <div class="ava" style="background:#fef2f2;color:#b91c1c;border-color:#fecaca;">{ini(str(r['name']))}</div>
-                      <div style="flex:1;min-width:0;">
-                        <p class="sname">{r['name']}</p>
-                        <p class="smeta">{r.get('company','—') or '—'} · {r.get('phone','—') or '—'}</p>
-                      </div>
-                      <span class="pill overdue">{d}d late</span>
-                    </div>""", unsafe_allow_html=True)
+    with c1:
+        st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Network</p></div>', unsafe_allow_html=True)
+        if st.button("btn_tot", key="t_tot"): st.session_state.dash_view = "total"
 
+    with c2:
+        st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Active Today</p></div>', unsafe_allow_html=True)
+        if st.button("btn_tod", key="t_tod"): st.session_state.dash_view = "today"
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  ADD CLIENT
-# ══════════════════════════════════════════════════════════════════════════════
-def page_add_client():
-    st.markdown('<p class="ph">➕ Add Client</p>', unsafe_allow_html=True)
-    st.markdown('<p class="ps">Store a new client and schedule a follow-up</p>', unsafe_allow_html=True)
+    with c3:
+        st.markdown(f'<div class="dash-card red pulse-alert"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Critical Overdue</p></div>', unsafe_allow_html=True)
+        if st.button("btn_ovr", key="t_ovr"): st.session_state.dash_view = "overdue"
 
-    with st.form("acf", clear_on_submit=True):
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        c1,c2 = st.columns(2)
-        with c1:
-            name    = st.text_input("Full Name *", placeholder="Rajiv Sharma")
-            phone   = st.text_input("Phone", placeholder="+91 98765 43210")
-            company = st.text_input("Company", placeholder="Acme Corp")
-        with c2:
-            email    = st.text_input("Email", placeholder="rajiv@acme.com")
-            category = st.selectbox("Category", ["Lead","Prospect","Active Client","Partner","VIP","Churned"])
-            source   = st.selectbox("Source", ["Referral","Website","LinkedIn","Cold Outreach","Event","Other"])
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        c3,c4 = st.columns(2)
-        with c3:
-            last_contacted = st.date_input("Last Contacted", value=date.today())
-            followup_days  = st.number_input("Follow-up after (days)", min_value=1, max_value=365, value=5)
-            deal_value     = st.number_input("Deal Value (₹)", min_value=0, value=0, step=1000)
-        with c4:
-            nf = last_contacted + timedelta(days=int(followup_days))
-            days_away = (nf - date.today()).days
-            st.markdown(f"""
-            <div class="sched-box">
-              <p class="sched-lbl">📌 Scheduled follow-up</p>
-              <p class="sched-date">{nf.strftime("%B %d, %Y")}</p>
-              <p style="font-size:0.72rem;color:{T['sub']};margin:3px 0 8px;">
-                In {days_away} day{'s' if days_away!=1 else ''}
-              </p>
-            </div>""", unsafe_allow_html=True)
-            notes = st.text_area("Notes", placeholder="Relevant notes…", height=78)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        sub = st.form_submit_button("💾  Save Client", type="primary", use_container_width=True)
-
-    if sub:
-        if not name.strip():
-            st.error("Name is required.")
-        else:
-            ok = db.add_client({
-                "name":name.strip(),"email":email,"phone":phone,"company":company,
-                "category":category,"source":source,"last_contacted":str(last_contacted),
-                "followup_days":int(followup_days),"next_followup":str(nf),
-                "deal_value":deal_value,"notes":notes,
-                "created_by":st.session_state.get("user_id",1)
-            })
-            if ok:
-                st.success(f"✅ {name} saved! Follow-up on {nf.strftime('%b %d, %Y')}.")
-                st.balloons()
-            else:
-                st.error("Failed to save. Check DB.")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  CLIENTS
-# ══════════════════════════════════════════════════════════════════════════════
-def page_clients():
-    st.markdown('<p class="ph">👥 Clients</p>', unsafe_allow_html=True)
-
-    st.markdown('<div class="card" style="padding:12px 16px;margin-bottom:10px;">', unsafe_allow_html=True)
-    fc1,fc2,fc3 = st.columns([3,1,1])
-    with fc1: search = st.text_input("S","",placeholder="🔍 Name, company, phone…",label_visibility="collapsed")
-    with fc2: cat    = st.selectbox("C",["All","Lead","Prospect","Active Client","Partner","VIP","Churned"],label_visibility="collapsed")
-    with fc3: srt    = st.selectbox("O",["Next Follow-up","Name","Company","Deal Value"],label_visibility="collapsed")
+    with c4:
+        st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">7-Day Forecast</p></div>', unsafe_allow_html=True)
+        if st.button("btn_upc", key="t_upc"): st.session_state.dash_view = "upcoming"
     st.markdown('</div>', unsafe_allow_html=True)
 
-    df = db.get_all_clients(search=search.strip() or None,
-                            category=cat if cat!="All" else None, sort_by=srt)
+    # Push content safely below tiles
+    st.markdown("<div style='height: 140px;'></div><hr style='margin-top: 10px;'>", unsafe_allow_html=True)
 
-    if df.empty:
-        st.markdown('<div class="notif info"><div><p class="nt">No clients found</p><p class="ns">Adjust filters or add a client.</p></div></div>', unsafe_allow_html=True)
-        return
+    view = st.session_state.dash_view
+    
+    # ── SPLIT LAYOUT: Main Content vs Activity Timeline ──
+    col_main, col_side = st.columns([7, 3], gap="large")
 
-    hc1,hc2,hc3 = st.columns([4,1,1])
-    with hc1: st.markdown(f"<p style='font-size:0.78rem;color:{T['sub']};margin:5px 0;'><b>{len(df)}</b> client(s)</p>", unsafe_allow_html=True)
-    with hc2:
-        st.download_button("📥 Excel", data=to_excel(df),
-            file_name=f"clients_{date.today()}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True)
-    with hc3:
-        if st.button("🔄", use_container_width=True): st.rerun()
+    with col_main:
+        st.markdown('<div class="animate-3">', unsafe_allow_html=True)
+        if view == "today":
+            st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⚡ Action Required Today</h4>", unsafe_allow_html=True)
+            if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">☕</div><p class="strip-title">Inbox Zero</p><p class="strip-meta">Take a break, no actions scheduled for today.</p></div>', unsafe_allow_html=True)
+            else:
+                for _, r in today_df.iterrows():
+                    st.markdown(f"""
+                    <div class="strip strip-today">
+                        <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-blue">{r['category']}</span></div>
+                        <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span></div>
+                        <p class="strip-notes">📝 {r['notes'] or 'No supplemental notes.'}</p>
+                    </div>""", unsafe_allow_html=True)
 
-    df["Status"] = df.apply(lambda r: get_status(r)[0], axis=1)
-    df["Deal"]   = df["deal_value"].apply(lambda x: f"₹{x:,.0f}" if x else "—")
-    show = df[["name","company","phone","email","category","next_followup","Status","Deal"]].rename(
-        columns={"name":"Name","company":"Company","phone":"Phone","email":"Email",
-                 "category":"Category","next_followup":"Next Follow-up","Deal":"💰 Deal"})
-    st.dataframe(show, use_container_width=True, height=380, hide_index=True)
+        elif view == "overdue":
+            st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⚠️ Overdue Tasks</h4>", unsafe_allow_html=True)
+            if over_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">✅</div><p class="strip-title">Perfect Health</p><p class="strip-meta">No overdue actions detected.</p></div>', unsafe_allow_html=True)
+            else:
+                for _, r in over_df.iterrows():
+                    d = (date.today() - pd.to_datetime(r['next_followup']).date()).days
+                    st.markdown(f"""
+                    <div class="strip strip-overdue">
+                        <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-red">{d} Days Overdue</span></div>
+                        <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span></div>
+                    </div>""", unsafe_allow_html=True)
 
-    st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown(f"<p style='font-size:0.8rem;font-weight:700;color:{T['text']};margin-bottom:8px;'>Quick Actions</p>", unsafe_allow_html=True)
-    qa1,qa2,qa3,qa4 = st.columns([3,1,1,1])
-    with qa1: sel = st.selectbox("Cl", df["name"].tolist(), label_visibility="collapsed")
-    with qa2: nd  = st.date_input("D", value=date.today()+timedelta(days=7), label_visibility="collapsed")
-    with qa3:
-        st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
-        if st.button("📅 Reschedule", type="primary", use_container_width=True):
-            db.update_followup(int(df[df["name"]==sel]["id"].values[0]), str(nd))
-            st.success(f"✅ {sel} → {nd.strftime('%b %d')}"); st.rerun()
-    with qa4:
-        st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
-        if st.button("🗑 Delete", use_container_width=True):
-            db.delete_client(int(df[df["name"]==sel]["id"].values[0]))
-            st.warning(f"Deleted {sel}"); st.rerun()
+        elif view == "total":
+            st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>👥 Complete Client Grid</h4>", unsafe_allow_html=True)
+            df = db.get_all_clients()
+            if df.empty: st.info("Database is currently empty.")
+            else:
+                df["Status"] = df.apply(status_label, axis=1)
+                st.dataframe(df[["name", "company", "category", "Status", "next_followup", "deal_value"]], use_container_width=True, hide_index=True)
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  FOLLOW-UPS
-# ══════════════════════════════════════════════════════════════════════════════
-def page_followups():
-    st.markdown('<p class="ph">📅 Follow-ups</p>', unsafe_allow_html=True)
-    st.markdown('<p class="ps">Track and action all client follow-ups</p>', unsafe_allow_html=True)
-
-    tab1,tab2,tab3 = st.tabs(["🔴  Overdue","🟡  Today","🟢  Upcoming"])
-
-    with tab1:
-        ov = db.get_overdue_followups()
-        if ov.empty:
-            st.markdown('<div class="notif success"><div><p class="nt">🎉 Zero overdue!</p><p class="ns">You\'re on top of every client.</p></div></div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="notif danger"><div><p class="nt">⚠️ {len(ov)} overdue</p><p class="ns">Reach out to these clients now.</p></div></div>', unsafe_allow_html=True)
-            for _,r in ov.iterrows():
-                d = (date.today()-pd.to_datetime(r["next_followup"]).date()).days
-                with st.expander(f"🔴  {r['name']}  ·  {r.get('company','—') or '—'}  ·  {d}d overdue"):
-                    cc1,cc2 = st.columns([3,2])
-                    with cc1:
-                        st.write(f"📞 **{r['phone'] or '—'}**")
-                        st.write(f"✉️ {r['email'] or '—'}")
-                        st.write(f"🏷 {r['category']}")
-                        if r.get("notes"): st.info(f"📝 {r['notes']}")
-                    with cc2:
-                        nd2 = st.number_input("Reschedule in (days)", 1, 365, 7, key=f"ov{r['id']}")
-                        if st.button("✅ Mark contacted", key=f"ovb{r['id']}", type="primary", use_container_width=True):
-                            db.update_followup(int(r["id"]), str(date.today()+timedelta(days=int(nd2))), True)
-                            st.success("Updated!"); st.rerun()
-
-    with tab2:
-        td = db.get_todays_followups()
-        if td.empty:
-            st.markdown('<div class="notif info"><div><p class="nt">No calls today</p><p class="ns">Nothing scheduled for today.</p></div></div>', unsafe_allow_html=True)
-        else:
-            for _,r in td.iterrows():
-                with st.expander(f"📞  {r['name']}  ·  {r.get('company','—') or '—'}"):
-                    cc1,cc2 = st.columns([3,2])
-                    with cc1:
-                        st.write(f"📞 **{r['phone'] or '—'}**")
-                        st.write(f"✉️ {r['email'] or '—'}")
-                        st.write(f"🏷 {r['category']}")
-                        if r.get("notes"): st.info(f"📝 {r['notes']}")
-                    with cc2:
-                        nd2 = st.number_input("Next in (days)", 1, 365, int(r["followup_days"]), key=f"td{r['id']}")
-                        if st.button("✅ Mark contacted", key=f"tdb{r['id']}", type="primary", use_container_width=True):
-                            db.update_followup(int(r["id"]), str(date.today()+timedelta(days=int(nd2))), True)
-                            st.success("Done!"); st.rerun()
-
-    with tab3:
-        days = st.slider("Next N days", 3, 60, 14)
-        up   = db.get_upcoming_followups(days)
-        if up.empty:
-            st.info(f"Nothing in the next {days} days.")
-        else:
-            up["In"]   = up["next_followup"].apply(lambda x:(pd.to_datetime(x).date()-date.today()).days)
-            up["Deal"] = up["deal_value"].apply(lambda x: f"₹{x:,.0f}" if x else "—")
-            st.dataframe(
-                up[["name","company","phone","category","next_followup","In","Deal"]].rename(
-                    columns={"name":"Name","company":"Company","phone":"Phone",
-                             "category":"Category","next_followup":"Date","In":"⏳","Deal":"💰"}),
-                use_container_width=True, hide_index=True, height=360)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  USERS
-# ══════════════════════════════════════════════════════════════════════════════
-def page_users():
-    st.markdown('<p class="ph">⚙️ User Management</p>', unsafe_allow_html=True)
-    st.markdown('<p class="ps">Manage CRM access and roles</p>', unsafe_allow_html=True)
-
-    tab1,tab2 = st.tabs(["👥  Users","➕  Add User"])
-
-    with tab1:
-        users = db.get_all_users()
-        if users.empty:
-            st.info("No users found."); return
-        for _,u in users.iterrows():
-            is_self  = u["username"] == st.session_state.get("username")
-            is_admin = u["role"] == "admin"
-            is_act   = u["is_active"]
-            rb = "#eef2ff" if is_admin else "#f0fdf4"
-            rc = "#3730a3" if is_admin else "#15803d"
-            rc1,rc2,rc3 = st.columns([5,1,1])
-            with rc1:
-                st.markdown(f"""
-                <div style="background:{T['card']};border:1px solid {T['border']};border-radius:12px;
-                     padding:12px 15px;display:flex;align-items:center;gap:11px;margin-bottom:4px;
-                     transition:all 0.2s;"
-                     onmouseover="this.style.borderColor='#6366f1';this.style.transform='translateX(3px)'"
-                     onmouseout="this.style.borderColor='{T['border']}';this.style.transform='none'">
-                  <div style="width:34px;height:34px;border-radius:50%;background:{rb};
-                       border:2px solid {'#c7d2fe' if is_admin else '#bbf7d0'};
-                       display:flex;align-items:center;justify-content:center;
-                       font-size:0.72rem;font-weight:800;color:{rc};flex-shrink:0;">{ini(str(u['full_name']))}</div>
-                  <div style="flex:1;min-width:0;">
-                    <div style="font-size:0.85rem;font-weight:700;color:{T['text']};">{u['full_name']}
-                      <span style="background:{rb};color:{rc};padding:1px 7px;border-radius:20px;font-size:0.62rem;font-weight:700;margin-left:5px;">{u['role'].title()}</span>
-                      {'<span style="background:#f0fdf4;color:#15803d;padding:1px 7px;border-radius:20px;font-size:0.62rem;font-weight:700;margin-left:3px;">● Active</span>' if is_act else '<span style="background:#fef2f2;color:#b91c1c;padding:1px 7px;border-radius:20px;font-size:0.62rem;font-weight:700;margin-left:3px;">● Off</span>'}
-                      {'<span style="background:#fefce8;color:#854d0e;padding:1px 7px;border-radius:20px;font-size:0.62rem;font-weight:700;margin-left:3px;">You</span>' if is_self else ''}
-                    </div>
-                    <div style="font-size:0.7rem;color:{T['sub']};">@{u['username']} · {u['email'] or '—'}</div>
-                  </div>
-                </div>""", unsafe_allow_html=True)
-            with rc2:
-                if not is_self:
-                    if st.button("Deactivate" if is_act else "Activate", key=f"tog{u['id']}", use_container_width=True):
-                        db.toggle_user_status(int(u["id"])); st.rerun()
-            with rc3:
-                if not is_self:
-                    if st.button("🗑", key=f"del{u['id']}", use_container_width=True):
-                        db.delete_user(int(u["id"])); st.rerun()
-
-    with tab2:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        with st.form("auf", clear_on_submit=True):
-            nc1,nc2 = st.columns(2)
-            with nc1:
-                nfn = st.text_input("Full Name *", placeholder="Arjun Kapoor")
-                nun = st.text_input("Username *", placeholder="arjun.kapoor")
-                nem = st.text_input("Email", placeholder="arjun@company.com")
-            with nc2:
-                npw  = st.text_input("Password *", type="password", placeholder="Min 6 chars")
-                npw2 = st.text_input("Confirm *", type="password", placeholder="Repeat")
-                nrl  = st.selectbox("Role", ["user","admin"],
-                                    format_func=lambda x:"👤 User" if x=="user" else "⚙️ Admin")
-            asub = st.form_submit_button("➕  Create User", type="primary", use_container_width=True)
+        elif view == "upcoming":
+            st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>📅 7-Day Forecasting</h4>", unsafe_allow_html=True)
+            if upc_df.empty: st.info("No events scheduled for the upcoming 7-day window.")
+            else:
+                upc_df["Days Until"] = upc_df["next_followup"].apply(lambda x: (pd.to_datetime(x).date() - date.today()).days)
+                st.dataframe(upc_df[["name", "company", "category", "next_followup", "Days Until"]], use_container_width=True, hide_index=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        if asub:
-            errs = []
-            if not nfn.strip():              errs.append("Full name required.")
-            if not nun.strip():              errs.append("Username required.")
-            if not npw:                      errs.append("Password required.")
-            if len(npw) < 6:                 errs.append("Min 6 chars.")
-            if npw != npw2:                  errs.append("Passwords don't match.")
-            if db.username_exists(nun.strip()): errs.append(f"@{nun} taken.")
-            if errs:
-                for e in errs: st.error(e)
+    with col_side:
+        st.markdown('<div class="animate-3">', unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⏱️ Activity Log</h4>", unsafe_allow_html=True)
+        st.markdown(generate_mock_activity(), unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  INITIALIZE CLIENT
+# ══════════════════════════════════════════════════════════════════════════════
+
+def page_add_client():
+    st.markdown('<div class="animate-1"><p class="page-title">Initialize Client</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-sub">Enter credentials to establish a new entity in the database.</p></div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
+    with st.form("add_client_form", clear_on_submit=True):
+        st.markdown('<div class="form-section">', unsafe_allow_html=True)
+        st.markdown("##### 👤 Personal Details")
+        c1, c2 = st.columns(2)
+        with c1:
+            name    = st.text_input("Full Name *", placeholder="e.g. Jane Doe")
+            email   = st.text_input("Email Address", placeholder="e.g. jane@company.com")
+            company = st.text_input("Company", placeholder="e.g. Acme Corp")
+        with c2:
+            phone    = st.text_input("Phone Number", placeholder="+1 555-0199")
+            category = st.selectbox("Classification", ["Lead", "Prospect", "Active Client", "Partner", "VIP", "Churned"])
+            source   = st.selectbox("Origin Source", ["Referral", "Website", "LinkedIn", "Cold Outreach", "Event", "Other"])
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="form-section">', unsafe_allow_html=True)
+        st.markdown("##### 📅 Pipeline Scheduling")
+        c3, c4 = st.columns(2)
+        with c3:
+            last_contacted = st.date_input("Last Contact Date", value=date.today())
+            followup_days  = st.number_input("Follow-up Interval (Days) *", min_value=1, max_value=365, value=5)
+            deal_value     = st.number_input("Estimated Value ($)", min_value=0, value=0, step=5000)
+        with c4:
+            nf = last_contacted + timedelta(days=int(followup_days))
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="background:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,1); border-radius:16px; padding:20px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Computed Contact Date</p>
+                <p style="font-size:1.5rem; font-weight:800; color:#0f172a; margin:4px 0;">{nf.strftime("%A, %B %d, %Y")}</p>
+                <p style="font-size:0.8rem; color:#64748b; font-weight:600; margin:0;">
+                    Task will trigger in <span style="color:#0f172a; font-weight:800;">{int(followup_days)} days</span>
+                </p>
+            </div>""", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="form-section">', unsafe_allow_html=True)
+        st.markdown("##### 📝 Context Notes")
+        notes = st.text_area("Entity Background", placeholder="Enter specific requirements, meeting notes...", height=100)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        submitted = st.form_submit_button("💾 Write to Database", type="primary", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if submitted:
+        if not name.strip(): st.error("❌ Full Name is required.")
+        else:
+            ok = db.add_client({"name": name, "email": email, "phone": phone, "company": company, "category": category, "source": source, "last_contacted": str(last_contacted), "followup_days": int(followup_days), "next_followup": str(nf), "deal_value": deal_value, "notes": notes, "created_by": st.session_state.get("user_id", 1)})
+            if ok: st.success(f"✅ Success! **{name}** added. Follow-up scheduled for **{nf.strftime('%b %d')}**.")
+            else: st.error("❌ Database insertion failed.")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  DIRECTORY GRID
+# ══════════════════════════════════════════════════════════════════════════════
+
+def page_all_clients():
+    st.markdown('<div class="animate-1"><p class="page-title">Directory Grid</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-sub">Global view of all registered entities and operational statuses.</p></div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
+    st.markdown('<div class="form-section" style="padding: 24px;">', unsafe_allow_html=True)
+    fc1, fc2, fc3 = st.columns([3, 1, 1])
+    with fc1: search = st.text_input("🔍 Search Database", placeholder="Search by name, company, or email...", label_visibility="collapsed")
+    with fc2: cat    = st.selectbox("Category Filter", ["All","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
+    with fc3: srt    = st.selectbox("Sort By", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    df = db.get_all_clients(search=search or None, category=cat if cat != "All" else None, sort_by=srt)
+
+    if df.empty: 
+        st.info("📭 No records found matching criteria.")
+        return
+
+    hc1, hc2 = st.columns([5, 1])
+    with hc1: st.markdown(f"<p style='color:#64748b; font-size:0.95rem; font-weight:600; padding-top:10px;'>{len(df)} Records found</p>", unsafe_allow_html=True)
+    with hc2: st.download_button("📥 Extract Data", data=to_excel(df), file_name=f"Data_Export_{date.today()}.xlsx", use_container_width=True)
+
+    df["Status"]     = df.apply(status_label, axis=1)
+    df["Deal Value"] = df["deal_value"].apply(lambda x: f"${x:,.0f}" if x else "—")
+
+    show_cols = ["name","company","phone","email","category","next_followup","Status","Deal Value"]
+    rename    = {"name":"Designation","company":"Affiliation","phone":"Comms","email":"Routing", "category":"Class","next_followup":"Action Date"}
+
+    st.dataframe(df[show_cols].rename(columns=rename), use_container_width=True, height=400, hide_index=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="animate-3">', unsafe_allow_html=True)
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:16px;'>⚡ Execute Override</h4>", unsafe_allow_html=True)
+    
+    st.markdown('<div class="form-section" style="padding: 24px;">', unsafe_allow_html=True)
+    rc1, rc2, rc3, rc4 = st.columns([3, 1, 1, 1])
+    with rc1: 
+        st.markdown("<div style='font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:4px;'>Select Target</div>", unsafe_allow_html=True)
+        sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
+    with rc2: 
+        st.markdown("<div style='font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:4px;'>New Temporal Coordinate</div>", unsafe_allow_html=True)
+        new_d = st.date_input("Date", value=date.today() + timedelta(days=7), label_visibility="collapsed")
+    with rc3:
+        st.markdown("<br style='line-height:1.2'>", unsafe_allow_html=True)
+        if st.button("Update Date", type="primary", use_container_width=True):
+            cid = int(df[df["name"] == sel]["id"].values[0]); db.update_followup(cid, str(new_d)); st.rerun()
+    with rc4:
+        st.markdown("<br style='line-height:1.2'>", unsafe_allow_html=True)
+        if st.button("🗑 Terminate Record", use_container_width=True):
+            cid = int(df[df["name"] == sel]["id"].values[0]); db.delete_client(cid); st.rerun()
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  ACCESS CONTROL
+# ══════════════════════════════════════════════════════════════════════════════
+
+def page_user_management():
+    st.markdown('<div class="animate-1"><p class="page-title">Access Control</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="animate-1"><p class="page-sub">Easily manage workspace members and their authorization levels.</p></div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
+    tab1, tab2 = st.tabs(["👥 Active Users", "➕ Add User"])
+
+    with tab1:
+        st.markdown("<br>", unsafe_allow_html=True)
+        users = db.get_all_users()
+        if users.empty: st.info("No active users found.")
+        else:
+            for _, u in users.iterrows():
+                role_badge = "🛡️ Admin" if u["role"] == "admin" else "👤 User"
+                status_badge = "🟢 Active" if u["is_active"] else "🔴 Suspended"
+                
+                c1, c2, c3 = st.columns([4, 1.5, 1.5])
+                with c1:
+                    st.markdown(f"""
+                    <div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); padding: 16px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,1); box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                        <div style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 2px;">{u['full_name']} <span style="color: #64748b; font-weight: 500; font-size: 0.85rem;">(@{u['username']})</span></div>
+                        <div style="font-size: 0.8rem; font-weight: 600; color: #475569;">{role_badge} &nbsp;|&nbsp; {status_badge}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with c2:
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    if u["username"] != st.session_state.get("username"):
+                        if st.button("Suspend" if u["is_active"] else "Restore", key=f"tog_{u['id']}", use_container_width=True): 
+                            db.toggle_user_status(int(u["id"])); st.rerun()
+                    else:
+                        st.markdown("<div style='text-align: center; margin-top: 10px; font-weight: 700; color: #10b981; font-size: 0.85rem;'>Current User</div>", unsafe_allow_html=True)
+                        
+                with c3:
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    if u["username"] != st.session_state.get("username"):
+                        if st.button("Delete", key=f"del_{u['id']}", use_container_width=True): 
+                            db.delete_user(int(u["id"])); st.rerun()
+
+                st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+
+    with tab2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="form-section">', unsafe_allow_html=True)
+        st.markdown("##### Add New Member")
+        with st.form("add_user_form", clear_on_submit=True):
+            new_fullname = st.text_input("Full Name *", placeholder="e.g. Alex Smith")
+            new_username = st.text_input("Username *", placeholder="e.g. alex.smith")
+            new_password  = st.text_input("Password *", type="password", placeholder="Min 6 characters")
+            new_role      = st.selectbox("Role", ["user", "admin"])
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            add_submitted = st.form_submit_button("➕ Create Account", type="primary", use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        if add_submitted:
+            if not new_fullname.strip() or not new_username.strip() or not new_password: 
+                st.error("❌ Missing required fields.")
+            elif len(new_password) < 6: 
+                st.error("❌ Password too short (minimum 6 characters).")
+            elif db.username_exists(new_username): 
+                st.error("❌ Username already taken.")
             else:
-                ok = db.add_user({"full_name":nfn.strip(),"username":nun.strip(),
-                                  "email":nem.strip(),"password_hash":hash_pw(npw),"role":nrl})
-                if ok: st.success(f"✅ {nfn} created."); st.balloons()
-                else:  st.error("Failed. Check DB.")
+                db.add_user({"full_name": new_fullname, "username": new_username, "email": "", "password_hash": hash_password(new_password), "role": new_role})
+                st.success(f"✅ Success! {new_fullname} added to the workspace."); st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  ROUTER
+#  MAIN ROUTER
 # ══════════════════════════════════════════════════════════════════════════════
-if not st.session_state.get("logged_in"):
-    show_login()
+
+if not st.session_state.get("logged_in"): show_login()
 else:
     page = show_sidebar()
-    if   "Dashboard" in page: page_dashboard()
-    elif "Add"       in page: page_add_client()
-    elif "Clients"   in page: page_clients()
-    elif "Follow"    in page: page_followups()
-    elif "Users"     in page:
-        if st.session_state.get("role") == "admin": page_users()
-        else: st.error("🔒 Admins only.")
+    
+    if   "Dashboard"        in page: page_dashboard()
+    elif "Initialize"       in page: page_add_client()
+    elif "Directory Grid"   in page: page_all_clients()
+    elif "Access Control"   in page:
+        if st.session_state.get("role") == "admin": page_user_management()
+        else: st.error("🔒 ACCESS DENIED: You must be an Admin to access settings.")
