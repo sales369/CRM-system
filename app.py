@@ -1,16 +1,3 @@
-To give you the absolute **best, ultra-premium professional UI**, I have completely rewritten the visual layer of your app. I ignored code length to focus entirely on giving you an enterprise-grade "SaaS" (Software as a Service) aesthetic.
-
-### What makes this the "Ultra-Premium" upgrade:
-
-1. **Premium Typography:** Switched to **Plus Jakarta Sans**, the exact font used by top-tier modern tech companies (like Stripe and Vercel) for perfect readability and elegance.
-2. **Advanced Streamlit Styling:** Deep CSS overrides to style Streamlit's native inputs, select boxes, tabs, and sidebar to match the custom HTML elements seamlessly.
-3. **Stunning Login Portal:** A beautiful, centered frosted-glass login card with a subtle animated gradient background.
-4. **Micro-Interactions & Animations:** Added smooth `slide-up` load animations, custom scrollbars, and glowing hover states on buttons and metric cards.
-5. **Ultra-Clean Light Palette:** Used absolute white (`#ffffff`) for foreground cards against an off-white slate background (`#f8fafc`), separated by delicate borders (`#eaecf0`) and elevated by soft drop-shadows.
-
-Here is your ultimate `app.py` file. Completely copy and paste this:
-
-```python
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
@@ -914,5 +901,3 @@ else:
             page_user_management()
         else:
             st.error("🔒 Security Exception: Elevated privileges required.")
-
-```
