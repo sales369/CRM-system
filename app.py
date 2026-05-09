@@ -7,13 +7,13 @@ from database import DatabaseManager
 
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="ClientPulse | Workspace",
+    page_title="ClientPulse | Premium SaaS",
     page_icon="✨",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ── 🌌 LIVE ANIMATED LIGHT MESH BACKGROUND ─────────────────────────────────────
+# ── 🌌 LIVE ANIMATED LIGHT MESH BACKGROUND & ORBS ──────────────────────────────
 st.markdown("""
 <div class="mesh-bg">
     <div class="orb orb-1"></div>
@@ -23,47 +23,61 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── 💎 ULTRA-PREMIUM SaaS CSS ARCHITECTURE ──────────────────────────────────────
+# ── 💎 ULTRA-PREMIUM LIGHT GLASSMORPHISM CSS ───────────────────────────────────
 st.markdown("""
 <style>
-/* ── Premium Typography ── */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* ── Premium Font (Carefully avoiding icon overrides!) ── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-*, html, body, [class*="css"], [class*="st-"] {
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
+html, body, [class*="css-"], p, span, h1, h2, h3, h4, h5, h6, div, label, input, button {
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* ── Base App Transparency & Scrollbar ── */
-.stApp { background-color: transparent !important; }
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.15); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(15, 23, 42, 0.3); }
+/* Force Streamlit icons to keep their native font to fix the "keyboard_double" bug */
+.material-icons, .material-symbols-rounded, [class*="icon"] {
+    font-family: 'Material Symbols Rounded', 'Material Icons' !important;
+}
 
-/* ── Animated Mesh Gradient Background ── */
+/* ── Base App Transparency & Global Gradient ── */
+.stApp {
+    background: linear-gradient(-45deg, #f8fafc, #eef2ff, #fdf4ff, #f0f9ff) !important;
+    background-size: 400% 400% !important;
+    animation: gradientShift 15s ease infinite !important;
+}
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+
+/* Floating Soft Orbs */
 .mesh-bg {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     z-index: -999; overflow: hidden; pointer-events: none;
-    background: #f8fafc;
 }
 .orb {
     position: absolute; border-radius: 50%; filter: blur(90px);
-    opacity: 0.65; animation: floatOrb 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.6; animation: floatOrb 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
 }
-.orb-1 { width: 55vw; height: 55vw; top: -15vw; left: -10vw; background: #e0e7ff; animation-delay: 0s; }
-.orb-2 { width: 45vw; height: 45vw; bottom: -10vw; right: -10vw; background: #fae8ff; animation-delay: -5s; }
-.orb-3 { width: 40vw; height: 40vw; top: 35vh; left: 35vw; background: #e0f2fe; animation-delay: -10s; }
-.orb-4 { width: 35vw; height: 35vw; bottom: 15vh; left: -5vw; background: #ede9fe; animation-delay: -15s; }
+.orb-1 { width: 50vw; height: 50vw; top: -10vw; left: -10vw; background: #c7d2fe; animation-delay: 0s; }
+.orb-2 { width: 45vw; height: 45vw; bottom: -5vw; right: -10vw; background: #fbcfe8; animation-delay: -5s; }
+.orb-3 { width: 35vw; height: 35vw; top: 30vh; left: 40vw; background: #bae6fd; animation-delay: -10s; }
+.orb-4 { width: 30vw; height: 30vw; bottom: 20vh; left: -5vw; background: #ddd6fe; animation-delay: -15s; }
 
 @keyframes floatOrb {
     0% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(40px, -60px) scale(1.05); }
-    100% { transform: translate(-50px, 40px) scale(0.95); }
+    50% { transform: translate(30px, -50px) scale(1.05); }
+    100% { transform: translate(-40px, 30px) scale(0.95); }
 }
 
 /* ── Page Load Animation ── */
 .main .block-container { 
-    padding: 3rem 4rem !important; max-width: 1400px; 
+    padding: 3rem 4rem !important; max-width: 1440px; 
     animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes slideUpFade {
@@ -71,168 +85,164 @@ st.markdown("""
     100% { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Hide Streamlit Chrome ── */
+/* ── Hide Chrome on Login ── */
 .login-mode header, .login-mode [data-testid="stSidebar"], .login-mode footer { display: none !important; }
 header { background: transparent !important; }
 
-/* ── Header Typography ── */
-.page-title { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 6px; letter-spacing: -0.03em; }
-.page-sub   { font-size: 1rem; color: #64748b; font-weight: 500; margin: 0 0 2rem; letter-spacing: 0.01em; }
+/* ── Glassmorphic Sidebar ── */
+[data-testid="stSidebar"] {
+    background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-right: 1px solid rgba(255,255,255,0.8) !important;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.02);
+}
+[data-testid="stSidebarNav"] { padding-top: 0 !important; }
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] { gap: 6px; }
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label {
+    background: transparent; border-radius: 12px; padding: 12px 16px !important;
+    font-size: 0.95rem !important; font-weight: 600 !important; color: #475569 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; cursor: pointer;
+}
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover {
+    background: rgba(255,255,255,0.8) !important; color: #0f172a !important;
+    transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid rgba(255,255,255,0.9);
+}
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label[data-baseweb="radio"] { display: flex; }
+
+/* ── Premium Typography ── */
+.page-title { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.03em; }
+.page-sub   { font-size: 1.05rem; color: #64748b; font-weight: 500; margin: 0 0 2.5rem; letter-spacing: 0.01em; }
+
 
 /* ══════════════════════════════════════════════════════════════════════════
-   🚀 FLAWLESS INTERACTIVE TILES (BUG FIXED)
+   🚀 FLAWLESS INTERACTIVE DASHBOARD TILES (Negative Margin Technique)
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* 1. Force strict column heights to prevent uneven wrapping */
+/* 1. Ensure columns stack items normally */
 div[data-testid="stHorizontalBlock"]:has(.dash-card) > div[data-testid="column"] { 
-    height: 155px !important; 
-    position: relative !important; 
-    display: block !important;
+    position: relative; 
 }
 
-/* 2. The visual card covers the column completely */
+/* 2. Style the visual card component */
 .dash-card {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    height: 150px; /* Fixed height guarantees they are perfectly identical */
     background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 1);
-    border-radius: 20px; padding: 24px; overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03), inset 0 0 0 1px rgba(255,255,255,0.5);
-    z-index: 1;
-    display: flex; flex-direction: column; justify-content: flex-start;
+    border-radius: 20px; padding: 24px; position: relative; overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    display: flex; flex-direction: column; justify-content: center;
 }
-
-/* 3. The invisible Streamlit button overlays the card */
-div[data-testid="stHorizontalBlock"]:has(.dash-card) div[data-testid="stButton"] {
-    position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; 
-    z-index: 10 !important; margin: 0 !important; padding: 0 !important;
-}
-div[data-testid="stHorizontalBlock"]:has(.dash-card) div[data-testid="stButton"] button {
-    width: 100% !important; height: 100% !important; 
-    opacity: 0 !important; cursor: pointer !important; 
-}
-
-/* 4. Glowing bottom border effect */
 .dash-card::after { 
     content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
-    background: transparent; transition: background 0.3s ease;
+    background: transparent; transition: background 0.4s ease;
 }
 
-/* 5. Hover interactions (triggered by hovering the invisible button) */
+/* 3. Pull the Streamlit button UP to perfectly overlay the card */
+div[data-testid="column"]:has(.dash-card) div[data-testid="stButton"] {
+    margin-top: -150px; /* Exact height of the card */
+    position: relative;
+    z-index: 10;
+}
+div[data-testid="column"]:has(.dash-card) div[data-testid="stButton"] button {
+    height: 150px !important;
+    width: 100% !important;
+    opacity: 0 !important; /* Make button completely invisible */
+    cursor: pointer !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+/* 4. Trigger card hover effects when you hover over the invisible button */
 div[data-testid="column"]:has(button:hover) .dash-card {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
     background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.08), 0 0 20px rgba(255,255,255,0.8);
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1), 0 0 20px rgba(255,255,255,0.5);
 }
 div[data-testid="column"]:has(button:hover) .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
 div[data-testid="column"]:has(button:hover) .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
 div[data-testid="column"]:has(button:hover) .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
 div[data-testid="column"]:has(button:hover) .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
 
-/* Tile Content Typography */
-.metric-icon { font-size: 1.8rem; margin-bottom: 8px; line-height: 1; }
-.metric-val  { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height: 1; letter-spacing: -0.03em; }
-.metric-lbl  { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin: 0; }
-
-
-/* ── Glassmorphic Sidebar ── */
-[data-testid="stSidebar"] {
-    background: rgba(255, 255, 255, 0.5) !important;
-    backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-    border-right: 1px solid rgba(255,255,255,0.7) !important;
-    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.02);
-}
-[data-testid="stSidebarNav"] { padding-top: 0 !important; }
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] { gap: 4px; }
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label {
-    background: transparent; border-radius: 12px; padding: 12px 16px !important;
-    font-size: 0.95rem !important; font-weight: 600 !important; color: #475569 !important;
-    transition: all 0.2s ease; border: 1px solid transparent; cursor: pointer;
-}
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover {
-    background: rgba(255,255,255,0.9) !important; color: #0f172a !important;
-    transform: translateX(4px); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
-    border: 1px solid rgba(255,255,255,1);
-}
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label[data-baseweb="radio"] { display: flex; }
-
+.metric-icon { font-size: 2rem; margin-bottom: 12px; line-height: 1; }
+.metric-val  { font-size: 2.6rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height: 1; letter-spacing: -0.02em; }
+.metric-lbl  { font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
 
 /* ── Light Glassmorphic Forms & Containers ── */
 .form-section {
-    background: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.65);
     backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     border-radius: 20px; padding: 32px 36px;
-    border: 1px solid rgba(255,255,255,1);
-    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04), inset 0 0 0 1px rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.9);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.04);
     margin-bottom: 24px;
 }
-.form-section h5 { color: #0f172a; font-weight: 800; margin-bottom: 20px; font-size: 1.1rem; letter-spacing: -0.01em;}
+.form-section h5 { color: #0f172a; font-weight: 800; margin-bottom: 20px; font-size: 1.15rem; letter-spacing: -0.01em;}
 
 /* ── Custom Inputs ── */
 [data-baseweb="input"] > div, [data-baseweb="select"] > div, [data-baseweb="textarea"] > div {
-    border-radius: 12px !important; background-color: rgba(255,255,255,0.6) !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important; transition: all 0.2s ease !important;
+    border-radius: 12px !important; background-color: rgba(255,255,255,0.7) !important;
+    border: 1px solid rgba(0,0,0,0.08) !important; transition: all 0.2s ease !important;
 }
-[data-baseweb="input"] > div:hover, [data-baseweb="select"] > div:hover { 
-    border-color: rgba(15, 23, 42, 0.15) !important; background-color: rgba(255,255,255,0.9) !important;
-}
+[data-baseweb="input"] > div:hover, [data-baseweb="select"] > div:hover { border-color: rgba(0,0,0,0.15) !important; background-color: rgba(255,255,255,0.9) !important;}
 [data-baseweb="input"] > div:focus-within, [data-baseweb="select"] > div:focus-within {
-    border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(99,102,241,0.1) !important; background-color: #ffffff !important;
+    border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(99,102,241,0.15) !important; background-color: #ffffff !important;
 }
 input, textarea { font-size: 0.95rem !important; color: #0f172a !important; font-weight: 500 !important; }
 .stSelectbox label, .stTextInput label, .stNumberInput label, .stDateInput label { color: #475569 !important; font-weight: 600 !important; font-size: 0.85rem !important; }
 
-/* ── Smooth Premium Buttons ── */
+/* ── Standard UI Buttons ── */
 .stButton > button {
     border-radius: 12px !important; font-weight: 700 !important; font-size: 0.95rem !important;
-    padding: 0.6rem 1.4rem !important; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    border: 1px solid rgba(15, 23, 42, 0.05) !important; background: rgba(255,255,255,0.9) !important; color: #334155 !important;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
+    padding: 0.6rem 1.4rem !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    border: 1px solid rgba(0,0,0,0.05) !important; background: rgba(255,255,255,0.8) !important; color: #334155 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
 }
 .stButton > button:hover { 
     background: #ffffff !important; transform: translateY(-2px) !important; 
-    box-shadow: 0 8px 15px rgba(15, 23, 42, 0.06) !important; border-color: rgba(15, 23, 42, 0.1) !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important; border-color: rgba(0,0,0,0.1) !important;
 }
 .stButton > button[kind="primary"] {
     background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important; border: none !important;
-    color: white !important; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.2) !important;
+    color: white !important; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25) !important;
 }
 .stButton > button[kind="primary"]:hover {
     background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important;
-    box-shadow: 0 12px 25px rgba(79, 70, 229, 0.35) !important; transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 12px 25px rgba(79, 70, 229, 0.4) !important; transform: translateY(-2px) scale(1.02) !important;
 }
 
 /* ── Beautiful Alert Strips ── */
 .strip { 
-    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; 
-    border: 1px solid rgba(255,255,255,1); border-left-width: 4px; display: flex; flex-direction: column; gap: 8px; transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.02);
+    background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px 24px; margin-bottom: 16px; 
+    border: 1px solid rgba(255,255,255,0.9); border-left-width: 4px; display: flex; flex-direction: column; gap: 8px; transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
 }
-.strip:hover { transform: translateX(4px); background: #ffffff; box-shadow: 0 8px 25px rgba(15, 23, 42, 0.05); }
+.strip:hover { transform: translateX(6px); background: #ffffff; box-shadow: 0 8px 25px rgba(0,0,0,0.05); }
 .strip-today { border-left-color: #3b82f6; }
 .strip-overdue { border-left-color: #ef4444; }
 .strip-ok { border-left-color: #10b981; align-items: center; text-align: center; }
 
 .strip-header { display: flex; justify-content: space-between; align-items: center; }
-.strip-title { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0; }
+.strip-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; }
 .strip-badge { font-size: 0.75rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;}
 .badge-blue { background: #e0f2fe; color: #0284c7; }
 .badge-red { background: #fee2e2; color: #b91c1c; }
 
 .strip-meta { display: flex; gap: 16px; font-size: 0.85rem; color: #475569; font-weight: 600; margin: 0; }
-.strip-notes { margin: 6px 0 0; padding-top: 12px; border-top: 1px dashed rgba(15, 23, 42, 0.08); font-size: 0.85rem; color: #64748b; }
+.strip-notes { margin: 6px 0 0; padding-top: 12px; border-top: 1px dashed rgba(0,0,0,0.08); font-size: 0.85rem; color: #64748b; }
 
 /* ── Expanders, Dividers, Tabs ── */
 .streamlit-expanderHeader {
     font-weight: 700 !important; color: #0f172a !important;
-    background: rgba(255,255,255,0.7) !important; border-radius: 12px !important; border: 1px solid rgba(255,255,255,0.9) !important;
+    background: rgba(255,255,255,0.6) !important; border-radius: 12px !important; border: 1px solid rgba(255,255,255,0.8) !important;
 }
 details { border: none !important; border-radius: 12px !important; background: transparent; overflow: hidden; }
-hr { border: none; border-top: 1px solid rgba(15, 23, 42, 0.06); margin: 2.5rem 0; }
+hr { border: none; border-top: 1px solid rgba(0,0,0,0.06); margin: 2rem 0; }
 
-[data-baseweb="tab-list"] { gap: 30px; border-bottom: 2px solid rgba(15, 23, 42, 0.05) !important; padding-bottom: 4px; }
-[data-baseweb="tab"] { font-weight: 700 !important; font-size: 1.05rem !important; color: #64748b !important; background: transparent !important; border: none !important; padding: 8px 4px !important; transition: color 0.2s ease; }
+[data-baseweb="tab-list"] { gap: 30px; border-bottom: 2px solid rgba(0,0,0,0.05) !important; padding-bottom: 4px; }
+[data-baseweb="tab"] { font-weight: 700 !important; font-size: 1.05rem !important; color: #64748b !important; background: transparent !important; border: none !important; padding: 8px 4px !important; transition: color 0.3s ease; }
 [aria-selected="true"] { color: #4f46e5 !important; border-bottom: 2px solid #4f46e5 !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -271,7 +281,7 @@ def status_label(row) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  LOGIN PAGE
+#  LOGIN PAGE (Bright Glassmorphism Portal)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def show_login():
@@ -281,12 +291,14 @@ def show_login():
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         min-height: 100vh; padding: 0 !important;
     }
+    header { visibility: hidden !important; }
     
     [data-testid="stForm"] {
-        background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-        border: 1px solid rgba(255, 255, 255, 1) !important;
+        background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+        border: 1px solid rgba(255, 255, 255, 0.9) !important;
         border-radius: 32px; padding: 56px 48px !important; width: 100%; max-width: 440px; margin: 0 auto;
-        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08), inset 0 0 0 1px rgba(255,255,255,0.5);
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.02);
+        animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -337,12 +349,12 @@ def show_login():
 def show_sidebar():
     with st.sidebar:
         st.markdown("""
-        <div style="padding: 24px 16px 36px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 42px; height: 42px; background: linear-gradient(135deg, #4f46e5, #9333ea); 
-                        border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-                        font-size: 20px; box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25); color:white;">✨</div>
+        <div style="padding: 32px 16px 40px; display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #4f46e5, #9333ea); 
+                        border-radius: 14px; display: flex; align-items: center; justify-content: center; 
+                        font-size: 22px; box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25); color:white;">✨</div>
             <div>
-                <div style="font-size: 1.3rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1;">ClientPulse</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1;">ClientPulse</div>
                 <div style="font-size: 0.65rem; color: #6366f1; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 800; margin-top: 6px;">Workspace</div>
             </div>
         </div>
@@ -354,19 +366,19 @@ def show_sidebar():
 
         initials = "".join(p[0].upper() for p in full_name.split()[:2])
         st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,1); border-radius: 16px; padding: 14px 16px; margin: 0 16px 32px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);">
-            <div style="width: 42px; height: 42px; border-radius: 10px; background: #e0e7ff; border: 1px solid #c7d2fe;
+        <div style="background: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,1); border-radius: 16px; padding: 16px; margin: 0 16px 32px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+            <div style="width: 46px; height: 46px; border-radius: 12px; background: #e0e7ff; border: 1px solid #c7d2fe;
                         display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: #4f46e5; flex-shrink: 0;">
                 {initials}
             </div>
             <div style="overflow: hidden;">
-                <div style="font-size: 0.9rem; font-weight: 800; color: #0f172a; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">{full_name}</div>
-                <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; margin-top: 4px; text-transform:uppercase; letter-spacing:0.05em;">
+                <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">{full_name}</div>
+                <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-top: 4px; text-transform:uppercase; letter-spacing:0.05em;">
                     {'🛡️ Admin' if role == 'admin' else '👤 User Profile'}
                 </div>
             </div>
         </div>
-        <div style="padding: 0 16px; font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Main Navigation</div>
+        <div style="padding: 0 16px; font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;">Main Navigation</div>
         """, unsafe_allow_html=True)
 
         nav_options = ["🏠  Dashboard Hub", "➕  Add New Client", "👥  Directory Grid", "📅  Task Pipeline", "📊  Analytics"]
@@ -375,10 +387,10 @@ def show_sidebar():
 
         page = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
-        st.markdown("<div style='height:1px;background:rgba(15, 23, 42, 0.06);margin:24px 16px 20px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:1px;background:rgba(0,0,0,0.06);margin:32px 16px 24px;'></div>", unsafe_allow_html=True)
         
         if st.button("🚪  Log Out securely", use_container_width=True):
-            for k in ["logged_in","username","role","full_name","user_id","dash_view"]:
+            for k in ["logged_in","username","role","full_name","user_id","show_today","dash_view"]:
                 st.session_state.pop(k, None)
             st.rerun()
 
@@ -386,7 +398,7 @@ def show_sidebar():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DASHBOARD (Perfectly Aligned Interactive Light Glass Tiles)
+#  DASHBOARD (Flawless Interactive Tiles with Negative Margin Hack)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_dashboard():
@@ -403,24 +415,26 @@ def page_dashboard():
 
     c1, c2, c3, c4 = st.columns(4)
 
-    # Note: st.button text is irrelevant due to absolute CSS overlay, but needs unique keys.
+    # By placing the visual card first, and the button second with negative margin, 
+    # the column naturally calculates the correct height without squishing!
     with c1:
         st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
-        if st.button("a", key="btn_tot", use_container_width=True): st.session_state.dash_view = "total"
+        if st.button(" ", key="btn_tot", use_container_width=True): st.session_state.dash_view = "total"
 
     with c2:
         st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Due Today</p></div>', unsafe_allow_html=True)
-        if st.button("b", key="btn_tod", use_container_width=True): st.session_state.dash_view = "today"
+        if st.button("  ", key="btn_tod", use_container_width=True): st.session_state.dash_view = "today"
 
     with c3:
         st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Actions</p></div>', unsafe_allow_html=True)
-        if st.button("c", key="btn_ovr", use_container_width=True): st.session_state.dash_view = "overdue"
+        if st.button("   ", key="btn_ovr", use_container_width=True): st.session_state.dash_view = "overdue"
 
     with c4:
         st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">Next 7 Days</p></div>', unsafe_allow_html=True)
-        if st.button("d", key="btn_upc", use_container_width=True): st.session_state.dash_view = "upcoming"
+        if st.button("    ", key="btn_upc", use_container_width=True): st.session_state.dash_view = "upcoming"
 
-    st.markdown("<hr>", unsafe_allow_html=True)
+    # Add a spacer to ensure the content below isn't pulled up by the negative margins
+    st.markdown("<div style='height: 20px;'></div><hr>", unsafe_allow_html=True)
 
     view = st.session_state.dash_view
 
@@ -691,12 +705,12 @@ def page_reports():
     overdue_n  = len(df[df["next_followup"].apply(lambda x: pd.to_datetime(x).date() < today_d if pd.notna(x) else False)])
 
     c1, c2, c3, c4 = st.columns(4)
-    # Using the same fixed dash-card setup but without buttons since these are just metrics
+    # Reusing the dashboard card style but making it static for metrics
     st.markdown("""
     <style>
     .rep-card {
         height: 140px; display: flex; flex-direction: column; justify-content: center;
-        background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(24px); 
+        background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); 
         border: 1px solid rgba(255, 255, 255, 1); border-radius: 20px; padding: 24px;
         box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03); margin-bottom: 24px;
     }
