@@ -120,6 +120,9 @@ header { background: transparent !important; }
 .metric-val  { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; line-height: 1; letter-spacing: -0.03em; }
 .metric-lbl  { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
 
+@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+.pulse-alert { animation: pulseRed 2s infinite; }
+
 .form-section { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 16px; padding: 24px 30px; border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 8px 30px rgba(15, 23, 42, 0.03); margin-bottom: 20px; }
 .form-section h5 { color: #0f172a; font-weight: 800; margin-bottom: 16px; font-size: 1.1rem; letter-spacing: -0.02em;}
 
@@ -131,32 +134,6 @@ header { background: transparent !important; }
 .stButton > button:hover { background: #ffffff !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(15, 23, 42, 0.06) !important; border-color: rgba(15, 23, 42, 0.1) !important; }
 .stButton > button[kind="primary"] { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important; border: none !important; color: white !important; box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25) !important; }
 .stButton > button[kind="primary"]:hover { background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4) !important; transform: translateY(-2px) scale(1.02) !important; }
-
-/* ── BREATHING ANIMATIONS FOR TASKS ── */
-@keyframes pulseLate {
-    0% { background: rgba(254, 226, 226, 0.5); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-    50% { background: rgba(254, 226, 226, 0.85); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
-    100% { background: rgba(254, 226, 226, 0.5); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-@keyframes pulseToday {
-    0% { background: rgba(224, 242, 254, 0.5); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-    50% { background: rgba(224, 242, 254, 0.85); box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
-    100% { background: rgba(224, 242, 254, 0.5); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-}
-
-.strip { backdrop-filter: blur(16px); border-radius: 16px; padding: 16px 24px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,1); border-left-width: 6px; display: flex; flex-direction: column; gap: 6px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02); }
-.strip:hover { transform: translateX(6px); filter: brightness(1.05); }
-
-.strip-overdue { animation: pulseLate 3s infinite; border-left-color: #ef4444; }
-.strip-today { animation: pulseToday 3s infinite; border-left-color: #3b82f6; }
-.strip-ok { background: rgba(255, 255, 255, 0.85); border-left-color: #10b981; align-items: center; text-align: center; }
-
-.strip-header { display: flex; justify-content: space-between; align-items: center; }
-.strip-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; }
-.strip-badge { font-size: 0.7rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;}
-.badge-blue { background: rgba(56, 189, 248, 0.15); color: #0284c7; border: 1px solid rgba(56, 189, 248, 0.3); }
-.badge-red { background: rgba(248, 113, 113, 0.15); color: #b91c1c; border: 1px solid rgba(248, 113, 113, 0.3); }
-.strip-meta { display: flex; gap: 16px; font-size: 0.85rem; color: #475569; font-weight: 600; margin: 0; }
 
 [data-baseweb="tab-list"] { gap: 30px; border-bottom: 2px solid rgba(15, 23, 42, 0.05) !important; padding-bottom: 4px; }
 [data-baseweb="tab"] { font-weight: 700 !important; font-size: 1rem !important; color: #64748b !important; background: transparent !important; border: none !important; transition: color 0.2s ease; }
@@ -214,12 +191,10 @@ def status_label(row) -> str:
         return "—"
 
 def highlight_rows(row):
-    """Pandas Styler logic to professionally highlight rows based on status"""
+    """Professional background colors for overdue and today tasks in the dataframe"""
     status = str(row['Status'])
-    if '🔴' in status:
-        return ['background-color: rgba(254, 226, 226, 0.7);'] * len(row)
-    elif '🟡' in status:
-        return ['background-color: rgba(224, 242, 254, 0.7);'] * len(row)
+    if '🔴' in status: return ['background-color: rgba(254, 226, 226, 0.7);'] * len(row)
+    if '🟡' in status: return ['background-color: rgba(224, 242, 254, 0.7);'] * len(row)
     return [''] * len(row)
 
 def change_user_password(user_id, new_password):
@@ -326,7 +301,7 @@ def show_sidebar():
 
 def page_dashboard():
     st.markdown('<p class="page-title">Dashboard</p>', unsafe_allow_html=True)
-    st.markdown(f'<p class="page-sub">Welcome back, {st.session_state.get("full_name","User")}. Manage your workflow below.</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="page-sub">Welcome back, {st.session_state.get("full_name","User")}. Click a tile below to filter your client list.</p>', unsafe_allow_html=True)
 
     total = db.get_total_clients()
     today_df  = db.get_todays_followups()
@@ -345,7 +320,7 @@ def page_dashboard():
         if st.button("\u200B\u200B", key="t_tod", use_container_width=True): st.session_state.dash_view = "today"
 
     with c3:
-        st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Tasks</p></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dash-card red pulse-alert"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Tasks</p></div>', unsafe_allow_html=True)
         if st.button("\u200B\u200B\u200B", key="t_ovr", use_container_width=True): st.session_state.dash_view = "overdue"
 
 
@@ -353,49 +328,34 @@ def page_dashboard():
 
     view = st.session_state.dash_view
 
-    # ── FULL WIDTH RENDERING ──
-    if view == "today":
-        st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>⚡ Tasks Due Today</h5>", unsafe_allow_html=True)
-        if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:1.5rem;margin-bottom:2px;opacity:0.9;">☕</div><p class="strip-title">All caught up</p><p class="strip-meta">No tasks scheduled for today.</p></div>', unsafe_allow_html=True)
-        else:
-            for _, r in today_df.iterrows():
-                time_str = pd.to_datetime(r['next_followup']).strftime('%I:%M %p')
-                st.markdown(f"""
-                <div class="strip strip-today">
-                    <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-blue">{r['category']}</span></div>
-                    <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span><span>⏰ {time_str}</span></div>
-                </div>""", unsafe_allow_html=True)
+    # ── THE INTEGRATED DIRECTORY GRID ──
+    fc1, fc2, fc3, fc4 = st.columns([2.5, 1.5, 1.5, 1])
+    with fc1: search = st.text_input("🔍 Search", placeholder="Search by name, company...", label_visibility="collapsed")
+    with fc2: cat    = st.selectbox("Filter", ["All","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
+    with fc3: srt    = st.selectbox("Sort By", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
+    
+    df = db.get_all_clients(search=search or None, category=cat if cat != "All" else None, sort_by=srt)
 
-    elif view == "overdue":
-        st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>⚠️ Overdue Tasks</h5>", unsafe_allow_html=True)
-        if over_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:1.5rem;margin-bottom:2px;opacity:0.9;">✅</div><p class="strip-title">Zero Overdue</p><p class="strip-meta">You are completely up to date.</p></div>', unsafe_allow_html=True)
-        else:
-            for _, r in over_df.iterrows():
-                time_str = pd.to_datetime(r['next_followup']).strftime('%b %d, %I:%M %p')
-                st.markdown(f"""
-                <div class="strip strip-overdue">
-                    <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-red">LATE</span></div>
-                    <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span><span>⏰ Was Due: {time_str}</span></div>
-                </div>""", unsafe_allow_html=True)
+    if not df.empty:
+        df["Status"] = df.apply(status_label, axis=1)
 
-    elif view == "total":
-        st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>👥 Full Client Directory</h5>", unsafe_allow_html=True)
-        
-        fc1, fc2, fc3, fc4 = st.columns([2.5, 1.5, 1.5, 1])
-        with fc1: search = st.text_input("🔍 Search", placeholder="Search by name, company...", label_visibility="collapsed")
-        with fc2: cat    = st.selectbox("Filter", ["All","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
-        with fc3: srt    = st.selectbox("Sort By", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
+        # Dynamic Titles and Filtering based on clicked Tile
+        if view == "today":
+            df = df[df["Status"].str.contains("🟡", na=False)]
+            st.markdown("<h5 style='color:#3b82f6; font-weight:800; margin-bottom:12px;'>⚡ Tasks Due Today</h5>", unsafe_allow_html=True)
+        elif view == "overdue":
+            df = df[df["Status"].str.contains("🔴", na=False)]
+            st.markdown("<h5 style='color:#ef4444; font-weight:800; margin-bottom:12px;'>⚠️ Overdue Tasks</h5>", unsafe_allow_html=True)
+        else:
+            st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>👥 Full Client Directory</h5>", unsafe_allow_html=True)
+
         with fc4: 
-            df_test = db.get_all_clients()
-            st.download_button("📥 Export", data=to_excel(df_test) if not df_test.empty else b"", file_name=f"Export.xlsx", use_container_width=True)
+            st.download_button("📥 Export", data=to_excel(df) if not df.empty else b"", file_name=f"Export.xlsx", use_container_width=True)
 
-        df = db.get_all_clients(search=search or None, category=cat if cat != "All" else None, sort_by=srt)
-
-        if df.empty: 
-            st.info("📭 No clients found in database.")
+        if df.empty:
+            st.info("📭 No clients match this view/filter.")
         else:
             df_display = df.copy()
-            df_display["Status"] = df_display.apply(status_label, axis=1)
             df_display["Deal Value"] = df_display["deal_value"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
             df_display["next_contact_fmt"] = pd.to_datetime(df_display["next_followup"]).dt.strftime('%b %d, %I:%M %p')
 
@@ -409,6 +369,7 @@ def page_dashboard():
             # --- HIDDEN MANAGEMENT CONSOLE ---
             with st.expander("⚙️ Manage & Edit Selected Client", expanded=False):
                 st.markdown("<div style='font-size:0.85rem; font-weight:700; color:#0f172a; margin-bottom:8px;'>Select Client to Edit</div>", unsafe_allow_html=True)
+                # The dropdown only shows names that are CURRENTLY visible in the filtered table
                 sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
                 
                 if sel:
@@ -465,6 +426,8 @@ def page_dashboard():
                         if st.button("🗑 Confirm Delete", use_container_width=True, key=f"btn_del_{cid}"):
                             db.delete_client(cid)
                             st.rerun()
+    else:
+        st.info("📭 Database is currently empty.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
