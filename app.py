@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import io
 import hashlib
 import random
@@ -16,8 +16,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── 2. LOGO LOADER UTILITY ─────────────────────────────────────────────────────
-def get_logo_html(width="64px", margin_bottom="16px", centered=True):
+# ── 2. LOGO LOADER UTILITY (UPGRADED SIZES) ────────────────────────────────────
+def get_logo_html(width="100px", margin_bottom="16px", centered=True):
     """Loads logo.png if it exists, otherwise falls back to a default CSS icon."""
     align = "margin: 0 auto;" if centered else "margin: 0;"
     try:
@@ -28,10 +28,10 @@ def get_logo_html(width="64px", margin_bottom="16px", centered=True):
     except Exception:
         pass
     
-    # Fallback if logo.png is not found
+    # Fallback if logo.png is not found (Adjusts text size based on container width)
     return f"""<div style="width: {width}; height: {width}; background: linear-gradient(135deg, #4f46e5, #9333ea); 
                border-radius: 25%; display: flex; align-items: center; justify-content: center; 
-               font-size: calc({width}/2); {align} margin-bottom: {margin_bottom}; 
+               font-size: calc(max(20px, {width}/2.5)); {align} margin-bottom: {margin_bottom}; 
                box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25); color:white;">✨</div>"""
 
 # ── 3. LIVE BACKGROUND ENGINE ──────────────────────────────────────────────────
@@ -239,7 +239,7 @@ header { background: transparent !important; }
 .strip-ok { border-left-color: #10b981; align-items: center; text-align: center; }
 
 .strip-header { display: flex; justify-content: space-between; align-items: center; }
-.strip-title { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0; }
+.strip-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; }
 .strip-badge { font-size: 0.7rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;}
 .badge-blue { background: rgba(56, 189, 248, 0.15); color: #0284c7; border: 1px solid rgba(56, 189, 248, 0.3); }
 .badge-red { background: rgba(248, 113, 113, 0.15); color: #b91c1c; border: 1px solid rgba(248, 113, 113, 0.3); }
@@ -272,15 +272,30 @@ def to_excel(df: pd.DataFrame) -> bytes:
     out = io.BytesIO()
     with pd.ExcelWriter(out, engine="openpyxl") as w: df.to_excel(w, index=False, sheet_name="Clients")
     return out.getvalue()
-def status_label(row) -> str:
-    nf = pd.to_datetime(row["next_followup"]).date() if pd.notna(row["next_followup"]) else None
-    if not nf: return "—"
-    d = date.today()
-    if nf < d:  return f"🔴 Overdue ({(d - nf).days}d)"
-    if nf == d: return "🟡 Due Today"
-    return f"🟢 In {(nf - d).days}d"
 
-# Directly update password safely using the established db connection
+def status_label(row) -> str:
+    """Calculates status exactly to the hour and minute"""
+    nf_val = row.get("next_followup")
+    if pd.isna(nf_val) or not nf_val: return "—"
+    try:
+        nf = pd.to_datetime(nf_val)
+        now = datetime.now()
+        if nf < now:
+            diff = now - nf
+            if diff.days > 0: return f"🔴 Overdue ({diff.days}d)"
+            hrs = diff.seconds // 3600
+            mins = (diff.seconds % 3600) // 60
+            if hrs > 0: return f"🔴 Overdue ({hrs}h)"
+            return f"🔴 Overdue ({mins}m)"
+        else:
+            diff = nf - now
+            if diff.days > 0: return f"🟢 In {diff.days}d"
+            hrs = diff.seconds // 3600
+            if hrs > 0: return f"🟡 Today (in {hrs}h)"
+            return "🟡 Imminent"
+    except:
+        return "—"
+
 def change_user_password(user_id, new_password):
     try:
         new_hash = hash_password(new_password)
@@ -292,13 +307,12 @@ def change_user_password(user_id, new_password):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  LOGIN PAGE (Scroll-Free & Logo Aware)
+#  LOGIN PAGE (Scroll-Free & Dynamic Logo)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def show_login():
     st.markdown("""
     <style>
-    /* Strictly compact login to prevent scrolling */
     .main .block-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 0 !important; }
     [data-testid="stForm"] {
         background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
@@ -311,7 +325,7 @@ def show_login():
     with st.form("login_form"):
         st.markdown(f"""
         <div style="text-align:center; margin-bottom:24px;">
-            {get_logo_html(width="64px", margin_bottom="12px")}
+            {get_logo_html(width="100px", margin_bottom="16px")}
             <div style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 2px;">ClientPulse CRM</div>
             <div style="font-size: 0.85rem; color: #64748b; font-weight: 500;">Please log in to your account</div>
         </div>
@@ -345,7 +359,7 @@ def show_sidebar():
     with st.sidebar:
         st.markdown(f"""
         <div style="padding: 16px 12px 24px; display: flex; align-items: center; gap: 12px;">
-            {get_logo_html(width="36px", margin_bottom="0", centered=False)}
+            {get_logo_html(width="54px", margin_bottom="0", centered=False)}
             <div>
                 <div style="font-size: 1.2rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1;">ClientPulse</div>
                 <div style="font-size: 0.6rem; color: #6366f1; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 800; margin-top: 4px;">CRM PLATFORM</div>
@@ -397,7 +411,7 @@ def page_dashboard():
 
     c1, c2, c3, c4 = st.columns(4)
 
-    # Completely invisible buttons layered by CSS
+    # Invisible buttons layered flawlessly by CSS overlay
     with c1:
         st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
         if st.button("\u200B", key="t_tot", use_container_width=True): st.session_state.dash_view = "total"
@@ -423,10 +437,11 @@ def page_dashboard():
         if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:1.5rem;margin-bottom:2px;opacity:0.9;">☕</div><p class="strip-title">All caught up</p><p class="strip-meta">No tasks due today.</p></div>', unsafe_allow_html=True)
         else:
             for _, r in today_df.iterrows():
+                time_str = pd.to_datetime(r['next_followup']).strftime('%I:%M %p')
                 st.markdown(f"""
                 <div class="strip strip-today">
                     <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-blue">{r['category']}</span></div>
-                    <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span></div>
+                    <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span><span>⏰ {time_str}</span></div>
                 </div>""", unsafe_allow_html=True)
 
     elif view == "overdue":
@@ -434,11 +449,11 @@ def page_dashboard():
         if over_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:1.5rem;margin-bottom:2px;opacity:0.9;">✅</div><p class="strip-title">Zero Overdue</p><p class="strip-meta">You are completely up to date.</p></div>', unsafe_allow_html=True)
         else:
             for _, r in over_df.iterrows():
-                d = (date.today() - pd.to_datetime(r['next_followup']).date()).days
+                time_str = pd.to_datetime(r['next_followup']).strftime('%b %d, %I:%M %p')
                 st.markdown(f"""
                 <div class="strip strip-overdue">
-                    <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-red">{d} Days Overdue</span></div>
-                    <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span></div>
+                    <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-red">LATE</span></div>
+                    <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span><span>⏰ Was Due: {time_str}</span></div>
                 </div>""", unsafe_allow_html=True)
 
     elif view == "total":
@@ -458,12 +473,12 @@ def page_dashboard():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  ADD CLIENT
+#  ADD CLIENT (With Specific Time Scheduling)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_add_client():
     st.markdown('<p class="page-title">Add New Client</p>', unsafe_allow_html=True)
-    st.markdown('<p class="page-sub">Enter client details to add them to your CRM.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="page-sub">Enter client details and schedule their follow-up.</p>', unsafe_allow_html=True)
 
     with st.form("add_client_form", clear_on_submit=True):
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
@@ -480,22 +495,35 @@ def page_add_client():
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 📅 Follow-up Settings")
+        st.markdown("##### 📅 Pipeline Scheduling")
         c3, c4 = st.columns(2)
+        
         with c3:
-            last_contacted = st.date_input("Last Contacted", value=date.today())
-            followup_days  = st.number_input("Follow-up Interval (Days) *", min_value=1, max_value=365, value=5)
-            deal_value     = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000)
+            st.markdown("<div style='font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:8px;'>Next Contact Schedule</div>", unsafe_allow_html=True)
+            sc1, sc2 = st.columns(2)
+            with sc1:
+                next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed")
+            with sc2:
+                # Automatically defaults to exactly 4 hours from current time for fast same-day scheduling
+                default_time = (datetime.now() + timedelta(hours=4)).time()
+                next_t = st.time_input("Time", value=default_time, label_visibility="collapsed")
+            
+            deal_value = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000)
+            
         with c4:
-            nf = last_contacted + timedelta(days=int(followup_days))
+            # Combine Date and Time
+            nf_datetime = datetime.combine(next_d, next_t)
+            
+            # DB logic backwards compatibility
+            f_days = (nf_datetime.date() - date.today()).days
+            f_days = f_days if f_days > 0 else 0
+            
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(f"""
             <div style="background:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,1); border-radius:12px; padding:16px; text-align:center; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
-                <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Next Contact Date</p>
-                <p style="font-size:1.4rem; font-weight:800; color:#0f172a; margin:4px 0;">{nf.strftime("%A, %B %d, %Y")}</p>
-                <p style="font-size:0.75rem; color:#64748b; font-weight:600; margin:0;">
-                    Scheduled in <span style="color:#0f172a; font-weight:800;">{int(followup_days)} days</span>
-                </p>
+                <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Target Execution</p>
+                <p style="font-size:1.3rem; font-weight:800; color:#0f172a; margin:4px 0;">{nf_datetime.strftime("%A, %b %d")}</p>
+                <p style="font-size:1.1rem; color:#4f46e5; font-weight:700; margin:0;">@ {nf_datetime.strftime("%I:%M %p")}</p>
             </div>""", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -509,8 +537,12 @@ def page_add_client():
     if submitted:
         if not name.strip(): st.error("❌ Full Name is required.")
         else:
-            ok = db.add_client({"name": name, "email": email, "phone": phone, "company": company, "category": category, "source": source, "last_contacted": str(last_contacted), "followup_days": int(followup_days), "next_followup": str(nf), "deal_value": deal_value, "notes": notes, "created_by": st.session_state.get("user_id", 1)})
-            if ok: st.success(f"✅ Success! **{name}** added. Follow-up scheduled for **{nf.strftime('%b %d')}**.")
+            ok = db.add_client({
+                "name": name, "email": email, "phone": phone, "company": company, "category": category, "source": source, 
+                "last_contacted": str(datetime.now()), "followup_days": f_days, "next_followup": str(nf_datetime), 
+                "deal_value": deal_value, "notes": notes, "created_by": st.session_state.get("user_id", 1)
+            })
+            if ok: st.success(f"✅ Success! **{name}** added. Scheduled for **{nf_datetime.strftime('%b %d @ %I:%M %p')}**.")
             else: st.error("❌ Database error.")
 
 
@@ -537,8 +569,10 @@ def page_all_clients():
     with hc1: st.markdown(f"<p style='color:#64748b; font-size:0.9rem; font-weight:600; padding-top:10px;'>{len(df)} Clients found</p>", unsafe_allow_html=True)
     with hc2: st.download_button("📥 Export to Excel", data=to_excel(df), file_name=f"CRM_Export_{date.today()}.xlsx", use_container_width=True)
 
+    # Format dataframe for beautiful display
     df["Status"]     = df.apply(status_label, axis=1)
     df["Deal Value"] = df["deal_value"].apply(lambda x: f"${x:,.0f}" if x else "—")
+    df["next_followup"] = pd.to_datetime(df["next_followup"]).dt.strftime('%b %d, %I:%M %p')
 
     show_cols = ["name","company","phone","email","category","next_followup","Status","Deal Value"]
     rename    = {"name":"Full Name","company":"Company","phone":"Phone","email":"Email", "category":"Category","next_followup":"Next Contact"}
@@ -549,20 +583,23 @@ def page_all_clients():
     st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>⚡ Quick Actions</h5>", unsafe_allow_html=True)
     
     st.markdown('<div class="form-section" style="padding: 20px 24px;">', unsafe_allow_html=True)
-    rc1, rc2, rc3, rc4 = st.columns([3, 1, 1, 1])
+    rc1, rc2, rc3, rc4 = st.columns([2.5, 2.5, 1, 1])
     with rc1: 
         st.markdown("<div style='font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;'>Select Client</div>", unsafe_allow_html=True)
         sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
     with rc2: 
-        st.markdown("<div style='font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;'>New Date</div>", unsafe_allow_html=True)
-        new_d = st.date_input("Date", value=date.today() + timedelta(days=7), label_visibility="collapsed")
+        st.markdown("<div style='font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;'>New Date & Time</div>", unsafe_allow_html=True)
+        sc1, sc2 = st.columns(2)
+        with sc1: new_d = st.date_input("Date", value=date.today() + timedelta(days=1), label_visibility="collapsed")
+        with sc2: new_t = st.time_input("Time", value=datetime.now().time(), label_visibility="collapsed")
+        new_dt = datetime.combine(new_d, new_t)
     with rc3:
         st.markdown("<br style='line-height:1'>", unsafe_allow_html=True)
         if st.button("Update Date", type="primary", use_container_width=True):
-            cid = int(df[df["name"] == sel]["id"].values[0]); db.update_followup(cid, str(new_d)); st.rerun()
+            cid = int(df[df["name"] == sel]["id"].values[0]); db.update_followup(cid, str(new_dt)); st.rerun()
     with rc4:
         st.markdown("<br style='line-height:1'>", unsafe_allow_html=True)
-        if st.button("🗑 Delete Client", use_container_width=True):
+        if st.button("🗑 Delete", use_container_width=True):
             cid = int(df[df["name"] == sel]["id"].values[0]); db.delete_client(cid); st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
