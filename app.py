@@ -8,25 +8,23 @@ from database import DatabaseManager
 
 # ── 1. CORE CONFIGURATION ──────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="ClientPulse OS | Ultimate",
+    page_title="ClientPulse OS | Premium",
     page_icon="✨",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ── 2. LIVE PARTICLE PHYSICS BACKGROUND ────────────────────────────────────────
-# Dynamically generate random floating particles
 def generate_particles():
+    """Generates the live moving background with floating orbs and rising particles"""
     html = '<div class="mesh-engine"><div class="gradient-bg"></div>'
-    # Add large floating aurora orbs
     html += '<div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>'
-    # Add 40 rising particles
-    for i in range(40):
-        size = random.randint(3, 8)
+    for i in range(35):
+        size = random.randint(4, 9)
         left = random.randint(0, 100)
         anim_duration = random.randint(15, 35)
         anim_delay = random.randint(0, 20)
-        opacity = random.uniform(0.2, 0.7)
+        opacity = random.uniform(0.2, 0.6)
         html += f'<div class="particle" style="width:{size}px; height:{size}px; left:{left}vw; animation-duration:{anim_duration}s; animation-delay:-{anim_delay}s; opacity:{opacity};"></div>'
     html += '</div>'
     return html
@@ -89,7 +87,7 @@ st.markdown("""
 /* ── LAYOUT & SCROLLBARS ── */
 .main .block-container { 
     padding: 2.5rem 4rem !important; max-width: 1440px; 
-    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
 
@@ -131,27 +129,63 @@ header { background: transparent !important; }
    🚀 BULLETPROOF DASHBOARD TILE ENGINE (NO WHITE BOXES GUARANTEED)
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* 1. Set exactly 140px fixed height for the tiles */
-.dash-card {
-    height: 140px !important; 
-    background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 20px; 
-    padding: 24px; position: relative; overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin: 0 !important;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.03); display: flex; flex-direction: column; justify-content: center; z-index: 1;
+/* 1. Make the column relative to anchor the button */
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] { 
+    position: relative !important; 
 }
 
-/* Glowing Indicator lines at bottom of cards */
-.dash-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 5px; background: transparent; transition: background 0.4s ease; }
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
+/* 2. Visual Card Styling */
+.dash-card {
+    height: 120px !important; 
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; 
+    padding: 16px 20px; position: relative; overflow: hidden;
+    transition: all 0.3s ease; margin: 0 !important;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
+    display: flex; flex-direction: column; justify-content: center;
+    z-index: 1;
+}
 
-.metric-icon { font-size: 2rem; margin-bottom: 8px; line-height: 1; text-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-.metric-val  { font-size: 2.6rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; line-height: 1; letter-spacing: -0.03em; }
-.metric-lbl  { font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
+/* 3. The Absolute Button Overlay Hack */
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] div[data-testid="stButton"] {
+    position: absolute !important; 
+    top: 0 !important; left: 0 !important; 
+    width: 100% !important; height: 100% !important; 
+    z-index: 10 !important; margin: 0 !important; padding: 0 !important;
+}
 
+/* 4. Make the button itself completely invisible but clickable */
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] div[data-testid="stButton"] button {
+    width: 100% !important; height: 100% !important; 
+    opacity: 0 !important; cursor: pointer !important; 
+    background: transparent !important; border: none !important; 
+    color: transparent !important; box-shadow: none !important;
+}
+
+/* Bottom Glow Indicator */
+.dash-card::after { 
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+    background: transparent; transition: background 0.3s ease;
+}
+
+/* Card Hover Interactions */
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card {
+    transform: translateY(-4px); background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 0 15px rgba(255,255,255,0.6);
+    border: 1px solid rgba(255, 255, 255, 1);
+}
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.metric-icon { font-size: 1.8rem; margin-bottom: 6px; line-height: 1; text-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.metric-val  { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; line-height: 1; letter-spacing: -0.03em; }
+.metric-lbl  { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
+
+/* Critical Pulse Animation */
+@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+.pulse-alert { animation: pulseRed 2s infinite; }
 
 /* ── GLASS FORMS & CONTAINERS ── */
 .form-section {
@@ -205,25 +239,12 @@ header { background: transparent !important; }
 .strip-overdue { border-left-color: #ef4444; }
 .strip-ok { border-left-color: #10b981; align-items: center; text-align: center; }
 
-/* Critical Pulse Animation */
-@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-.pulse-alert { animation: pulseRed 2s infinite; }
-
 .strip-header { display: flex; justify-content: space-between; align-items: center; }
 .strip-title { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0; }
 .strip-badge { font-size: 0.75rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;}
 .badge-blue { background: rgba(56, 189, 248, 0.15); color: #0284c7; border: 1px solid rgba(56, 189, 248, 0.3); }
 .badge-red { background: rgba(248, 113, 113, 0.15); color: #b91c1c; border: 1px solid rgba(248, 113, 113, 0.3); }
 .strip-meta { display: flex; gap: 18px; font-size: 0.9rem; color: #475569; font-weight: 600; margin: 0; }
-.strip-notes { margin: 6px 0 0; padding-top: 12px; border-top: 1px dashed rgba(15,23,42,0.08); font-size: 0.85rem; color: #64748b; }
-
-/* ── ACTIVITY TIMELINE ── */
-.timeline-item { position: relative; padding-left: 30px; margin-bottom: 24px; }
-.timeline-item::before { content: ''; position: absolute; left: 0; top: 6px; width: 14px; height: 14px; border-radius: 50%; background: #6366f1; border: 3px solid #e0e7ff; box-shadow: 0 0 0 3px white; }
-.timeline-item::after { content: ''; position: absolute; left: 6px; top: 22px; width: 2px; height: calc(100% + 4px); background: #cbd5e1; }
-.timeline-item:last-child::after { display: none; }
-.tl-time { font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-.tl-content { font-size: 0.95rem; color: #0f172a; font-weight: 600; background: rgba(255,255,255,0.7); padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,1); box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
 
 /* ── EXPANDERS & TABS ── */
 .streamlit-expanderHeader { font-weight: 700 !important; color: #0f172a !important; background: rgba(255,255,255,0.8) !important; border-radius: 14px !important; border: 1px solid rgba(255,255,255,1) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.3s ease; }
@@ -239,7 +260,7 @@ hr { border: none; border-top: 1px solid rgba(15, 23, 42, 0.08); margin: 2.5rem 
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DB + AUTH & MOCK ACTIVITY GENERATOR
+#  DATABASE & UTILS
 # ══════════════════════════════════════════════════════════════════════════════
 
 @st.cache_resource
@@ -265,19 +286,6 @@ def status_label(row) -> str:
     if nf == d: return "🟡 Due Today"
     return f"🟢 In {(nf - d).days}d"
 
-def generate_mock_activity():
-    """Generates dynamic fake activity for the dashboard UI to make it feel alive"""
-    activities = [
-        {"time": "10 MINS AGO", "text": f"{st.session_state.get('full_name','User')} synchronized metrics."},
-        {"time": "1 HOUR AGO", "text": "Automated pipeline sweep completed."},
-        {"time": "3 HOURS AGO", "text": "New client entity assimilated into Grid."},
-        {"time": "YESTERDAY", "text": "System security protocol updated."}
-    ]
-    html = ""
-    for act in activities:
-        html += f"<div class='timeline-item'><div class='tl-time'>{act['time']}</div><div class='tl-content'>{act['text']}</div></div>"
-    return html
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  LOGIN PORTAL
@@ -300,10 +308,9 @@ def show_login():
         <div style="text-align:center; margin-bottom:40px;">
             <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #4f46e5, #9333ea); 
                         border-radius: 22px; display: flex; align-items: center; justify-content: center; 
-                        font-size: 32px; margin: 0 auto 24px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); color:white;
-                        animation: slideUpFade 0.6s ease forwards;">✨</div>
-            <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 8px; animation: slideUpFade 0.7s ease forwards;">ClientPulse OS</div>
-            <div style="font-size: 0.95rem; color: #64748b; font-weight: 500; animation: slideUpFade 0.8s ease forwards;">Sign in to your workspace</div>
+                        font-size: 32px; margin: 0 auto 24px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); color:white;">✨</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 8px;">ClientPulse OS</div>
+            <div style="font-size: 0.95rem; color: #64748b; font-weight: 500; letter-spacing: 0.02em;">Authenticate into workspace</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -362,6 +369,7 @@ def show_sidebar():
         <div style="padding: 0 16px; font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Navigation</div>
         """, unsafe_allow_html=True)
 
+        # Removed Analytics and Pipeline as requested
         nav_options = ["🏠  Dashboard Hub", "➕  Initialize Client", "👥  Directory Grid"]
         if role == "admin": nav_options.append("⚙️  Access Control")
 
@@ -376,45 +384,40 @@ def show_sidebar():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DASHBOARD HUB (Buttons entirely removed as requested)
+#  DASHBOARD HUB
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_dashboard():
-    st.markdown('<div class="animate-1"><p class="page-title">Dashboard Hub</p></div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="animate-1"><p class="page-sub">System Active. Welcome back, <b>{st.session_state.get("full_name","User")}</b>.</p></div>', unsafe_allow_html=True)
+    st.markdown('<p class="page-title">Command Center</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="page-sub">System Active. Welcome back, <b>{st.session_state.get("full_name","User")}</b>.</p>', unsafe_allow_html=True)
 
     total = db.get_total_clients()
     today_df  = db.get_todays_followups()
     over_df   = db.get_overdue_followups()
-    upc_df    = db.get_upcoming_followups(7)
 
-    # Hardcoding to 'today' since we removed the buttons
-    st.session_state.dash_view = "today" 
+    if "dash_view" not in st.session_state: st.session_state.dash_view = "today"
 
-    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
-    c1, c2, c3, c4 = st.columns(4)
+    # Reduced to 3 columns since we removed the 7-day forecast tile
+    c1, c2, c3 = st.columns(3)
 
+    # Empty string "\u200B" acts as an invisible label for the button. The CSS handles the rest.
     with c1:
         st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Network</p></div>', unsafe_allow_html=True)
+        if st.button("\u200B", key="t_tot", use_container_width=True): st.session_state.dash_view = "total"
 
     with c2:
         st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Active Today</p></div>', unsafe_allow_html=True)
+        if st.button("\u200B\u200B", key="t_tod", use_container_width=True): st.session_state.dash_view = "today"
 
     with c3:
         st.markdown(f'<div class="dash-card red pulse-alert"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Critical Overdue</p></div>', unsafe_allow_html=True)
+        if st.button("\u200B\u200B\u200B", key="t_ovr", use_container_width=True): st.session_state.dash_view = "overdue"
 
-    with c4:
-        st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">7-Day Forecast</p></div>', unsafe_allow_html=True)
+    st.markdown("<hr style='margin-top: 15px;'>", unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    view = st.session_state.dash_view
 
-    st.markdown("<hr style='margin-top: 25px;'>", unsafe_allow_html=True)
-
-    # ── SPLIT LAYOUT: Main Content vs Activity Timeline ──
-    col_main, col_side = st.columns([7, 3], gap="large")
-
-    with col_main:
-        st.markdown('<div class="animate-3">', unsafe_allow_html=True)
+    if view == "today":
         st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⚡ Priority Execution: Today</h4>", unsafe_allow_html=True)
         if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">☕</div><p class="strip-title">Systems Nominal</p><p class="strip-meta">No actions scheduled for today. Take a break.</p></div>', unsafe_allow_html=True)
         else:
@@ -425,13 +428,26 @@ def page_dashboard():
                     <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span></div>
                     <p class="strip-notes">📝 {r['notes'] or 'No supplemental notes.'}</p>
                 </div>""", unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
-    with col_side:
-        st.markdown('<div class="animate-3">', unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⏱️ Activity Log</h4>", unsafe_allow_html=True)
-        st.markdown(generate_mock_activity(), unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    elif view == "overdue":
+        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⚠️ Critical Backlog</h4>", unsafe_allow_html=True)
+        if over_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">✅</div><p class="strip-title">Perfect Health</p><p class="strip-meta">No overdue actions detected.</p></div>', unsafe_allow_html=True)
+        else:
+            for _, r in over_df.iterrows():
+                d = (date.today() - pd.to_datetime(r['next_followup']).date()).days
+                st.markdown(f"""
+                <div class="strip strip-overdue">
+                    <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-red">-{d} CYCLES</span></div>
+                    <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span></div>
+                </div>""", unsafe_allow_html=True)
+
+    elif view == "total":
+        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>👥 Complete Database Grid</h4>", unsafe_allow_html=True)
+        df = db.get_all_clients()
+        if df.empty: st.info("Database is currently empty.")
+        else:
+            df["Status"] = df.apply(status_label, axis=1)
+            st.dataframe(df[["name", "company", "category", "Status", "next_followup", "deal_value"]], use_container_width=True, hide_index=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -439,37 +455,36 @@ def page_dashboard():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_add_client():
-    st.markdown('<div class="animate-1"><p class="page-title">Initialize Client</p></div>', unsafe_allow_html=True)
-    st.markdown('<div class="animate-1"><p class="page-sub">Enter credentials to establish a new entity in the database.</p></div>', unsafe_allow_html=True)
+    st.markdown('<p class="page-title">Initialize Client Node</p>', unsafe_allow_html=True)
+    st.markdown('<p class="page-sub">Enter credentials to establish a new entity in the database.</p>', unsafe_allow_html=True)
 
-    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
     with st.form("add_client_form", clear_on_submit=True):
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 👤 Personal Details")
+        st.markdown("##### 👤 Entity Specifications")
         c1, c2 = st.columns(2)
         with c1:
-            name    = st.text_input("Full Name *", placeholder="e.g. Jane Doe")
-            email   = st.text_input("Email Address", placeholder="e.g. jane@company.com")
-            company = st.text_input("Company", placeholder="e.g. Acme Corp")
+            name    = st.text_input("Designation (Name) *", placeholder="e.g. Jane Doe")
+            email   = st.text_input("Comms Relay (Email)", placeholder="e.g. jane@company.com")
+            company = st.text_input("Affiliation (Company)", placeholder="e.g. Acme Corp")
         with c2:
-            phone    = st.text_input("Phone Number", placeholder="+1 555-0199")
+            phone    = st.text_input("Frequency (Phone)", placeholder="+1 555-0199")
             category = st.selectbox("Classification", ["Lead", "Prospect", "Active Client", "Partner", "VIP", "Churned"])
             source   = st.selectbox("Origin Source", ["Referral", "Website", "LinkedIn", "Cold Outreach", "Event", "Other"])
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 📅 Pipeline Scheduling")
+        st.markdown("##### 📅 Temporal Parameters")
         c3, c4 = st.columns(2)
         with c3:
-            last_contacted = st.date_input("Last Contact Date", value=date.today())
-            followup_days  = st.number_input("Follow-up Interval (Days) *", min_value=1, max_value=365, value=5)
-            deal_value     = st.number_input("Estimated Value ($)", min_value=0, value=0, step=5000)
+            last_contacted = st.date_input("Last Sync Date", value=date.today())
+            followup_days  = st.number_input("Cadence Interval (Days) *", min_value=1, max_value=365, value=5)
+            deal_value     = st.number_input("Projected Value ($)", min_value=0, value=0, step=5000)
         with c4:
             nf = last_contacted + timedelta(days=int(followup_days))
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(f"""
             <div style="background:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,1); border-radius:16px; padding:20px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
-                <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Computed Contact Date</p>
+                <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Computed Execution Date</p>
                 <p style="font-size:1.5rem; font-weight:800; color:#0f172a; margin:4px 0;">{nf.strftime("%A, %B %d, %Y")}</p>
                 <p style="font-size:0.8rem; color:#64748b; font-weight:600; margin:0;">
                     Task will trigger in <span style="color:#0f172a; font-weight:800;">{int(followup_days)} cycles</span>
@@ -478,19 +493,18 @@ def page_add_client():
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 📝 Context Notes")
-        notes = st.text_area("Entity Background", placeholder="Enter specific requirements, meeting notes...", height=100)
+        st.markdown("##### 📝 Supplemental Data")
+        notes = st.text_area("Encrypted Notes", placeholder="Input mission critical data here...", height=100)
         st.markdown('</div>', unsafe_allow_html=True)
 
         submitted = st.form_submit_button("💾 Write to Database", type="primary", use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
     if submitted:
-        if not name.strip(): st.error("❌ Full Name is required.")
+        if not name.strip(): st.error("❌ Designation is a mandatory parameter.")
         else:
             ok = db.add_client({"name": name, "email": email, "phone": phone, "company": company, "category": category, "source": source, "last_contacted": str(last_contacted), "followup_days": int(followup_days), "next_followup": str(nf), "deal_value": deal_value, "notes": notes, "created_by": st.session_state.get("user_id", 1)})
-            if ok: st.success(f"✅ Success! **{name}** added. Follow-up scheduled for **{nf.strftime('%b %d')}**.")
-            else: st.error("❌ Database insertion failed.")
+            if ok: st.success(f"✅ Protocol accepted. **{name}** assimilated. Sequence scheduled for **{nf.strftime('%b %d')}**.")
+            else: st.error("❌ Database connection failed. Aborting.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -498,26 +512,23 @@ def page_add_client():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_all_clients():
-    st.markdown('<div class="animate-1"><p class="page-title">Directory Grid</p></div>', unsafe_allow_html=True)
-    st.markdown('<div class="animate-1"><p class="page-sub">Global view of all registered entities and operational statuses.</p></div>', unsafe_allow_html=True)
+    st.markdown('<p class="page-title">Directory Grid</p>', unsafe_allow_html=True)
+    st.markdown('<p class="page-sub">Global view of all registered entities and their current operational status.</p>', unsafe_allow_html=True)
 
-    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
     st.markdown('<div class="form-section" style="padding: 24px;">', unsafe_allow_html=True)
     fc1, fc2, fc3 = st.columns([3, 1, 1])
-    with fc1: search = st.text_input("🔍 Search Database", placeholder="Search by name, company, or email...", label_visibility="collapsed")
-    with fc2: cat    = st.selectbox("Category Filter", ["All","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
-    with fc3: srt    = st.selectbox("Sort By", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
+    with fc1: search = st.text_input("🔍 Query Matrix", placeholder="Search parameters...", label_visibility="collapsed")
+    with fc2: cat    = st.selectbox("Filter", ["All","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
+    with fc3: srt    = st.selectbox("Sort", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
     st.markdown('</div>', unsafe_allow_html=True)
 
     df = db.get_all_clients(search=search or None, category=cat if cat != "All" else None, sort_by=srt)
 
-    if df.empty: 
-        st.info("📭 No records found matching criteria.")
-        return
+    if df.empty: return st.info("📭 Query returned zero results.")
 
     hc1, hc2 = st.columns([5, 1])
-    with hc1: st.markdown(f"<p style='color:#64748b; font-size:0.95rem; font-weight:600; padding-top:10px;'>{len(df)} Records found</p>", unsafe_allow_html=True)
-    with hc2: st.download_button("📥 Extract Data", data=to_excel(df), file_name=f"Data_Export_{date.today()}.xlsx", use_container_width=True)
+    with hc1: st.markdown(f"<p style='color:#64748b; font-size:0.95rem; font-weight:600; padding-top:10px;'>{len(df)} Entities Located</p>", unsafe_allow_html=True)
+    with hc2: st.download_button("📥 Extract JSON/CSV", data=to_excel(df), file_name=f"Data_Export_{date.today()}.xlsx", use_container_width=True)
 
     df["Status"]     = df.apply(status_label, axis=1)
     df["Deal Value"] = df["deal_value"].apply(lambda x: f"${x:,.0f}" if x else "—")
@@ -526,29 +537,27 @@ def page_all_clients():
     rename    = {"name":"Designation","company":"Affiliation","phone":"Comms","email":"Routing", "category":"Class","next_followup":"Action Date"}
 
     st.dataframe(df[show_cols].rename(columns=rename), use_container_width=True, height=400, hide_index=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="animate-3">', unsafe_allow_html=True)
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:16px;'>⚡ Execute Override</h4>", unsafe_allow_html=True)
     
     st.markdown('<div class="form-section" style="padding: 24px;">', unsafe_allow_html=True)
     rc1, rc2, rc3, rc4 = st.columns([3, 1, 1, 1])
     with rc1: 
-        st.markdown("<div style='font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:4px;'>Select Target</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:4px;'>Target Entity</div>", unsafe_allow_html=True)
         sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
     with rc2: 
         st.markdown("<div style='font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:4px;'>New Temporal Coordinate</div>", unsafe_allow_html=True)
         new_d = st.date_input("Date", value=date.today() + timedelta(days=7), label_visibility="collapsed")
     with rc3:
         st.markdown("<br style='line-height:1.2'>", unsafe_allow_html=True)
-        if st.button("Update Date", type="primary", use_container_width=True):
+        if st.button("Shift Timeline", type="primary", use_container_width=True):
             cid = int(df[df["name"] == sel]["id"].values[0]); db.update_followup(cid, str(new_d)); st.rerun()
     with rc4:
         st.markdown("<br style='line-height:1.2'>", unsafe_allow_html=True)
-        if st.button("🗑 Terminate Record", use_container_width=True):
+        if st.button("🗑 Terminate", use_container_width=True):
             cid = int(df[df["name"] == sel]["id"].values[0]); db.delete_client(cid); st.rerun()
-    st.markdown('</div></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -556,16 +565,15 @@ def page_all_clients():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_user_management():
-    st.markdown('<div class="animate-1"><p class="page-title">Access Control</p></div>', unsafe_allow_html=True)
-    st.markdown('<div class="animate-1"><p class="page-sub">Easily manage workspace members and their authorization levels.</p></div>', unsafe_allow_html=True)
+    st.markdown('<p class="page-title">System Config</p>', unsafe_allow_html=True)
+    st.markdown('<p class="page-sub">Manage network operators and authorization protocols.</p>', unsafe_allow_html=True)
 
-    st.markdown('<div class="animate-2">', unsafe_allow_html=True)
-    tab1, tab2 = st.tabs(["👥 Active Users", "➕ Add User"])
+    tab1, tab2 = st.tabs(["👥 Operator Matrix", "➕ Provision Node"])
 
     with tab1:
         st.markdown("<br>", unsafe_allow_html=True)
         users = db.get_all_users()
-        if users.empty: st.info("No active users found.")
+        if users.empty: st.info("No operators found.")
         else:
             for _, u in users.iterrows():
                 role_badge = "🛡️ Admin" if u["role"] == "admin" else "👤 User"
@@ -583,44 +591,40 @@ def page_user_management():
                 with c2:
                     st.markdown("<br>", unsafe_allow_html=True)
                     if u["username"] != st.session_state.get("username"):
-                        if st.button("Suspend" if u["is_active"] else "Restore", key=f"tog_{u['id']}", use_container_width=True): 
-                            db.toggle_user_status(int(u["id"])); st.rerun()
-                    else:
-                        st.markdown("<div style='text-align: center; margin-top: 10px; font-weight: 700; color: #10b981; font-size: 0.85rem;'>Current User</div>", unsafe_allow_html=True)
+                        if st.button("Toggle Power" if u["is_active"] else "Restore Power", key=f"tog_{u['id']}", use_container_width=True): db.toggle_user_status(int(u["id"])); st.rerun()
+                    else: st.markdown("<div style='text-align: center; margin-top: 10px; font-weight: 700; color: #10b981; font-size: 0.85rem;'>Current Operator</div>", unsafe_allow_html=True)
                         
                 with c3:
                     st.markdown("<br>", unsafe_allow_html=True)
                     if u["username"] != st.session_state.get("username"):
-                        if st.button("Delete", key=f"del_{u['id']}", use_container_width=True): 
-                            db.delete_user(int(u["id"])); st.rerun()
+                        if st.button("Erase Node", key=f"del_{u['id']}", use_container_width=True): db.delete_user(int(u["id"])); st.rerun()
 
                 st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
 
     with tab2:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### Add New Member")
+        st.markdown("##### Configuration Wizard")
         with st.form("add_user_form", clear_on_submit=True):
-            new_fullname = st.text_input("Full Name *", placeholder="e.g. Alex Smith")
-            new_username = st.text_input("Username *", placeholder="e.g. alex.smith")
-            new_password  = st.text_input("Password *", type="password", placeholder="Min 6 characters")
-            new_role      = st.selectbox("Role", ["user", "admin"])
+            ac1, ac2 = st.columns(2)
+            with ac1:
+                new_fullname = st.text_input("Identity Tag *", placeholder="e.g. Neo")
+                new_username = st.text_input("System Handle *", placeholder="e.g. the_one")
+            with ac2:
+                new_password  = st.text_input("Access Key *", type="password", placeholder="Min 6 characters")
+                new_role      = st.selectbox("Clearance Level", ["user", "admin"])
 
             st.markdown("<br>", unsafe_allow_html=True)
-            add_submitted = st.form_submit_button("➕ Create Account", type="primary", use_container_width=True)
+            add_submitted = st.form_submit_button("➕ Provision Identity", type="primary", use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
         if add_submitted:
-            if not new_fullname.strip() or not new_username.strip() or not new_password: 
-                st.error("❌ Missing required fields.")
-            elif len(new_password) < 6: 
-                st.error("❌ Password too short (minimum 6 characters).")
-            elif db.username_exists(new_username): 
-                st.error("❌ Username already taken.")
+            if not new_fullname.strip() or not new_username.strip() or not new_password: st.error("❌ Missing required fields.")
+            elif len(new_password) < 6: st.error("❌ Access Key too weak (minimum 6 characters).")
+            elif db.username_exists(new_username): st.error("❌ Handle already active.")
             else:
                 db.add_user({"full_name": new_fullname, "username": new_username, "email": "", "password_hash": hash_password(new_password), "role": new_role})
-                st.success(f"✅ Success! {new_fullname} added to the workspace."); st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+                st.success(f"✅ Protocol successful. {new_fullname} is online."); st.rerun()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -630,10 +634,9 @@ def page_user_management():
 if not st.session_state.get("logged_in"): show_login()
 else:
     page = show_sidebar()
-    
     if   "Dashboard"        in page: page_dashboard()
     elif "Initialize"       in page: page_add_client()
-    elif "Directory Grid"   in page: page_all_clients()
+    elif "Directory"        in page: page_all_clients()
     elif "Access Control"   in page:
         if st.session_state.get("role") == "admin": page_user_management()
-        else: st.error("🔒 ACCESS DENIED: You must be an Admin to access settings.")
+        else: st.error("🔒 ACCESS DENIED. INSUFFICIENT CLEARANCE.")
