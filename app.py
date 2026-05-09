@@ -26,19 +26,15 @@ st.markdown("""
 # ── 💎 ULTRA-PREMIUM LIGHT GLASSMORPHISM CSS ───────────────────────────────────
 st.markdown("""
 <style>
-/* ── Premium Font ── */
+/* ── Premium Font (Carefully avoiding icon overrides!) ── */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-/* Apply font safely to text elements */
-.stApp * {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+p, span, h1, h2, h3, h4, h5, h6, label, input, button, a, li, th, td {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* EXPLICITLY protect Streamlit Icons to fix the "keyboard_double" bug! */
-.stApp .material-icons, 
-.stApp .material-symbols-rounded, 
-.stApp [class*="icon"], 
-.stApp [data-testid="stIconMaterial"] {
+/* Force Streamlit icons to keep their native font to fix the "keyboard_double" bug */
+.material-icons, .material-symbols-rounded, [class*="icon"], svg, [data-testid="stIconMaterial"] {
     font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
 }
 
@@ -118,6 +114,61 @@ header { background: transparent !important; }
 .page-title { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.03em; }
 .page-sub   { font-size: 1.05rem; color: #64748b; font-weight: 500; margin: 0 0 2.5rem; letter-spacing: 0.01em; }
 
+
+/* ══════════════════════════════════════════════════════════════════════════
+   🚀 FLAWLESS DASHBOARD TILES (NO EMPTY BOXES OR SCROLLS)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Ensure columns anchor the absolute buttons */
+div[data-testid="column"] { 
+    position: relative !important; 
+}
+
+/* 2. Visual Card Styling */
+.dash-card {
+    height: 140px; /* Strict height lock */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 1);
+    border-radius: 20px; padding: 24px; position: relative; overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 0 !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    display: flex; flex-direction: column; justify-content: center;
+}
+.dash-card::after { 
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+    background: transparent; transition: background 0.3s ease;
+}
+
+/* 3. Collapse the wrapper of our specific invisible buttons to 0 height */
+div.element-container:has(button[title^="btn_"]) {
+    height: 0 !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important;
+}
+
+/* 4. Target the specific buttons using their help text and stretch them */
+button[title^="btn_"] {
+    position: absolute !important; 
+    top: 0 !important; left: 0 !important; 
+    width: 100% !important; height: 140px !important; 
+    opacity: 0.001 !important; /* Totally invisible */
+    cursor: pointer !important; background: transparent !important; border: none !important;
+    z-index: 999 !important; box-shadow: none !important; color: transparent !important;
+}
+
+/* 5. Trigger card hover effects when you hover over the invisible button */
+div[data-testid="column"]:has(button[title^="btn_"]:hover) .dash-card {
+    transform: translateY(-6px);
+    background: #ffffff;
+    box-shadow: 0 15px 35px -5px rgba(0,0,0,0.1), 0 0 20px rgba(255,255,255,0.6);
+}
+div[data-testid="column"]:has(button[title^="btn_"]:hover) .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
+div[data-testid="column"]:has(button[title^="btn_"]:hover) .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+div[data-testid="column"]:has(button[title^="btn_"]:hover) .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
+div[data-testid="column"]:has(button[title^="btn_"]:hover) .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
+
+.metric-icon { font-size: 2.2rem; margin-bottom: 12px; line-height: 1; }
+.metric-val  { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height: 1; letter-spacing: -0.02em; }
+.metric-lbl  { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
 
 /* ── Light Glassmorphic Forms & Containers ── */
 .form-section {
@@ -351,79 +402,6 @@ def show_sidebar():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_dashboard():
-    # INJECT SCOPED CSS FOR THE DASHBOARD TILES TO FIX THE LAYOUT BUG FOREVER
-    st.markdown("""
-    <style>
-    /* 1. Force the column to be a strict relative block of 150px height */
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] { 
-        position: relative !important; 
-        height: 150px !important;
-        min-height: 150px !important;
-        display: block !important;
-    }
-
-    /* 2. Anchor the visual card securely */
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .element-container:first-child {
-        position: absolute !important;
-        top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important;
-        z-index: 1 !important;
-    }
-
-    /* 3. Pull the Streamlit button wrapper perfectly over the card */
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .element-container:nth-child(2) {
-        position: absolute !important; 
-        top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; 
-        z-index: 10 !important; margin: 0 !important; padding: 0 !important;
-    }
-
-    /* 4. Make the button itself completely invisible but clickable */
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .stButton,
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .stButton button {
-        width: 100% !important; height: 100% !important; 
-        opacity: 0.01 !important; cursor: pointer !important; 
-        background: transparent !important; border: none !important; box-shadow: none !important; color: transparent !important;
-        padding: 0 !important; margin: 0 !important; position: absolute !important; top: 0 !important; left: 0 !important;
-    }
-    
-    /* Remove hover background from invisible button to prevent grey flashing */
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .stButton button:hover {
-        background: transparent !important; border: none !important; box-shadow: none !important; transform: none !important;
-    }
-
-    /* 5. Visual Card Styling */
-    .dash-card {
-        height: 150px !important;
-        background: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 1);
-        border-radius: 20px; padding: 24px; position: relative; overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin: 0 !important;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-        display: flex; flex-direction: column; justify-content: center;
-    }
-    .dash-card::after { 
-        content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
-        background: transparent; transition: background 0.4s ease;
-    }
-
-    /* 6. Trigger card hover effects when you hover over the invisible button */
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card {
-        transform: translateY(-6px);
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1), 0 0 20px rgba(255,255,255,0.5);
-    }
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
-    .main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
-
-    .metric-icon { font-size: 2.2rem; margin-bottom: 12px; line-height: 1; }
-    .metric-val  { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height: 1; letter-spacing: -0.02em; }
-    .metric-lbl  { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
-    </style>
-    """, unsafe_allow_html=True)
-
-
     st.markdown('<p class="page-title">Dashboard Hub</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="page-sub">Welcome back, <b>{st.session_state.get("full_name","User")}</b>. Here is your overview for today.</p>', unsafe_allow_html=True)
 
@@ -437,24 +415,26 @@ def page_dashboard():
 
     c1, c2, c3, c4 = st.columns(4)
 
+    # Note: Streamlit renders the button. The CSS (using the help attribute) rips 
+    # it completely out of flow and stretches it over the dash-card. No white boxes!
+
     with c1:
         st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
-        if st.button("btn_tot", key="tot_c"): st.session_state.dash_view = "total"
+        if st.button(" ", key="tot_c", help="btn_tot"): st.session_state.dash_view = "total"
 
     with c2:
         st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Due Today</p></div>', unsafe_allow_html=True)
-        if st.button("btn_tod", key="tod_c"): st.session_state.dash_view = "today"
+        if st.button(" ", key="tod_c", help="btn_tod"): st.session_state.dash_view = "today"
 
     with c3:
         st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Actions</p></div>', unsafe_allow_html=True)
-        if st.button("btn_ovr", key="ovr_c"): st.session_state.dash_view = "overdue"
+        if st.button(" ", key="ovr_c", help="btn_ovr"): st.session_state.dash_view = "overdue"
 
     with c4:
         st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">Next 7 Days</p></div>', unsafe_allow_html=True)
-        if st.button("btn_upc", key="upc_c"): st.session_state.dash_view = "upcoming"
+        if st.button(" ", key="upc_c", help="btn_upc"): st.session_state.dash_view = "upcoming"
 
-    # Add clearance below the fixed-height tiles to prevent overlap
-    st.markdown("<div style='height: 15px;'></div><hr style='margin-top: 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin-top: 10px;'>", unsafe_allow_html=True)
 
     view = st.session_state.dash_view
 
