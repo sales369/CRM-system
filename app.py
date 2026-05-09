@@ -116,46 +116,49 @@ header { background: transparent !important; }
 
 
 /* ══════════════════════════════════════════════════════════════════════════
-   🚀 FLAWLESS INTERACTIVE DASHBOARD TILES (Negative Margin Technique)
+   🚀 FLAWLESS INTERACTIVE DASHBOARD TILES (Absolute Overlay Technique)
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* 1. Ensure columns stack items normally */
-div[data-testid="stHorizontalBlock"]:has(.dash-card) > div[data-testid="column"] { 
-    position: relative; 
+/* 1. Make the parent column relative so we can overlay the button inside it */
+div[data-testid="column"]:has(.dash-card) { 
+    position: relative !important; 
 }
 
-/* 2. Style the visual card component */
+/* 2. Style the visual card component (This dictates the height of the column) */
 .dash-card {
-    height: 150px; /* Fixed height guarantees they are perfectly identical */
+    height: 140px; 
     background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 1);
     border-radius: 20px; padding: 24px; position: relative; overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 0 !important;
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     display: flex; flex-direction: column; justify-content: center;
+    z-index: 1; /* Sits below the invisible button */
 }
+
+/* 3. Pull the Streamlit button perfectly over the card */
+div[data-testid="column"]:has(.dash-card) div[data-testid="stButton"] {
+    position: absolute !important; 
+    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; 
+    z-index: 10 !important; margin: 0 !important; padding: 0 !important;
+}
+
+/* 4. Make the button completely invisible but still clickable */
+div[data-testid="column"]:has(.dash-card) div[data-testid="stButton"] button {
+    width: 100% !important; height: 100% !important; 
+    opacity: 0 !important; cursor: pointer !important; 
+    background: transparent !important; border: none !important;
+    box-shadow: none !important;
+}
+
+/* 5. Glow borders */
 .dash-card::after { 
     content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
     background: transparent; transition: background 0.4s ease;
 }
 
-/* 3. Pull the Streamlit button UP to perfectly overlay the card */
-div[data-testid="column"]:has(.dash-card) div[data-testid="stButton"] {
-    margin-top: -150px; /* Exact height of the card */
-    position: relative;
-    z-index: 10;
-}
-div[data-testid="column"]:has(.dash-card) div[data-testid="stButton"] button {
-    height: 150px !important;
-    width: 100% !important;
-    opacity: 0 !important; /* Make button completely invisible */
-    cursor: pointer !important;
-    border: none !important;
-    padding: 0 !important;
-}
-
-/* 4. Trigger card hover effects when you hover over the invisible button */
+/* 6. Trigger card hover effects when you hover over the invisible button */
 div[data-testid="column"]:has(button:hover) .dash-card {
     transform: translateY(-6px);
     background: rgba(255, 255, 255, 0.95);
@@ -166,9 +169,9 @@ div[data-testid="column"]:has(button:hover) .dash-card.blue::after   { backgroun
 div[data-testid="column"]:has(button:hover) .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
 div[data-testid="column"]:has(button:hover) .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
 
-.metric-icon { font-size: 2rem; margin-bottom: 12px; line-height: 1; }
-.metric-val  { font-size: 2.6rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height: 1; letter-spacing: -0.02em; }
-.metric-lbl  { font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
+.metric-icon { font-size: 2.2rem; margin-bottom: 12px; line-height: 1; }
+.metric-val  { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height: 1; letter-spacing: -0.02em; }
+.metric-lbl  { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
 
 /* ── Light Glassmorphic Forms & Containers ── */
 .form-section {
@@ -398,7 +401,7 @@ def show_sidebar():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DASHBOARD (Flawless Interactive Tiles with Negative Margin Hack)
+#  DASHBOARD (Flawless Interactive Tiles with Overlay)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_dashboard():
@@ -415,26 +418,27 @@ def page_dashboard():
 
     c1, c2, c3, c4 = st.columns(4)
 
-    # By placing the visual card first, and the button second with negative margin, 
-    # the column naturally calculates the correct height without squishing!
+    # Tile 1
     with c1:
         st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
-        if st.button(" ", key="btn_tot", use_container_width=True): st.session_state.dash_view = "total"
+        if st.button(" ", key="btn_tot"): st.session_state.dash_view = "total"
 
+    # Tile 2
     with c2:
         st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Due Today</p></div>', unsafe_allow_html=True)
-        if st.button("  ", key="btn_tod", use_container_width=True): st.session_state.dash_view = "today"
+        if st.button("  ", key="btn_tod"): st.session_state.dash_view = "today"
 
+    # Tile 3
     with c3:
         st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Actions</p></div>', unsafe_allow_html=True)
-        if st.button("   ", key="btn_ovr", use_container_width=True): st.session_state.dash_view = "overdue"
+        if st.button("   ", key="btn_ovr"): st.session_state.dash_view = "overdue"
 
+    # Tile 4
     with c4:
         st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">Next 7 Days</p></div>', unsafe_allow_html=True)
-        if st.button("    ", key="btn_upc", use_container_width=True): st.session_state.dash_view = "upcoming"
+        if st.button("    ", key="btn_upc"): st.session_state.dash_view = "upcoming"
 
-    # Add a spacer to ensure the content below isn't pulled up by the negative margins
-    st.markdown("<div style='height: 20px;'></div><hr>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin-top: 10px;'>", unsafe_allow_html=True)
 
     view = st.session_state.dash_view
 
@@ -528,7 +532,7 @@ def page_add_client():
             nf = last_contacted + timedelta(days=int(followup_days))
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(f"""
-            <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:16px; padding:24px; text-align:center;">
+            <div style="background:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.8); border-radius:16px; padding:24px; text-align:center;">
                 <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Next Scheduled Contact</p>
                 <p style="font-size:1.6rem; font-weight:800; color:#0f172a; margin:8px 0;">{nf.strftime("%A, %B %d, %Y")}</p>
                 <p style="font-size:0.85rem; color:#64748b; font-weight:600; margin:0;">
@@ -705,7 +709,6 @@ def page_reports():
     overdue_n  = len(df[df["next_followup"].apply(lambda x: pd.to_datetime(x).date() < today_d if pd.notna(x) else False)])
 
     c1, c2, c3, c4 = st.columns(4)
-    # Reusing the dashboard card style but making it static for metrics
     st.markdown("""
     <style>
     .rep-card {
