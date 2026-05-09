@@ -43,30 +43,30 @@ html, body, [class*="css-"], p, span, h1, h2, h3, h4, h5, h6, div, label, input,
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     z-index: -9999; overflow: hidden; pointer-events: none;
     /* Beautiful shifting live gradient */
-    background: linear-gradient(120deg, #ff9a9e 0%, #fecfef 30%, #a1c4fd 70%, #c2e9fb 100%);
+    background: linear-gradient(120deg, #f8fafc, #eef2ff, #fdf4ff, #e0f2fe);
     background-size: 300% 300%;
     animation: liveThemeShift 15s ease infinite alternate;
 }
 
-/* Shifts the colors across the screen to create the "Live" effect */
 @keyframes liveThemeShift { 
     0% { background-position: 0% 50%; filter: hue-rotate(0deg); } 
-    50% { background-position: 100% 50%; filter: hue-rotate(20deg); } 
-    100% { background-position: 0% 50%; filter: hue-rotate(40deg); } 
+    50% { background-position: 100% 50%; filter: hue-rotate(15deg); } 
+    100% { background-position: 0% 50%; filter: hue-rotate(30deg); } 
 }
 
 .orb {
-    position: absolute; border-radius: 50%; filter: blur(100px);
-    opacity: 0.5; animation: auraFloat 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute; border-radius: 50%; filter: blur(90px);
+    opacity: 0.6; animation: auraFloat 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
 }
-.orb-1 { width: 50vw; height: 50vw; top: -10vw; left: -10vw; background: #ffffff; }
-.orb-2 { width: 40vw; height: 40vw; bottom: -5vw; right: -5vw; background: #e0f2fe; animation-delay: -5s; }
-.orb-3 { width: 45vw; height: 45vw; top: 30vh; left: 35vw; background: #fdf4ff; animation-delay: -10s; }
-@keyframes auraFloat { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(40px,-40px) scale(1.05); } }
+.orb-1 { width: 50vw; height: 50vw; top: -10vw; left: -10vw; background: #c7d2fe; }
+.orb-2 { width: 40vw; height: 40vw; bottom: -5vw; right: -5vw; background: #fbcfe8; animation-delay: -5s; }
+.orb-3 { width: 45vw; height: 45vw; top: 30vh; left: 35vw; background: #bae6fd; animation-delay: -10s; }
+@keyframes auraFloat { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(30px,-30px) scale(1.05); } }
 
 /* --- GLOBAL LAYOUT & SCROLLBAR --- */
+/* Reduced padding so everything fits on one screen without scrolling */
 .main .block-container { 
-    padding: 3rem 4rem !important; max-width: 1440px; 
+    padding: 1.5rem 3rem !important; max-width: 1440px; 
     animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
@@ -101,149 +101,124 @@ header { background: transparent !important; }
 [data-testid="stSidebar"] .stRadio label[data-baseweb="radio"] { display: flex; }
 
 /* --- TYPOGRAPHY --- */
-.page-title { font-size: 2.6rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.04em; }
-.page-sub   { font-size: 1.1rem; color: #475569; font-weight: 600; margin: 0 0 3rem; letter-spacing: 0.01em; }
+.page-title { font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.04em; }
+.page-sub   { font-size: 1rem; color: #475569; font-weight: 500; margin: 0 0 1rem; letter-spacing: 0.01em; }
 
 
 /* ══════════════════════════════════════════════════════════════════════════
-   🚀 THE FLAWLESS UNIFIED BUTTON-TILE ENGINE
+   🚀 THE FLAWLESS UNIFIED BUTTON-TILE ENGINE (NO WHITE BOXES)
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* 1. Force the column to be a strict relative block of 150px height */
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] { 
+/* 1. Make the column relative to anchor the button */
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] { 
     position: relative !important; 
-    height: 150px !important;
-    min-height: 150px !important;
-    display: block !important;
 }
 
-/* 2. Anchor the visual card securely */
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .element-container:first-child {
-    position: absolute !important;
-    top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important;
-    z-index: 1 !important;
+/* 2. Visual Card Styling (Normal document flow so it sets the height automatically) */
+.dash-card {
+    height: 110px !important; /* Smaller height to prevent scrolling */
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; 
+    padding: 16px 20px; position: relative; overflow: hidden;
+    transition: all 0.3s ease; margin: 0 !important;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
+    display: flex; flex-direction: column; justify-content: center;
+    z-index: 1;
 }
 
-/* 3. Pull the Streamlit button wrapper perfectly over the card */
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .element-container:nth-child(2) {
+/* 3. The Absolute Button Overlay Hack */
+/* This targets Streamlit's button wrapper and stretches it perfectly over the card */
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] div[data-testid="stButton"] {
     position: absolute !important; 
-    top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; 
+    top: 0 !important; left: 0 !important; 
+    width: 100% !important; height: 100% !important; 
     z-index: 10 !important; margin: 0 !important; padding: 0 !important;
 }
 
 /* 4. Make the button itself completely invisible but clickable */
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .stButton,
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .stButton button {
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] div[data-testid="stButton"] button {
     width: 100% !important; height: 100% !important; 
-    opacity: 0.01 !important; cursor: pointer !important; 
-    background: transparent !important; border: none !important; box-shadow: none !important; color: transparent !important;
-    padding: 0 !important; margin: 0 !important; position: absolute !important; top: 0 !important; left: 0 !important;
+    opacity: 0 !important; cursor: pointer !important; 
+    background: transparent !important; border: none !important; 
+    color: transparent !important; box-shadow: none !important;
 }
 
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .stButton button:hover {
-    background: transparent !important; border: none !important; box-shadow: none !important; transform: none !important;
-}
-
-/* 5. Visual Card Styling */
-.dash-card {
-    height: 150px !important;
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    border-radius: 20px; padding: 24px; position: relative; overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin: 0 !important;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-    display: flex; flex-direction: column; justify-content: center;
-}
+/* Bottom Glow Indicator */
 .dash-card::after { 
     content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
-    background: transparent; transition: background 0.4s ease;
+    background: transparent; transition: background 0.3s ease;
 }
 
-/* 6. Trigger card hover effects when you hover over the invisible button */
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card {
-    transform: translateY(-6px);
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.1), 0 0 20px rgba(255,255,255,0.5);
+/* Card Hover Interactions (Triggered by hovering the invisible button!) */
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card {
+    transform: translateY(-4px); background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 0 15px rgba(255,255,255,0.6);
     border: 1px solid rgba(255, 255, 255, 1);
 }
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
-.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
+.main [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
 
-.metric-icon { font-size: 2.2rem; margin-bottom: 12px; line-height: 1; }
-.metric-val  { font-size: 2.6rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height: 1; letter-spacing: -0.02em; }
-.metric-lbl  { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
+/* Tile Typography */
+.metric-icon { font-size: 1.8rem; margin-bottom: 6px; line-height: 1; text-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.metric-val  { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; line-height: 1; letter-spacing: -0.03em; }
+.metric-lbl  { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
 
 /* ── MODERN GLASS FORMS ── */
 .form-section {
-    background: rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    border-radius: 24px; padding: 36px 40px;
-    border: 1px solid rgba(255,255,255,0.8);
-    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.04);
-    margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-radius: 20px; padding: 28px 32px; border: 1px solid rgba(255,255,255,0.9);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04); margin-bottom: 20px;
 }
-.form-section h5 { color: #0f172a; font-weight: 800; margin-bottom: 24px; font-size: 1.2rem; letter-spacing: -0.02em;}
+.form-section h5 { color: #0f172a; font-weight: 800; margin-bottom: 20px; font-size: 1.1rem; letter-spacing: -0.02em;}
 
 /* Inputs */
 [data-baseweb="input"] > div, [data-baseweb="select"] > div, [data-baseweb="textarea"] > div {
-    border-radius: 14px !important; background-color: rgba(255,255,255,0.6) !important;
+    border-radius: 12px !important; background-color: rgba(255,255,255,0.6) !important;
     border: 1px solid rgba(15, 23, 42, 0.08) !important; transition: all 0.2s ease !important;
 }
-[data-baseweb="input"] > div:hover, [data-baseweb="select"] > div:hover { 
-    border-color: rgba(15, 23, 42, 0.15) !important; background-color: rgba(255,255,255,0.9) !important;
-}
-[data-baseweb="input"] > div:focus-within, [data-baseweb="select"] > div:focus-within {
-    border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15) !important; background-color: #ffffff !important;
-}
+[data-baseweb="input"] > div:hover, [data-baseweb="select"] > div:hover { border-color: rgba(15, 23, 42, 0.15) !important; background-color: rgba(255,255,255,0.9) !important;}
+[data-baseweb="input"] > div:focus-within, [data-baseweb="select"] > div:focus-within { border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15) !important; background-color: #ffffff !important; }
 
 /* ── PREMIUM BUTTONS ── */
 .stButton > button {
-    border-radius: 14px !important; font-weight: 700 !important; font-size: 0.95rem !important;
-    padding: 0.6rem 1.6rem !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    border-radius: 12px !important; font-weight: 700 !important; font-size: 0.9rem !important;
+    padding: 0.5rem 1.4rem !important; transition: all 0.2s ease !important;
     border: 1px solid rgba(15, 23, 42, 0.05) !important; background: rgba(255,255,255,0.9) !important; color: #1e293b !important;
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.03) !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
 }
-.stButton > button:hover { 
-    background: #ffffff !important; transform: translateY(-3px) !important; 
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important; border-color: rgba(15, 23, 42, 0.1) !important;
-}
+.stButton > button:hover { background: #ffffff !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(15, 23, 42, 0.06) !important; border-color: rgba(15, 23, 42, 0.1) !important; }
 .stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%) !important; border: none !important;
-    color: white !important; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25) !important;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important; border: none !important;
+    color: white !important; box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25) !important;
 }
 .stButton > button[kind="primary"]:hover {
-    background: linear-gradient(135deg, #4338ca 0%, #7e22ce 100%) !important;
-    box-shadow: 0 12px 25px rgba(79, 70, 229, 0.4) !important; transform: translateY(-3px) scale(1.02) !important;
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4) !important; transform: translateY(-2px) scale(1.02) !important;
 }
 
 /* ── LIST STRIPS ── */
 .strip { 
-    background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(16px); border-radius: 20px; padding: 20px 28px; margin-bottom: 16px; 
-    border: 1px solid rgba(255,255,255,0.9); border-left-width: 5px; display: flex; flex-direction: column; gap: 10px; transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.02);
+    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border-radius: 16px; padding: 16px 24px; margin-bottom: 12px; 
+    border: 1px solid rgba(255,255,255,1); border-left-width: 5px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
 }
-.strip:hover { transform: translateX(6px); background: #ffffff; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); }
+.strip:hover { transform: translateX(6px); background: #ffffff; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04); }
 .strip-today { border-left-color: #3b82f6; }
 .strip-overdue { border-left-color: #ef4444; }
 .strip-ok { border-left-color: #10b981; align-items: center; text-align: center; }
 
 .strip-header { display: flex; justify-content: space-between; align-items: center; }
-.strip-title { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0; }
-.strip-badge { font-size: 0.75rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;}
+.strip-title { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0; }
+.strip-badge { font-size: 0.7rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;}
 .badge-blue { background: #e0f2fe; color: #0284c7; }
 .badge-red { background: #fee2e2; color: #b91c1c; }
-.strip-meta { display: flex; gap: 18px; font-size: 0.9rem; color: #475569; font-weight: 600; margin: 0; }
+.strip-meta { display: flex; gap: 18px; font-size: 0.85rem; color: #475569; font-weight: 600; margin: 0; }
 
-/* ── Expander & Tabs ── */
-.streamlit-expanderHeader { font-weight: 700 !important; color: #0f172a !important; background: rgba(255,255,255,0.7) !important; border-radius: 14px !important; border: 1px solid rgba(255,255,255,0.9) !important; }
-details { border: none !important; border-radius: 14px !important; background: transparent; overflow: hidden; }
-hr { border: none; border-top: 1px solid rgba(15, 23, 42, 0.06); margin: 2.5rem 0; }
-
-[data-baseweb="tab-list"] { gap: 30px; border-bottom: 2px solid rgba(15, 23, 42, 0.05) !important; padding-bottom: 8px; }
-[data-baseweb="tab"] { font-weight: 700 !important; font-size: 1.1rem !important; color: #64748b !important; background: transparent !important; border: none !important; transition: color 0.2s ease; }
+/* ── TABS & TABLES ── */
+[data-baseweb="tab-list"] { gap: 30px; border-bottom: 2px solid rgba(15, 23, 42, 0.05) !important; padding-bottom: 4px; }
+[data-baseweb="tab"] { font-weight: 700 !important; font-size: 1rem !important; color: #64748b !important; background: transparent !important; border: none !important; transition: color 0.2s ease; }
 [aria-selected="true"] { color: #4f46e5 !important; border-bottom: 3px solid #4f46e5 !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -286,8 +261,8 @@ def show_login():
     <style>
     .main .block-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 0 !important; }
     [data-testid="stForm"] {
-        background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-        border: 1px solid rgba(255, 255, 255, 0.9) !important; border-radius: 32px; padding: 56px 48px !important; width: 100%; max-width: 440px; margin: 0 auto;
+        background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+        border: 1px solid rgba(255, 255, 255, 1) !important; border-radius: 28px; padding: 48px 44px !important; width: 100%; max-width: 420px; margin: 0 auto;
         box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08), inset 0 0 0 1px rgba(255,255,255,0.5);
     }
     </style>
@@ -295,12 +270,12 @@ def show_login():
 
     with st.form("login_form"):
         st.markdown("""
-        <div style="text-align:center; margin-bottom:40px;">
-            <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #4f46e5, #9333ea); 
-                        border-radius: 22px; display: flex; align-items: center; justify-content: center; 
-                        font-size: 32px; margin: 0 auto 24px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); color:white;">✨</div>
-            <div style="font-size: 1.8rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 8px;">ClientPulse OS</div>
-            <div style="font-size: 0.95rem; color: #64748b; font-weight: 500; letter-spacing: 0.02em;">Sign in to your workspace</div>
+        <div style="text-align:center; margin-bottom:32px;">
+            <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #4f46e5, #9333ea); 
+                        border-radius: 18px; display: flex; align-items: center; justify-content: center; 
+                        font-size: 28px; margin: 0 auto 20px; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3); color:white;">✨</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 6px;">ClientPulse OS</div>
+            <div style="font-size: 0.9rem; color: #64748b; font-weight: 500;">Sign in to your workspace</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -323,7 +298,7 @@ def show_login():
                     st.rerun()
                 else: st.error("❌ Invalid authentication.")
 
-        st.markdown("<div style='text-align:center; margin-top:32px; font-size:0.8rem; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.1em;'>End-to-End Encrypted Session</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center; margin-top:24px; font-size:0.75rem; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.1em;'>Encrypted Session</div>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -333,13 +308,13 @@ def show_login():
 def show_sidebar():
     with st.sidebar:
         st.markdown("""
-        <div style="padding: 24px 16px 36px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 42px; height: 42px; background: linear-gradient(135deg, #4f46e5, #9333ea); 
-                        border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-                        font-size: 20px; box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25); color:white;">✨</div>
+        <div style="padding: 16px 16px 32px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #4f46e5, #9333ea); 
+                        border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+                        font-size: 20px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); color:white;">✨</div>
             <div>
-                <div style="font-size: 1.3rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1;">ClientPulse</div>
-                <div style="font-size: 0.65rem; color: #6366f1; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 800; margin-top: 6px;">Workspace</div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1;">ClientPulse</div>
+                <div style="font-size: 0.6rem; color: #6366f1; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 800; margin-top: 4px;">Workspace</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -349,18 +324,17 @@ def show_sidebar():
         initials = "".join(p[0].upper() for p in full_name.split()[:2])
 
         st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,1); border-radius: 16px; padding: 14px 16px; margin: 0 16px 32px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);">
-            <div style="width: 42px; height: 42px; border-radius: 10px; background: #e0e7ff; border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: #4f46e5; flex-shrink: 0;">{initials}</div>
+        <div style="background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,1); border-radius: 14px; padding: 12px 14px; margin: 0 16px 24px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);">
+            <div style="width: 38px; height: 38px; border-radius: 8px; background: #e0e7ff; border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800; color: #4f46e5; flex-shrink: 0;">{initials}</div>
             <div style="overflow: hidden;">
-                <div style="font-size: 0.9rem; font-weight: 800; color: #0f172a; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">{full_name}</div>
-                <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; margin-top: 4px; text-transform:uppercase; letter-spacing:0.05em;">{'🛡️ Admin' if role == 'admin' else '👤 User'}</div>
+                <div style="font-size: 0.85rem; font-weight: 800; color: #0f172a; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">{full_name}</div>
+                <div style="font-size: 0.65rem; color: #64748b; font-weight: 600; margin-top: 2px; text-transform:uppercase; letter-spacing:0.05em;">{'🛡️ Admin' if role == 'admin' else '👤 User'}</div>
             </div>
         </div>
-        <div style="padding: 0 16px; font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Navigation</div>
+        <div style="padding: 0 16px; font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Navigation</div>
         """, unsafe_allow_html=True)
 
-        # Removed the Task Pipeline and Analytics pages here as requested
-        nav_options = ["🏠  Dashboard Hub", "➕  Add Client", "👥  Directory Grid"]
+        nav_options = ["🏠  Dashboard Hub", "➕  Initialize Client", "👥  Directory Grid"]
         if role == "admin": nav_options.append("⚙️  Access Control")
 
         page = st.radio("Navigation", nav_options, label_visibility="collapsed")
@@ -390,31 +364,31 @@ def page_dashboard():
 
     c1, c2, c3, c4 = st.columns(4)
 
-    # Note: Using Markdown for the visual card and st.button to trigger the interaction perfectly over it.
+    # Empty string inside the button ensures no text is rendered, and CSS forces it to stretch over the card
     with c1:
-        st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
-        if st.button("btn_tot", key="t_tot"): st.session_state.dash_view = "total"
+        st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Network</p></div>', unsafe_allow_html=True)
+        if st.button(" ", key="t_tot"): st.session_state.dash_view = "total"
 
     with c2:
-        st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Due Today</p></div>', unsafe_allow_html=True)
-        if st.button("btn_tod", key="t_tod"): st.session_state.dash_view = "today"
+        st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Active Today</p></div>', unsafe_allow_html=True)
+        if st.button(" ", key="t_tod"): st.session_state.dash_view = "today"
 
     with c3:
-        st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Actions</p></div>', unsafe_allow_html=True)
-        if st.button("btn_ovr", key="t_ovr"): st.session_state.dash_view = "overdue"
+        st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Critical Overdue</p></div>', unsafe_allow_html=True)
+        if st.button(" ", key="t_ovr"): st.session_state.dash_view = "overdue"
 
     with c4:
-        st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">Next 7 Days</p></div>', unsafe_allow_html=True)
-        if st.button("btn_upc", key="t_upc"): st.session_state.dash_view = "upcoming"
+        st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">7-Day Forecast</p></div>', unsafe_allow_html=True)
+        if st.button(" ", key="t_upc"): st.session_state.dash_view = "upcoming"
 
-    # Push content safely below the absolute overlay tiles
-    st.markdown("<div style='height: 160px;'></div><hr style='margin-top: 20px;'>", unsafe_allow_html=True)
+    # Minimal spacing below the tiles, no massive gaps
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
     view = st.session_state.dash_view
 
     if view == "today":
-        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⚡ Action Required Today</h4>", unsafe_allow_html=True)
-        if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">☕</div><p class="strip-title">Inbox Zero</p><p class="strip-meta">Take a break, no actions scheduled for today.</p></div>', unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:16px;'>⚡ Action Required Today</h4>", unsafe_allow_html=True)
+        if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">☕</div><p class="strip-title">Inbox Zero</p><p class="strip-meta">Take a break, no calls scheduled for today.</p></div>', unsafe_allow_html=True)
         else:
             for _, r in today_df.iterrows():
                 st.markdown(f"""
@@ -425,7 +399,7 @@ def page_dashboard():
                 </div>""", unsafe_allow_html=True)
 
     elif view == "overdue":
-        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⚠️ Overdue Tasks</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:16px;'>⚠️ Overdue Tasks</h4>", unsafe_allow_html=True)
         if over_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">✅</div><p class="strip-title">Perfect Health</p><p class="strip-meta">No overdue actions detected.</p></div>', unsafe_allow_html=True)
         else:
             for _, r in over_df.iterrows():
@@ -437,7 +411,7 @@ def page_dashboard():
                 </div>""", unsafe_allow_html=True)
 
     elif view == "total":
-        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>👥 Complete Client Grid</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:16px;'>👥 Complete Client Grid</h4>", unsafe_allow_html=True)
         df = db.get_all_clients()
         if df.empty: st.info("Database is currently empty.")
         else:
@@ -445,7 +419,7 @@ def page_dashboard():
             st.dataframe(df[["name", "company", "category", "Status", "next_followup", "deal_value"]], use_container_width=True, hide_index=True)
 
     elif view == "upcoming":
-        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>📅 7-Day Forecasting</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:16px;'>📅 7-Day Forecasting</h4>", unsafe_allow_html=True)
         if upc_df.empty: st.info("No events scheduled for the upcoming 7-day window.")
         else:
             upc_df["Days Until"] = upc_df["next_followup"].apply(lambda x: (pd.to_datetime(x).date() - date.today()).days)
@@ -453,11 +427,11 @@ def page_dashboard():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  ADD CLIENT
+#  INITIALIZE CLIENT
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_add_client():
-    st.markdown('<p class="page-title">Add Client</p>', unsafe_allow_html=True)
+    st.markdown('<p class="page-title">Initialize Client</p>', unsafe_allow_html=True)
     st.markdown('<p class="page-sub">Enter credentials to establish a new entity in the database.</p>', unsafe_allow_html=True)
 
     with st.form("add_client_form", clear_on_submit=True):
@@ -485,10 +459,10 @@ def page_add_client():
             nf = last_contacted + timedelta(days=int(followup_days))
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(f"""
-            <div style="background:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.8); border-radius:16px; padding:24px; text-align:center;">
-                <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Computed Contact Date</p>
-                <p style="font-size:1.6rem; font-weight:800; color:#0f172a; margin:8px 0;">{nf.strftime("%A, %B %d, %Y")}</p>
-                <p style="font-size:0.85rem; color:#64748b; font-weight:600; margin:0;">
+            <div style="background:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.8); border-radius:16px; padding:20px; text-align:center;">
+                <p style="font-size:0.7rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Computed Contact Date</p>
+                <p style="font-size:1.4rem; font-weight:800; color:#0f172a; margin:4px 0;">{nf.strftime("%A, %B %d, %Y")}</p>
+                <p style="font-size:0.8rem; color:#64748b; font-weight:600; margin:0;">
                     Task will trigger in <span style="color:#0f172a; font-weight:800;">{int(followup_days)} days</span>
                 </p>
             </div>""", unsafe_allow_html=True)
@@ -496,7 +470,7 @@ def page_add_client():
 
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
         st.markdown("##### 📝 Context Notes")
-        notes = st.text_area("Entity Background", placeholder="Enter specific requirements, meeting notes...", height=120)
+        notes = st.text_area("Entity Background", placeholder="Enter specific requirements, meeting notes...", height=100)
         st.markdown('</div>', unsafe_allow_html=True)
 
         submitted = st.form_submit_button("💾 Write to Database", type="primary", use_container_width=True)
@@ -585,8 +559,8 @@ def page_user_management():
                 with c1:
                     st.markdown(f"""
                     <div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); padding: 16px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,1); box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
-                        <div style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 4px;">{u['full_name']} <span style="color: #64748b; font-weight: 500; font-size: 0.9rem;">(@{u['username']})</span></div>
-                        <div style="font-size: 0.85rem; font-weight: 600; color: #475569;">{role_badge} &nbsp;|&nbsp; {status_badge}</div>
+                        <div style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 2px;">{u['full_name']} <span style="color: #64748b; font-weight: 500; font-size: 0.85rem;">(@{u['username']})</span></div>
+                        <div style="font-size: 0.8rem; font-weight: 600; color: #475569;">{role_badge} &nbsp;|&nbsp; {status_badge}</div>
                     </div>
                     """, unsafe_allow_html=True)
                 
@@ -641,8 +615,8 @@ else:
     page = show_sidebar()
     
     if   "Dashboard"        in page: page_dashboard()
-    elif "Add Client"       in page: page_add_client()
-    elif "Directory Grid"   in page: page_all_clients()
+    elif "Initialize"       in page: page_add_client()
+    elif "Directory"        in page: page_all_clients()
     elif "Access Control"   in page:
         if st.session_state.get("role") == "admin": page_user_management()
         else: st.error("🔒 ACCESS DENIED: You must be an Admin to access settings.")
