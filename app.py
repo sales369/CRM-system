@@ -92,6 +92,7 @@ st.markdown("""
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
+    margin-bottom: 8px; /* space for the button below */
 }
 .metric-card::before {
     content: '';
@@ -177,20 +178,6 @@ input, textarea { font-size: 0.95rem !important; color: #101828 !important; }
     background: linear-gradient(180deg, #4f46e5 0%, #4338ca 100%) !important;
     box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
-
-/* ── Big CTA Button ── */
-.big-cta button {
-    background: linear-gradient(135deg, #101828, #344054) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 12px !important;
-    font-size: 1.1rem !important;
-    font-weight: 600 !important;
-    padding: 1rem 0 !important;
-    box-shadow: 0 8px 16px rgba(16, 24, 40, 0.2) !important;
-    animation: subtlePulse 3s infinite;
-}
-.big-cta button:hover { transform: translateY(-2px) scale(1.02) !important; background: #101828 !important; }
 
 /* ── Tabs ── */
 [data-baseweb="tab-list"] {
@@ -284,38 +271,23 @@ def status_label(row) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  LOGIN PAGE (Ultra-Premium Portal - FIXED LAYOUT)
+#  LOGIN PAGE
 # ══════════════════════════════════════════════════════════════════════════════
 
 def show_login():
-    # Style the native Streamlit app background and form container specifically for the login page
     st.markdown("""
     <style>
-    /* Gradient Background and Centering */
-    .stApp {
-        background: radial-gradient(circle at 50% -20%, #eef2ff 0%, #f8fafc 100%);
-    }
+    .stApp { background: radial-gradient(circle at 50% -20%, #eef2ff 0%, #f8fafc 100%); }
     .main .block-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        padding: 0 !important;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        min-height: 100vh; padding: 0 !important;
     }
-    /* Hide top header bar completely */
     header { visibility: hidden !important; }
     
-    /* Transform the Streamlit Form into our Premium Card */
     [data-testid="stForm"] {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border: 1px solid #eaecf0 !important;
-        border-radius: 24px;
-        padding: 48px 40px !important;
-        width: 100%;
-        max-width: 440px;
-        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+        border: 1px solid #eaecf0 !important; border-radius: 24px;
+        padding: 48px 40px !important; width: 100%; max-width: 440px; margin: 0 auto;
         box-shadow: 0 25px 50px -12px rgba(16, 24, 40, 0.08), 0 0 0 1px rgba(16, 24, 40, 0.02);
         animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -323,20 +295,13 @@ def show_login():
     """, unsafe_allow_html=True)
 
     with st.form("login_form"):
-        # Logo and Headers inside the form
         st.markdown("""
         <div style="text-align:center; margin-bottom:32px;">
             <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #4f46e5, #7c3aed); 
                         border-radius: 18px; display: flex; align-items: center; justify-content: center; 
-                        font-size: 30px; margin: 0 auto 20px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);">
-                💼
-            </div>
-            <div style="font-size: 1.6rem; font-weight: 800; color: #101828; letter-spacing: -0.04em; margin-bottom: 6px;">
-                ClientPulse CRM
-            </div>
-            <div style="font-size: 0.9rem; color: #475467; font-weight: 500;">
-                Sign in to your enterprise workspace
-            </div>
+                        font-size: 30px; margin: 0 auto 20px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);">💼</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #101828; letter-spacing: -0.04em; margin-bottom: 6px;">ClientPulse CRM</div>
+            <div style="font-size: 0.9rem; color: #475467; font-weight: 500;">Sign in to your enterprise workspace</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -361,7 +326,6 @@ def show_login():
                 else:
                     st.error("❌ Invalid credentials.")
 
-        # Footer inside the form
         st.markdown("""
         <div style="text-align:center; margin-top:24px; font-size:0.8rem; color:#98a2b3; font-weight:500;">
             Secure Access • Protected by AES-256
@@ -423,7 +387,7 @@ def show_sidebar():
         """, unsafe_allow_html=True)
 
         if st.button("🚪  Sign Out", use_container_width=True):
-            for k in ["logged_in","username","role","full_name","user_id","show_today"]:
+            for k in ["logged_in","username","role","full_name","user_id","show_today","dash_view"]:
                 st.session_state.pop(k, None)
             st.rerun()
 
@@ -431,7 +395,7 @@ def show_sidebar():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DASHBOARD
+#  DASHBOARD (Fully Interactive)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_dashboard():
@@ -443,70 +407,94 @@ def page_dashboard():
     over_df   = db.get_overdue_followups()
     upc_df    = db.get_upcoming_followups(7)
 
+    # Initialize the view state
+    if "dash_view" not in st.session_state:
+        st.session_state.dash_view = "today" # Default open view
+
     c1, c2, c3, c4 = st.columns(4)
-    for col, icon, val, lbl, theme_class in [
-        (c1, "👥", total,           "Total Clients",   "indigo"),
-        (c2, "📞", len(today_df),   "Due Today",       "blue"),
-        (c3, "🔴", len(over_df),    "Overdue Actions", "red"),
-        (c4, "📆", len(upc_df),     "Next 7 Days",     "purple"),
-    ]:
-        col.markdown(f"""
-        <div class="metric-card {theme_class}">
-            <div class="metric-icon">{icon}</div>
-            <p class="metric-val">{val}</p>
-            <p class="metric-lbl">{lbl}</p>
-        </div>""", unsafe_allow_html=True)
 
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    # Metric Cards + View Buttons
+    with c1:
+        st.markdown(f'<div class="metric-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
+        if st.button("👁️ View Directory", key="btn_tot", use_container_width=True):
+            st.session_state.dash_view = "total"
 
-    _, mid, _ = st.columns([1, 2, 1])
-    with mid:
-        st.markdown('<div class="big-cta">', unsafe_allow_html=True)
-        if st.button("🔔  Generate My Daily Action Plan", use_container_width=True):
-            st.session_state.show_today = not st.session_state.get("show_today", False)
-        st.markdown('</div>', unsafe_allow_html=True)
+    with c2:
+        st.markdown(f'<div class="metric-card blue"><div class="metric-icon">📞</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Due Today</p></div>', unsafe_allow_html=True)
+        if st.button("👁️ View Today", key="btn_tod", use_container_width=True):
+            st.session_state.dash_view = "today"
 
-    if st.session_state.get("show_today"):
-        st.markdown("<br><hr>", unsafe_allow_html=True)
-        col_a, col_b = st.columns(2)
+    with c3:
+        st.markdown(f'<div class="metric-card red"><div class="metric-icon">🔴</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Actions</p></div>', unsafe_allow_html=True)
+        if st.button("👁️ View Overdue", key="btn_ovr", use_container_width=True):
+            st.session_state.dash_view = "overdue"
 
-        with col_a:
-            st.markdown("<h4 style='color:#101828; font-weight:800; margin-bottom:16px;'>📞 Call Today</h4>", unsafe_allow_html=True)
-            if today_df.empty:
-                st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;">☕</div><p class="strip-title">All clear!</p><p class="strip-meta">No calls scheduled for today.</p></div>', unsafe_allow_html=True)
-            else:
-                for _, r in today_df.iterrows():
-                    st.markdown(f"""
-                    <div class="strip strip-today">
-                        <div class="strip-header">
-                            <p class="strip-title">{r['name']} <span style="color:#667085; font-weight:500;">· {r['company']}</span></p>
-                            <span class="strip-badge badge-blue">{r['category']}</span>
-                        </div>
-                        <div class="strip-meta">
-                            <span>📞 {r['phone'] or 'N/A'}</span>
-                            <span>✉️ {r['email'] or 'N/A'}</span>
-                        </div>
-                        <p class="strip-notes">📝 {r['notes'] or 'No additional notes provided for this client.'}</p>
-                    </div>""", unsafe_allow_html=True)
+    with c4:
+        st.markdown(f'<div class="metric-card purple"><div class="metric-icon">📆</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">Next 7 Days</p></div>', unsafe_allow_html=True)
+        if st.button("👁️ View Upcoming", key="btn_upc", use_container_width=True):
+            st.session_state.dash_view = "upcoming"
 
-        with col_b:
-            st.markdown("<h4 style='color:#101828; font-weight:800; margin-bottom:16px;'>⚠️ Action Required (Overdue)</h4>", unsafe_allow_html=True)
-            if over_df.empty:
-                st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;">🎉</div><p class="strip-title">Inbox Zero!</p><p class="strip-meta">You are completely caught up.</p></div>', unsafe_allow_html=True)
-            else:
-                for _, r in over_df.iterrows():
-                    d = (date.today() - pd.to_datetime(r['next_followup']).date()).days
-                    st.markdown(f"""
-                    <div class="strip strip-overdue">
-                        <div class="strip-header">
-                            <p class="strip-title">{r['name']} <span style="color:#667085; font-weight:500;">· {r['company']}</span></p>
-                            <span class="strip-badge badge-red">{d}d Overdue</span>
-                        </div>
-                        <div class="strip-meta">
-                            <span>📞 {r['phone'] or 'N/A'}</span>
-                            <span>✉️ {r['email'] or 'N/A'}</span>
-                        </div>
-                    </div>""", unsafe_allow_html=True)
+    st.markdown("<hr style='margin: 2rem 0 1.5rem;'>", unsafe_allow_html=True)
+
+    # Display the dynamic view based on button clicked
+    view = st.session_state.dash_view
+
+    if view == "today":
+        st.markdown("<h4 style='color:#101828; font-weight:800; margin-bottom:16px;'>📞 Action Required Today</h4>", unsafe_allow_html=True)
+        if today_df.empty:
+            st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;">☕</div><p class="strip-title">All clear!</p><p class="strip-meta">No calls scheduled for today.</p></div>', unsafe_allow_html=True)
+        else:
+            for _, r in today_df.iterrows():
+                st.markdown(f"""
+                <div class="strip strip-today">
+                    <div class="strip-header">
+                        <p class="strip-title">{r['name']} <span style="color:#667085; font-weight:500;">· {r['company']}</span></p>
+                        <span class="strip-badge badge-blue">{r['category']}</span>
+                    </div>
+                    <div class="strip-meta">
+                        <span>📞 {r['phone'] or 'N/A'}</span>
+                        <span>✉️ {r['email'] or 'N/A'}</span>
+                    </div>
+                    <p class="strip-notes">📝 {r['notes'] or 'No additional notes provided for this client.'}</p>
+                </div>""", unsafe_allow_html=True)
+
+    elif view == "overdue":
+        st.markdown("<h4 style='color:#101828; font-weight:800; margin-bottom:16px;'>⚠️ Overdue Actions</h4>", unsafe_allow_html=True)
+        if over_df.empty:
+            st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;">🎉</div><p class="strip-title">Inbox Zero!</p><p class="strip-meta">You are completely caught up.</p></div>', unsafe_allow_html=True)
+        else:
+            for _, r in over_df.iterrows():
+                d = (date.today() - pd.to_datetime(r['next_followup']).date()).days
+                st.markdown(f"""
+                <div class="strip strip-overdue">
+                    <div class="strip-header">
+                        <p class="strip-title">{r['name']} <span style="color:#667085; font-weight:500;">· {r['company']}</span></p>
+                        <span class="strip-badge badge-red">{d}d Overdue</span>
+                    </div>
+                    <div class="strip-meta">
+                        <span>📞 {r['phone'] or 'N/A'}</span>
+                        <span>✉️ {r['email'] or 'N/A'}</span>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+
+    elif view == "total":
+        st.markdown("<h4 style='color:#101828; font-weight:800; margin-bottom:16px;'>👥 All Clients Directory</h4>", unsafe_allow_html=True)
+        df = db.get_all_clients()
+        if df.empty:
+            st.info("No clients in the database.")
+        else:
+            df["Status"] = df.apply(status_label, axis=1)
+            # Simplified columns for the dashboard snapshot view
+            show_cols = ["name", "company", "category", "Status", "next_followup", "deal_value"]
+            st.dataframe(df[show_cols], use_container_width=True, hide_index=True)
+
+    elif view == "upcoming":
+        st.markdown("<h4 style='color:#101828; font-weight:800; margin-bottom:16px;'>📆 Upcoming Follow-ups (Next 7 Days)</h4>", unsafe_allow_html=True)
+        if upc_df.empty:
+            st.info("No tasks scheduled for the next 7 days.")
+        else:
+            upc_df["Days Until"] = upc_df["next_followup"].apply(lambda x: (pd.to_datetime(x).date() - date.today()).days)
+            st.dataframe(upc_df[["name", "company", "category", "next_followup", "Days Until"]], use_container_width=True, hide_index=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -576,7 +564,7 @@ def page_add_client():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  ALL CLIENTS
+#  ALL CLIENTS (Table Layout Fixed)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_all_clients():
@@ -618,12 +606,11 @@ def page_all_clients():
     rename    = {"name":"Name","company":"Company","phone":"Phone","email":"Email",
                  "category":"Category","next_followup":"Next Follow-up"}
 
-    st.markdown('<div style="border: 1px solid #eaecf0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(16,24,40,0.03);">', unsafe_allow_html=True)
+    # BUG FIXED: Removed the HTML wrapper div here that was causing the table to collapse to 0px height!
     st.dataframe(
         df[show_cols].rename(columns=rename),
         use_container_width=True, height=500, hide_index=True
     )
-    st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("<h4 style='color:#101828; font-weight:800; margin-bottom:16px;'>⚡ Quick Actions</h4>", unsafe_allow_html=True)
@@ -722,14 +709,13 @@ def page_followups():
         else:
             up["Days Until"] = up["next_followup"].apply(
                 lambda x: (pd.to_datetime(x).date() - date.today()).days)
-            st.markdown('<div style="border: 1px solid #eaecf0; border-radius: 12px; overflow: hidden;">', unsafe_allow_html=True)
+            # BUG FIXED: Removed html div wrapper here too, just in case!
             st.dataframe(
                 up[["name","company","phone","category","next_followup","Days Until"]].rename(columns={
                     "name":"Name","company":"Company","phone":"Phone",
                     "category":"Category","next_followup":"Follow-up Date","Days Until":"⏳ Days Left"}),
                 use_container_width=True, hide_index=True
             )
-            st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
