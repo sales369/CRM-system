@@ -284,70 +284,89 @@ def status_label(row) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  LOGIN PAGE (Ultra-Premium Portal)
+#  LOGIN PAGE (Ultra-Premium Portal - FIXED LAYOUT)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def show_login():
+    # Style the native Streamlit app background and form container specifically for the login page
     st.markdown("""
-    <div style="
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        display:flex; align-items:center; justify-content:center;
+    <style>
+    /* Gradient Background and Centering */
+    .stApp {
         background: radial-gradient(circle at 50% -20%, #eef2ff 0%, #f8fafc 100%);
-        z-index: 99999;
-    ">
-        <div style="
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,1);
-            border-radius: 24px;
-            padding: 64px 48px;
-            width: 100%; max-width: 460px;
-            box-shadow: 0 25px 50px -12px rgba(16, 24, 40, 0.08), 0 0 0 1px rgba(16, 24, 40, 0.02);
-            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        ">
-            <div style="text-align:center; margin-bottom:40px;">
-                <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #4f46e5, #7c3aed); 
-                            border-radius: 20px; display: flex; align-items: center; justify-content: center; 
-                            font-size: 36px; margin: 0 auto 24px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);">
-                    💼
-                </div>
-                <div style="font-size: 1.8rem; font-weight: 800; color: #101828; letter-spacing: -0.04em; margin-bottom: 8px;">
-                    ClientPulse CRM
-                </div>
-                <div style="font-size: 0.95rem; color: #475467; font-weight: 500;">
-                    Sign in to your enterprise workspace
-                </div>
-            </div>
+    }
+    .main .block-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 0 !important;
+    }
+    /* Hide top header bar completely */
+    header { visibility: hidden !important; }
+    
+    /* Transform the Streamlit Form into our Premium Card */
+    [data-testid="stForm"] {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid #eaecf0 !important;
+        border-radius: 24px;
+        padding: 48px 40px !important;
+        width: 100%;
+        max-width: 440px;
+        margin: 0 auto;
+        box-shadow: 0 25px 50px -12px rgba(16, 24, 40, 0.08), 0 0 0 1px rgba(16, 24, 40, 0.02);
+        animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    </style>
     """, unsafe_allow_html=True)
 
     with st.form("login_form"):
+        # Logo and Headers inside the form
+        st.markdown("""
+        <div style="text-align:center; margin-bottom:32px;">
+            <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #4f46e5, #7c3aed); 
+                        border-radius: 18px; display: flex; align-items: center; justify-content: center; 
+                        font-size: 30px; margin: 0 auto 20px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);">
+                💼
+            </div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #101828; letter-spacing: -0.04em; margin-bottom: 6px;">
+                ClientPulse CRM
+            </div>
+            <div style="font-size: 0.9rem; color: #475467; font-weight: 500;">
+                Sign in to your enterprise workspace
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
         username = st.text_input("Work Email / Username", placeholder="Enter your username")
         password = st.text_input("Password", type="password", placeholder="Enter your password")
+        
         st.markdown("<br>", unsafe_allow_html=True)
         submitted = st.form_submit_button("Sign In →", use_container_width=True, type="primary")
 
-    if submitted:
-        if not username or not password:
-            st.error("Please enter credentials.")
-        else:
-            user = db.authenticate_user(username, hash_password(password))
-            if user:
-                st.session_state.logged_in  = True
-                st.session_state.username   = user["username"]
-                st.session_state.role       = user["role"]
-                st.session_state.full_name  = user["full_name"]
-                st.session_state.user_id    = user["id"]
-                st.rerun()
+        if submitted:
+            if not username or not password:
+                st.error("Please enter credentials.")
             else:
-                st.error("❌ Invalid credentials.")
+                user = db.authenticate_user(username, hash_password(password))
+                if user:
+                    st.session_state.logged_in  = True
+                    st.session_state.username   = user["username"]
+                    st.session_state.role       = user["role"]
+                    st.session_state.full_name  = user["full_name"]
+                    st.session_state.user_id    = user["id"]
+                    st.rerun()
+                else:
+                    st.error("❌ Invalid credentials.")
 
-    st.markdown("""
-            <div style="text-align:center; margin-top:32px; font-size:0.85rem; color:#98a2b3; font-weight:500;">
-                Secure Access • Protected by AES-256
-            </div>
+        # Footer inside the form
+        st.markdown("""
+        <div style="text-align:center; margin-top:24px; font-size:0.8rem; color:#98a2b3; font-weight:500;">
+            Secure Access • Protected by AES-256
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
