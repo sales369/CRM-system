@@ -28,7 +28,6 @@ def get_logo_html(width="100px", margin_bottom="16px", centered=True):
     except Exception:
         pass
     
-    # Fallback if logo.png is not found
     return f"""<div style="width: {width}; height: {width}; background: linear-gradient(135deg, #4f46e5, #9333ea); 
                border-radius: 25%; display: flex; align-items: center; justify-content: center; 
                font-size: calc(max(20px, {width}/2.5)); {align} margin-bottom: {margin_bottom}; 
@@ -54,34 +53,21 @@ st.markdown(generate_particles(), unsafe_allow_html=True)
 # ── 4. ENTERPRISE CSS ARCHITECTURE ─────────────────────────────────────────────
 st.markdown("""
 <style>
-/* ── FONT ISOLATION ── */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 .stApp, .stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, 
 .stApp span, .stApp label, .stApp input, .stApp button, .stApp div, .stApp td, .stApp th {
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
-
 .material-icons, .material-symbols-rounded, [data-testid="stIconMaterial"], svg {
     font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
 }
 
 /* ── LIVE THEME BACKGROUND ── */
 .stApp { background: transparent !important; }
-.mesh-engine {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    z-index: -9999; overflow: hidden; pointer-events: none; background: #f8fafc;
-}
-.gradient-bg {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(-45deg, #f0f9ff, #eef2ff, #fdf4ff, #e0f2fe);
-    background-size: 400% 400%; animation: liveThemeShift 20s ease infinite alternate;
-}
-@keyframes liveThemeShift { 
-    0% { background-position: 0% 50%; filter: hue-rotate(0deg); } 
-    50% { background-position: 100% 50%; filter: hue-rotate(15deg); } 
-    100% { background-position: 0% 50%; filter: hue-rotate(30deg); } 
-}
+.mesh-engine { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -9999; overflow: hidden; pointer-events: none; background: #f8fafc; }
+.gradient-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(-45deg, #f0f9ff, #eef2ff, #fdf4ff, #e0f2fe); background-size: 400% 400%; animation: liveThemeShift 20s ease infinite alternate; }
+@keyframes liveThemeShift { 0% { background-position: 0% 50%; filter: hue-rotate(0deg); } 50% { background-position: 100% 50%; filter: hue-rotate(15deg); } 100% { background-position: 0% 50%; filter: hue-rotate(30deg); } }
 
 .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.6; animation: auraFloat 25s infinite alternate ease-in-out; }
 .orb-1 { width: 45vw; height: 45vw; top: -10vw; left: -10vw; background: #c7d2fe; }
@@ -89,23 +75,11 @@ st.markdown("""
 .orb-3 { width: 35vw; height: 35vw; top: 30vh; left: 40vw; background: #bae6fd; animation-delay: -10s; }
 @keyframes auraFloat { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(60px,-60px) scale(1.1); } }
 
-.particle {
-    position: absolute; bottom: -10px; background: rgba(99, 102, 241, 0.4); border-radius: 50%;
-    animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite;
-}
-@keyframes floatUp {
-    0% { transform: translateY(0) translateX(0); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
-}
+.particle { position: absolute; bottom: -10px; background: rgba(99, 102, 241, 0.4); border-radius: 50%; animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes floatUp { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(20px); opacity: 0; } }
 
 /* ── COMPACT LAYOUT (NO SCROLLING) ── */
-.main .block-container { 
-    padding: 1.5rem 3rem !important; 
-    max-width: 1440px; 
-    animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+.main .block-container { padding: 1.5rem 3rem !important; max-width: 1440px; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -117,23 +91,11 @@ st.markdown("""
 header { background: transparent !important; }
 
 /* ── SIDEBAR ── */
-[data-testid="stSidebar"] {
-    background: rgba(255, 255, 255, 0.6) !important;
-    backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-    border-right: 1px solid rgba(255,255,255,0.8) !important;
-    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.02);
-}
+[data-testid="stSidebar"] { background: rgba(255, 255, 255, 0.6) !important; backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-right: 1px solid rgba(255,255,255,0.8) !important; box-shadow: 4px 0 24px rgba(15, 23, 42, 0.02); }
 [data-testid="stSidebarNav"] { padding-top: 0 !important; }
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] { gap: 4px; padding: 0 10px; }
-[data-testid="stSidebar"] .stRadio label {
-    background: transparent; border-radius: 10px; padding: 10px 16px !important;
-    font-size: 0.95rem !important; font-weight: 600 !important; color: #475569 !important;
-    transition: all 0.2s ease; cursor: pointer; border: 1px solid transparent;
-}
-[data-testid="stSidebar"] .stRadio label:hover, [data-testid="stSidebar"] .stRadio label[data-checked="true"] {
-    background: rgba(255,255,255,0.9) !important; color: #0f172a !important;
-    transform: translateX(4px); box-shadow: 0 4px 12px rgba(15,23,42,0.03); border: 1px solid rgba(255,255,255,1);
-}
+[data-testid="stSidebar"] .stRadio label { background: transparent; border-radius: 10px; padding: 10px 16px !important; font-size: 0.95rem !important; font-weight: 600 !important; color: #475569 !important; transition: all 0.2s ease; cursor: pointer; border: 1px solid transparent; }
+[data-testid="stSidebar"] .stRadio label:hover, [data-testid="stSidebar"] .stRadio label[data-checked="true"] { background: rgba(255,255,255,0.9) !important; color: #0f172a !important; transform: translateX(4px); box-shadow: 0 4px 12px rgba(15,23,42,0.03); border: 1px solid rgba(255,255,255,1); }
 [data-testid="stSidebar"] .stRadio label[data-baseweb="radio"] { display: flex; }
 
 /* ── TYPOGRAPHY ── */
@@ -144,49 +106,23 @@ header { background: transparent !important; }
 /* ══════════════════════════════════════════════════════════════════════════
    🚀 BULLETPROOF DASHBOARD TILE ENGINE
    ══════════════════════════════════════════════════════════════════════════ */
+[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] { position: relative !important; }
 
-/* 1. Anchor elements inside the top row */
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"] { 
-    position: relative !important; 
-}
-
-/* 2. Visual Card Styling */
 .dash-card {
-    height: 110px !important; 
-    background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; 
-    padding: 16px 20px; position: relative; overflow: hidden;
-    transition: all 0.3s ease; margin: 0 !important;
-    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03); display: flex; flex-direction: column; justify-content: center; z-index: 1;
+    height: 110px !important; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; padding: 16px 20px; position: relative; overflow: hidden;
+    transition: all 0.3s ease; margin: 0 !important; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03); display: flex; flex-direction: column; justify-content: center; z-index: 1;
 }
 
-/* 3. Pull Streamlit's container perfectly over the card */
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="stButton"] {
-    position: absolute !important;
-    top: 0 !important; left: 0 !important;
-    width: 100% !important; height: 100% !important;
-    margin: 0 !important; padding: 0 !important;
-    z-index: 10 !important;
-}
+[data-testid="stHorizontalBlock"]:first-of-type [data-testid="stButton"] { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; padding: 0 !important; z-index: 10 !important; }
+[data-testid="stHorizontalBlock"]:first-of-type [data-testid="stButton"] button { width: 100% !important; height: 100% !important; opacity: 0 !important; cursor: pointer !important; background: transparent !important; border: none !important; box-shadow: none !important; color: transparent !important; }
+[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card { transform: translateY(-4px); background: rgba(255, 255, 255, 0.95); box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 0 15px rgba(255,255,255,0.6); border-color: #ffffff; }
 
-/* 4. Make the button invisible but fully clickable */
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="stButton"] button {
-    width: 100% !important; height: 100% !important; 
-    opacity: 0 !important; cursor: pointer !important; 
-    background: transparent !important; border: none !important; box-shadow: none !important; color: transparent !important;
-}
-
-/* 5. Hover interaction triggers on the column */
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card {
-    transform: translateY(-4px); background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 0 15px rgba(255,255,255,0.6); border-color: #ffffff;
-}
-
-/* Glow lines */
 .dash-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: transparent; transition: background 0.3s ease; }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
+[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
 
 .metric-icon { font-size: 1.6rem; margin-bottom: 4px; line-height: 1; text-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 .metric-val  { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; line-height: 1; letter-spacing: -0.03em; }
@@ -307,7 +243,7 @@ def change_user_password(user_id, new_password):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  LOGIN PAGE (Scroll-Free & Dynamic Logo)
+#  LOGIN PAGE
 # ══════════════════════════════════════════════════════════════════════════════
 
 def show_login():
@@ -408,10 +344,8 @@ def page_dashboard():
 
     if "dash_view" not in st.session_state: st.session_state.dash_view = "today"
 
-    # Reduced to 3 columns to save horizontal space and make them wider
     c1, c2, c3 = st.columns(3)
 
-    # Completely invisible buttons layered flawlessly by CSS overlay
     with c1:
         st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
         if st.button("\u200B", key="t_tot", use_container_width=True): st.session_state.dash_view = "total"
@@ -434,7 +368,6 @@ def page_dashboard():
         if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:1.5rem;margin-bottom:2px;opacity:0.9;">☕</div><p class="strip-title">All caught up</p><p class="strip-meta">No tasks due today.</p></div>', unsafe_allow_html=True)
         else:
             for _, r in today_df.iterrows():
-                # Show specific time due!
                 time_str = pd.to_datetime(r['next_followup']).strftime('%I:%M %p')
                 st.markdown(f"""
                 <div class="strip strip-today">
@@ -495,14 +428,12 @@ def page_add_client():
             with sc1:
                 next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed")
             with sc2:
-                # Automatically defaults to exactly 4 hours from current time!
                 default_time = (datetime.now() + timedelta(hours=4)).time()
                 next_t = st.time_input("Time", value=default_time, label_visibility="collapsed")
             
             deal_value = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000)
             
         with c4:
-            # Combine the exact Date and Time the user selected
             nf_datetime = datetime.combine(next_d, next_t)
             
             st.markdown("<br>", unsafe_allow_html=True)
@@ -524,7 +455,6 @@ def page_add_client():
     if submitted:
         if not name.strip(): st.error("❌ Full Name is required.")
         else:
-            # Calculate days just for DB legacy support, real logic relies on next_followup datetime
             f_days = (nf_datetime.date() - date.today()).days
             f_days = f_days if f_days > 0 else 0
             
@@ -538,7 +468,7 @@ def page_add_client():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DIRECTORY GRID
+#  CLIENT DIRECTORY (With Edit Console)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_all_clients():
@@ -554,43 +484,89 @@ def page_all_clients():
 
     df = db.get_all_clients(search=search or None, category=cat if cat != "All" else None, sort_by=srt)
 
-    if df.empty: return st.info("📭 No clients found.")
+    if df.empty: 
+        st.info("📭 No clients found.")
+        return
 
     hc1, hc2 = st.columns([5, 1])
     with hc1: st.markdown(f"<p style='color:#64748b; font-size:0.9rem; font-weight:600; padding-top:10px;'>{len(df)} Clients found</p>", unsafe_allow_html=True)
     with hc2: st.download_button("📥 Export to Excel", data=to_excel(df), file_name=f"CRM_Export_{date.today()}.xlsx", use_container_width=True)
 
-    df["Status"]     = df.apply(status_label, axis=1)
-    df["Deal Value"] = df["deal_value"].apply(lambda x: f"${x:,.0f}" if x else "—")
-    df["next_followup"] = pd.to_datetime(df["next_followup"]).dt.strftime('%b %d, %I:%M %p')
+    # Format dataframe for display safely without overriding DB data
+    df_display = df.copy()
+    df_display["Status"] = df_display.apply(status_label, axis=1)
+    df_display["Deal Value"] = df_display["deal_value"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
+    df_display["next_contact_fmt"] = pd.to_datetime(df_display["next_followup"]).dt.strftime('%b %d, %I:%M %p')
 
-    show_cols = ["name","company","phone","email","category","next_followup","Status","Deal Value"]
-    rename    = {"name":"Full Name","company":"Company","phone":"Phone","email":"Email", "category":"Category","next_followup":"Next Contact"}
+    show_cols = ["name","company","phone","email","category","next_contact_fmt","Status","Deal Value"]
+    rename    = {"name":"Full Name","company":"Company","phone":"Phone","email":"Email", "category":"Category","next_contact_fmt":"Next Contact"}
 
-    st.dataframe(df[show_cols].rename(columns=rename), use_container_width=True, height=350, hide_index=True)
+    st.dataframe(df_display[show_cols].rename(columns=rename), use_container_width=True, height=350, hide_index=True)
 
     st.markdown("<hr style='margin: 20px 0;'>", unsafe_allow_html=True)
-    st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>⚡ Quick Actions</h5>", unsafe_allow_html=True)
+    st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>⚙️ Client Management Console</h5>", unsafe_allow_html=True)
     
-    st.markdown('<div class="form-section" style="padding: 20px 24px;">', unsafe_allow_html=True)
-    rc1, rc2, rc3, rc4 = st.columns([2.5, 2.5, 1, 1])
-    with rc1: 
-        st.markdown("<div style='font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;'>Select Client</div>", unsafe_allow_html=True)
-        sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
-    with rc2: 
-        st.markdown("<div style='font-size:0.75rem; font-weight:700; color:#64748b; margin-bottom:4px;'>New Date & Time</div>", unsafe_allow_html=True)
-        sc1, sc2 = st.columns(2)
-        with sc1: new_d = st.date_input("Date", value=date.today(), label_visibility="collapsed", key="ov_date")
-        with sc2: new_t = st.time_input("Time", value=(datetime.now() + timedelta(hours=4)).time(), label_visibility="collapsed", key="ov_time")
-        new_dt = datetime.combine(new_d, new_t)
-    with rc3:
-        st.markdown("<br style='line-height:1'>", unsafe_allow_html=True)
-        if st.button("Update Date", type="primary", use_container_width=True):
-            cid = int(df[df["name"] == sel]["id"].values[0]); db.update_followup(cid, str(new_dt)); st.rerun()
-    with rc4:
-        st.markdown("<br style='line-height:1'>", unsafe_allow_html=True)
-        if st.button("🗑 Delete", use_container_width=True):
-            cid = int(df[df["name"] == sel]["id"].values[0]); db.delete_client(cid); st.rerun()
+    st.markdown('<div class="form-section" style="padding: 24px 30px;">', unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.85rem; font-weight:700; color:#0f172a; margin-bottom:8px;'>Select Client to Manage</div>", unsafe_allow_html=True)
+    sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
+    
+    if sel:
+        target_row = df[df["name"] == sel].iloc[0]
+        cid = int(target_row["id"])
+        
+        t1, t2, t3 = st.tabs(["🕒 Reschedule Time", "📝 Edit Details", "🗑️ Delete"])
+        
+        with t1:
+            st.markdown("<br>", unsafe_allow_html=True)
+            sc1, sc2, sc3 = st.columns([2, 2, 1])
+            
+            try:
+                curr_dt = pd.to_datetime(target_row["next_followup"])
+            except:
+                curr_dt = datetime.now() + timedelta(hours=4)
+                
+            with sc1: new_d = st.date_input("New Date", value=curr_dt.date(), key=f"d_{cid}")
+            with sc2: new_t = st.time_input("New Time", value=curr_dt.time(), key=f"t_{cid}")
+            with sc3:
+                st.markdown("<br style='line-height:1.2'>", unsafe_allow_html=True)
+                if st.button("Update Time/Date", type="primary", use_container_width=True, key=f"btn_resched_{cid}"):
+                    new_dt = datetime.combine(new_d, new_t)
+                    db.update_followup(cid, str(new_dt))
+                    st.rerun()
+                    
+        with t2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.form(key=f"edit_form_{cid}"):
+                ec1, ec2 = st.columns(2)
+                with ec1:
+                    e_name = st.text_input("Full Name", value=target_row["name"])
+                    e_email = st.text_input("Email", value=target_row["email"] if pd.notna(target_row["email"]) else "")
+                    e_val = st.number_input("Deal Value ($)", value=int(target_row["deal_value"]) if pd.notna(target_row["deal_value"]) else 0, step=1000)
+                with ec2:
+                    e_phone = st.text_input("Phone", value=target_row["phone"] if pd.notna(target_row["phone"]) else "")
+                    e_company = st.text_input("Company", value=target_row["company"] if pd.notna(target_row["company"]) else "")
+                    
+                    cat_opts = ["Lead", "Prospect", "Active Client", "Partner", "VIP", "Churned"]
+                    curr_cat = target_row["category"]
+                    cat_idx = cat_opts.index(curr_cat) if curr_cat in cat_opts else 0
+                    e_cat = st.selectbox("Category", cat_opts, index=cat_idx)
+                
+                if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
+                    try:
+                        db.c.execute('''UPDATE clients SET name=?, email=?, phone=?, company=?, deal_value=?, category=? WHERE id=?''', 
+                                     (e_name, e_email, e_phone, e_company, e_val, e_cat, cid))
+                        db.conn.commit()
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error updating database: {e}")
+                        
+        with t3:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.error(f"Warning: Deleting **{sel}** is permanent and cannot be undone.")
+            if st.button("🗑 Confirm Delete", use_container_width=True, key=f"btn_del_{cid}"):
+                db.delete_client(cid)
+                st.rerun()
+                
     st.markdown('</div>', unsafe_allow_html=True)
 
 
@@ -605,13 +581,11 @@ def page_settings():
     is_admin = st.session_state.get("role") == "admin"
     current_user_id = st.session_state.get("user_id")
 
-    # Admins see user management. Everyone sees Change Password.
     if is_admin:
         tabs = st.tabs(["👥 Active Users", "➕ Add User", "🔑 Change Password"])
     else:
         tabs = st.tabs(["🔑 Change Password"])
 
-    # --- TAB 1: Active Users (Admin Only) ---
     if is_admin:
         with tabs[0]:
             st.markdown("<br>", unsafe_allow_html=True)
@@ -646,7 +620,6 @@ def page_settings():
                                 db.delete_user(int(u["id"])); st.rerun()
                     st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
 
-        # --- TAB 2: Add User (Admin Only) ---
         with tabs[1]:
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown('<div class="form-section">', unsafe_allow_html=True)
@@ -672,7 +645,6 @@ def page_settings():
                     db.add_user({"full_name": new_fullname, "username": new_username, "email": "", "password_hash": hash_password(new_password), "role": new_role})
                     st.success(f"✅ Success! {new_fullname} added."); st.rerun()
 
-    # --- TAB 3: Change Password (Visible to Everyone) ---
     pwd_tab = tabs[2] if is_admin else tabs[0]
     with pwd_tab:
         st.markdown("<br>", unsafe_allow_html=True)
@@ -695,7 +667,6 @@ def page_settings():
             elif len(new_p) < 6:
                 st.error("❌ New password must be at least 6 characters.")
             else:
-                # Verify old password
                 user_check = db.authenticate_user(st.session_state.username, hash_password(old_p))
                 if not user_check:
                     st.error("❌ Incorrect current password.")
