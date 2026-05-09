@@ -13,12 +13,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── 2. GLOBAL LIVE AURA BACKGROUND ─────────────────────────────────────────────
+# ── 2. GLOBAL LIVE THEME BACKGROUND ENGINE ─────────────────────────────────────
 st.markdown("""
-<div class="aura-bg">
-    <div class="aura-orb aura-1"></div>
-    <div class="aura-orb aura-2"></div>
-    <div class="aura-orb aura-3"></div>
+<div class="mesh-engine">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -37,20 +37,31 @@ html, body, [class*="css-"], p, span, h1, h2, h3, h4, h5, h6, div, label, input,
     font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
 }
 
-/* --- AURA BACKGROUND SYSTEM --- */
+/* --- LIVE THEME BACKGROUND SYSTEM --- */
 .stApp { background: transparent !important; }
-.aura-bg {
+.mesh-engine {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     z-index: -9999; overflow: hidden; pointer-events: none;
-    background: #f8fafc;
+    /* Beautiful shifting live gradient */
+    background: linear-gradient(120deg, #ff9a9e 0%, #fecfef 30%, #a1c4fd 70%, #c2e9fb 100%);
+    background-size: 300% 300%;
+    animation: liveThemeShift 15s ease infinite alternate;
 }
-.aura-orb {
+
+/* Shifts the colors across the screen to create the "Live" effect */
+@keyframes liveThemeShift { 
+    0% { background-position: 0% 50%; filter: hue-rotate(0deg); } 
+    50% { background-position: 100% 50%; filter: hue-rotate(20deg); } 
+    100% { background-position: 0% 50%; filter: hue-rotate(40deg); } 
+}
+
+.orb {
     position: absolute; border-radius: 50%; filter: blur(100px);
-    opacity: 0.6; animation: auraFloat 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.5; animation: auraFloat 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
 }
-.aura-1 { width: 50vw; height: 50vw; top: -10vw; left: -10vw; background: #e0e7ff; }
-.aura-2 { width: 40vw; height: 40vw; bottom: -5vw; right: -5vw; background: #fae8ff; animation-delay: -5s; }
-.aura-3 { width: 45vw; height: 45vw; top: 30vh; left: 35vw; background: #e0f2fe; animation-delay: -10s; }
+.orb-1 { width: 50vw; height: 50vw; top: -10vw; left: -10vw; background: #ffffff; }
+.orb-2 { width: 40vw; height: 40vw; bottom: -5vw; right: -5vw; background: #e0f2fe; animation-delay: -5s; }
+.orb-3 { width: 45vw; height: 45vw; top: 30vh; left: 35vw; background: #fdf4ff; animation-delay: -10s; }
 @keyframes auraFloat { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(40px,-40px) scale(1.05); } }
 
 /* --- GLOBAL LAYOUT & SCROLLBAR --- */
@@ -91,88 +102,112 @@ header { background: transparent !important; }
 
 /* --- TYPOGRAPHY --- */
 .page-title { font-size: 2.6rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.04em; }
-.page-sub   { font-size: 1.05rem; color: #64748b; font-weight: 500; margin: 0 0 2.5rem; letter-spacing: 0.01em; }
+.page-sub   { font-size: 1.1rem; color: #475569; font-weight: 600; margin: 0 0 3rem; letter-spacing: 0.01em; }
 
 
 /* ══════════════════════════════════════════════════════════════════════════
    🚀 THE FLAWLESS UNIFIED BUTTON-TILE ENGINE
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* Target the columns holding the dashboard tiles */
-[data-testid="stHorizontalBlock"]:has(.dash-card) > [data-testid="column"] { 
-    position: relative; height: 160px !important; 
+/* 1. Force the column to be a strict relative block of 150px height */
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] { 
+    position: relative !important; 
+    height: 150px !important;
+    min-height: 150px !important;
+    display: block !important;
 }
 
-/* The Visual Card Structure */
+/* 2. Anchor the visual card securely */
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .element-container:first-child {
+    position: absolute !important;
+    top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important;
+    z-index: 1 !important;
+}
+
+/* 3. Pull the Streamlit button wrapper perfectly over the card */
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .element-container:nth-child(2) {
+    position: absolute !important; 
+    top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; 
+    z-index: 10 !important; margin: 0 !important; padding: 0 !important;
+}
+
+/* 4. Make the button itself completely invisible but clickable */
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .stButton,
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .stButton button {
+    width: 100% !important; height: 100% !important; 
+    opacity: 0.01 !important; cursor: pointer !important; 
+    background: transparent !important; border: none !important; box-shadow: none !important; color: transparent !important;
+    padding: 0 !important; margin: 0 !important; position: absolute !important; top: 0 !important; left: 0 !important;
+}
+
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"] .stButton button:hover {
+    background: transparent !important; border: none !important; box-shadow: none !important; transform: none !important;
+}
+
+/* 5. Visual Card Styling */
 .dash-card {
-    height: 160px !important; width: 100% !important;
-    background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 1); border-radius: 24px; 
-    padding: 24px; position: absolute; top: 0; left: 0;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03), inset 0 0 0 1px rgba(255,255,255,0.5);
+    height: 150px !important;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 20px; padding: 24px; position: relative; overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin: 0 !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
     display: flex; flex-direction: column; justify-content: center;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1; pointer-events: none;
 }
-
-/* The Invisible Streamlit Button (Stretches over the card perfectly) */
-[data-testid="stHorizontalBlock"]:has(.dash-card) .stButton,
-[data-testid="stHorizontalBlock"]:has(.dash-card) .stButton > button {
-    position: absolute !important; top: 0 !important; left: 0 !important;
-    width: 100% !important; height: 160px !important;
-    opacity: 0.01 !important; z-index: 10 !important; cursor: pointer !important;
-    margin: 0 !important; padding: 0 !important; background: transparent !important;
-}
-
-/* Bottom Glow Indicator */
 .dash-card::after { 
-    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 5px;
-    background: transparent; transition: background 0.3s ease;
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+    background: transparent; transition: background 0.4s ease;
 }
 
-/* Hover Effects (Triggered by hovering the invisible button) */
-[data-testid="column"]:has(button:hover) .dash-card {
-    transform: translateY(-6px); background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.08), 0 0 20px rgba(255,255,255,0.8);
+/* 6. Trigger card hover effects when you hover over the invisible button */
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card {
+    transform: translateY(-6px);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.1), 0 0 20px rgba(255,255,255,0.5);
+    border: 1px solid rgba(255, 255, 255, 1);
 }
-[data-testid="column"]:has(button:hover) .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
-[data-testid="column"]:has(button:hover) .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
-[data-testid="column"]:has(button:hover) .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
-[data-testid="column"]:has(button:hover) .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
+.main [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:hover .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
 
-.metric-icon { font-size: 2.2rem; margin-bottom: 12px; line-height: 1; text-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-.metric-val  { font-size: 2.6rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height: 1; letter-spacing: -0.03em; }
-.metric-lbl  { font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
+.metric-icon { font-size: 2.2rem; margin-bottom: 12px; line-height: 1; }
+.metric-val  { font-size: 2.6rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height: 1; letter-spacing: -0.02em; }
+.metric-lbl  { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
 
-
-/* ── GLASSMORPHIC FORMS & CONTAINERS ── */
+/* ── MODERN GLASS FORMS ── */
 .form-section {
-    background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    border-radius: 24px; padding: 36px 40px; border: 1px solid rgba(255,255,255,0.9);
-    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.04), inset 0 0 0 1px rgba(255,255,255,0.5); margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px; padding: 36px 40px;
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.04);
+    margin-bottom: 24px;
 }
-.form-section h5 { color: #0f172a; font-weight: 800; margin-bottom: 24px; font-size: 1.15rem; letter-spacing: -0.02em;}
+.form-section h5 { color: #0f172a; font-weight: 800; margin-bottom: 24px; font-size: 1.2rem; letter-spacing: -0.02em;}
 
-/* ── INPUTS & FIELDS ── */
+/* Inputs */
 [data-baseweb="input"] > div, [data-baseweb="select"] > div, [data-baseweb="textarea"] > div {
-    border-radius: 12px !important; background-color: rgba(255,255,255,0.6) !important;
+    border-radius: 14px !important; background-color: rgba(255,255,255,0.6) !important;
     border: 1px solid rgba(15, 23, 42, 0.08) !important; transition: all 0.2s ease !important;
 }
-[data-baseweb="input"] > div:hover, [data-baseweb="select"] > div:hover { border-color: rgba(15, 23, 42, 0.15) !important; background-color: rgba(255,255,255,0.9) !important;}
-[data-baseweb="input"] > div:focus-within, [data-baseweb="select"] > div:focus-within {
-    border-color: #4f46e5 !important; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15) !important; background-color: #ffffff !important;
+[data-baseweb="input"] > div:hover, [data-baseweb="select"] > div:hover { 
+    border-color: rgba(15, 23, 42, 0.15) !important; background-color: rgba(255,255,255,0.9) !important;
 }
-input, textarea { font-size: 0.95rem !important; color: #0f172a !important; font-weight: 500 !important; }
-.stSelectbox label, .stTextInput label, .stNumberInput label, .stDateInput label { color: #475569 !important; font-weight: 600 !important; font-size: 0.85rem !important; }
+[data-baseweb="input"] > div:focus-within, [data-baseweb="select"] > div:focus-within {
+    border-color: #6366f1 !important; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15) !important; background-color: #ffffff !important;
+}
 
-/* ── UI BUTTONS ── */
+/* ── PREMIUM BUTTONS ── */
 .stButton > button {
-    border-radius: 12px !important; font-weight: 700 !important; font-size: 0.95rem !important;
-    padding: 0.6rem 1.4rem !important; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    border: 1px solid rgba(15, 23, 42, 0.05) !important; background: rgba(255,255,255,0.8) !important; color: #334155 !important;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03) !important;
+    border-radius: 14px !important; font-weight: 700 !important; font-size: 0.95rem !important;
+    padding: 0.6rem 1.6rem !important; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    border: 1px solid rgba(15, 23, 42, 0.05) !important; background: rgba(255,255,255,0.9) !important; color: #1e293b !important;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.03) !important;
 }
 .stButton > button:hover { 
-    background: #ffffff !important; transform: translateY(-2px) !important; 
+    background: #ffffff !important; transform: translateY(-3px) !important; 
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important; border-color: rgba(15, 23, 42, 0.1) !important;
 }
 .stButton > button[kind="primary"] {
@@ -181,13 +216,13 @@ input, textarea { font-size: 0.95rem !important; color: #0f172a !important; font
 }
 .stButton > button[kind="primary"]:hover {
     background: linear-gradient(135deg, #4338ca 0%, #7e22ce 100%) !important;
-    box-shadow: 0 12px 25px rgba(79, 70, 229, 0.4) !important; transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 12px 25px rgba(79, 70, 229, 0.4) !important; transform: translateY(-3px) scale(1.02) !important;
 }
 
-/* ── BEAUTIFUL LIST STRIPS ── */
+/* ── LIST STRIPS ── */
 .strip { 
-    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border-radius: 20px; padding: 20px 28px; margin-bottom: 16px; 
-    border: 1px solid rgba(255,255,255,1); border-left-width: 5px; display: flex; flex-direction: column; gap: 8px; transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(16px); border-radius: 20px; padding: 20px 28px; margin-bottom: 16px; 
+    border: 1px solid rgba(255,255,255,0.9); border-left-width: 5px; display: flex; flex-direction: column; gap: 10px; transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(15, 23, 42, 0.02);
 }
 .strip:hover { transform: translateX(6px); background: #ffffff; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); }
@@ -197,19 +232,18 @@ input, textarea { font-size: 0.95rem !important; color: #0f172a !important; font
 
 .strip-header { display: flex; justify-content: space-between; align-items: center; }
 .strip-title { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0; }
-.strip-badge { font-size: 0.75rem; font-weight: 800; padding: 4px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;}
+.strip-badge { font-size: 0.75rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;}
 .badge-blue { background: #e0f2fe; color: #0284c7; }
 .badge-red { background: #fee2e2; color: #b91c1c; }
 .strip-meta { display: flex; gap: 18px; font-size: 0.9rem; color: #475569; font-weight: 600; margin: 0; }
-.strip-notes { margin: 6px 0 0; padding-top: 12px; border-top: 1px dashed rgba(15,23,42,0.08); font-size: 0.85rem; color: #64748b; }
 
-/* ── EXPANDERS & TABS ── */
+/* ── Expander & Tabs ── */
 .streamlit-expanderHeader { font-weight: 700 !important; color: #0f172a !important; background: rgba(255,255,255,0.7) !important; border-radius: 14px !important; border: 1px solid rgba(255,255,255,0.9) !important; }
 details { border: none !important; border-radius: 14px !important; background: transparent; overflow: hidden; }
 hr { border: none; border-top: 1px solid rgba(15, 23, 42, 0.06); margin: 2.5rem 0; }
 
-[data-baseweb="tab-list"] { gap: 30px; border-bottom: 2px solid rgba(15,23,42,0.05) !important; padding-bottom: 8px; }
-[data-baseweb="tab"] { font-weight: 700 !important; font-size: 1.05rem !important; color: #64748b !important; background: transparent !important; border: none !important; transition: color 0.2s ease; }
+[data-baseweb="tab-list"] { gap: 30px; border-bottom: 2px solid rgba(15, 23, 42, 0.05) !important; padding-bottom: 8px; }
+[data-baseweb="tab"] { font-weight: 700 !important; font-size: 1.1rem !important; color: #64748b !important; background: transparent !important; border: none !important; transition: color 0.2s ease; }
 [aria-selected="true"] { color: #4f46e5 !important; border-bottom: 3px solid #4f46e5 !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -252,8 +286,8 @@ def show_login():
     <style>
     .main .block-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 0 !important; }
     [data-testid="stForm"] {
-        background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-        border: 1px solid rgba(255, 255, 255, 1) !important; border-radius: 32px; padding: 56px 48px !important; width: 100%; max-width: 440px; margin: 0 auto;
+        background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+        border: 1px solid rgba(255, 255, 255, 0.9) !important; border-radius: 32px; padding: 56px 48px !important; width: 100%; max-width: 440px; margin: 0 auto;
         box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08), inset 0 0 0 1px rgba(255,255,255,0.5);
     }
     </style>
@@ -315,18 +349,19 @@ def show_sidebar():
         initials = "".join(p[0].upper() for p in full_name.split()[:2])
 
         st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,1); border-radius: 16px; padding: 14px 16px; margin: 0 16px 32px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);">
+        <div style="background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,1); border-radius: 16px; padding: 14px 16px; margin: 0 16px 32px; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);">
             <div style="width: 42px; height: 42px; border-radius: 10px; background: #e0e7ff; border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: #4f46e5; flex-shrink: 0;">{initials}</div>
             <div style="overflow: hidden;">
                 <div style="font-size: 0.9rem; font-weight: 800; color: #0f172a; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">{full_name}</div>
                 <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; margin-top: 4px; text-transform:uppercase; letter-spacing:0.05em;">{'🛡️ Admin' if role == 'admin' else '👤 User'}</div>
             </div>
         </div>
-        <div style="padding: 0 16px; font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Navigation</div>
+        <div style="padding: 0 16px; font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Navigation</div>
         """, unsafe_allow_html=True)
 
-        nav_options = ["🏠  Dashboard Hub", "➕  Initialize Client", "👥  Directory Grid", "📅  Task Pipeline", "📊  Analytics"]
-        if role == "admin": nav_options.append("⚙️  System Settings")
+        # Removed the Task Pipeline and Analytics pages here as requested
+        nav_options = ["🏠  Dashboard Hub", "➕  Add Client", "👥  Directory Grid"]
+        if role == "admin": nav_options.append("⚙️  Access Control")
 
         page = st.radio("Navigation", nav_options, label_visibility="collapsed")
         st.markdown("<div style='height:1px;background:rgba(15, 23, 42, 0.06);margin:24px 16px 20px;'></div>", unsafe_allow_html=True)
@@ -355,21 +390,21 @@ def page_dashboard():
 
     c1, c2, c3, c4 = st.columns(4)
 
-    # Note: Using Markdown for the visual card and st.button to trigger the interaction over it.
+    # Note: Using Markdown for the visual card and st.button to trigger the interaction perfectly over it.
     with c1:
-        st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Network</p></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
         if st.button("btn_tot", key="t_tot"): st.session_state.dash_view = "total"
 
     with c2:
-        st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Active Today</p></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Due Today</p></div>', unsafe_allow_html=True)
         if st.button("btn_tod", key="t_tod"): st.session_state.dash_view = "today"
 
     with c3:
-        st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Critical Overdue</p></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Actions</p></div>', unsafe_allow_html=True)
         if st.button("btn_ovr", key="t_ovr"): st.session_state.dash_view = "overdue"
 
     with c4:
-        st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">7-Day Forecast</p></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">Next 7 Days</p></div>', unsafe_allow_html=True)
         if st.button("btn_upc", key="t_upc"): st.session_state.dash_view = "upcoming"
 
     # Push content safely below the absolute overlay tiles
@@ -379,7 +414,7 @@ def page_dashboard():
 
     if view == "today":
         st.markdown("<h4 style='color:#0f172a; font-weight:800; margin-bottom:20px;'>⚡ Action Required Today</h4>", unsafe_allow_html=True)
-        if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">☕</div><p class="strip-title">Inbox Zero</p><p class="strip-meta">Take a break, no calls scheduled for today.</p></div>', unsafe_allow_html=True)
+        if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:2rem;margin-bottom:8px;opacity:0.9;">☕</div><p class="strip-title">Inbox Zero</p><p class="strip-meta">Take a break, no actions scheduled for today.</p></div>', unsafe_allow_html=True)
         else:
             for _, r in today_df.iterrows():
                 st.markdown(f"""
@@ -418,16 +453,16 @@ def page_dashboard():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  INITIALIZE CLIENT
+#  ADD CLIENT
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_add_client():
-    st.markdown('<p class="page-title">Initialize Client</p>', unsafe_allow_html=True)
+    st.markdown('<p class="page-title">Add Client</p>', unsafe_allow_html=True)
     st.markdown('<p class="page-sub">Enter credentials to establish a new entity in the database.</p>', unsafe_allow_html=True)
 
     with st.form("add_client_form", clear_on_submit=True):
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 👤 Entity Specifications")
+        st.markdown("##### 👤 Personal Details")
         c1, c2 = st.columns(2)
         with c1:
             name    = st.text_input("Full Name *", placeholder="e.g. Jane Doe")
@@ -528,179 +563,73 @@ def page_all_clients():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  TASK PIPELINE
-# ══════════════════════════════════════════════════════════════════════════════
-
-def page_followups():
-    st.markdown('<p class="page-title">Task Pipeline</p>', unsafe_allow_html=True)
-    st.markdown('<p class="page-sub">Actionable view of pending and upcoming communications.</p>', unsafe_allow_html=True)
-
-    tab1, tab2, tab3 = st.tabs(["🔴 OVERDUE TASKS", "⚡ TODAY'S QUEUE", "📅 UPCOMING SCHEDULE"])
-
-    with tab1:
-        st.markdown("<br>", unsafe_allow_html=True)
-        ov = db.get_overdue_followups()
-        if ov.empty: st.success("🎉 You're fully caught up! No overdue tasks.")
-        else:
-            for _, r in ov.iterrows():
-                days_over = (date.today() - pd.to_datetime(r["next_followup"]).date()).days
-                with st.expander(f"🔴 {r['name']} // {r['company']} [-{days_over} Days]"):
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    cc1, cc2 = st.columns(2)
-                    with cc1:
-                        st.markdown(f"**📞 Comms:** {r['phone'] or '—'}  \n**✉️ Routing:** {r['email'] or '—'}")
-                    with cc2:
-                        st.markdown(f"**💰 Projected Value:** {'${:,.0f}'.format(r['deal_value']) if r['deal_value'] else '—'}  \n**📅 Was Due:** {pd.to_datetime(r['next_followup']).strftime('%b %d, %Y')}")
-                    st.markdown(f"**📝 Notes:**<br> <span style='color:#64748b;'>{r['notes'] or 'None'}</span>", unsafe_allow_html=True)
-                    st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
-                    nd = st.number_input("Recalibrate (Days)", min_value=1, value=7, key=f"ov_{r['id']}")
-                    if st.button("✅ Mark Done & Reschedule", type="primary", key=f"ovb_{r['id']}"):
-                        db.update_followup(int(r["id"]), str(date.today() + timedelta(days=nd)), update_last_contacted=True); st.rerun()
-
-    with tab2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        td = db.get_todays_followups()
-        if td.empty: st.info("📭 Today's queue is empty. Systems nominal.")
-        else:
-            for _, r in td.iterrows():
-                with st.expander(f"⚡ {r['name']} // {r['company']}"):
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    cc1, cc2 = st.columns(2)
-                    with cc1:
-                        st.markdown(f"**📞 Comms:** {r['phone'] or '—'}  \n**✉️ Routing:** {r['email'] or '—'}")
-                    with cc2:
-                        st.markdown(f"**🏷 Class:** {r['category']}  \n**💰 Value:** {'${:,.0f}'.format(r['deal_value']) if r['deal_value'] else '—'}")
-                    st.markdown(f"**📝 Notes:**<br> <span style='color:#64748b;'>{r['notes'] or 'None'}</span>", unsafe_allow_html=True)
-                    st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
-                    nd = st.number_input("Next Cycle In (Days)", min_value=1, value=int(r["followup_days"]), key=f"td_{r['id']}")
-                    if st.button("✅ Complete Sequence", type="primary", key=f"tdb_{r['id']}"):
-                        db.update_followup(int(r["id"]), str(date.today() + timedelta(days=nd)), update_last_contacted=True); st.rerun()
-
-    with tab3:
-        st.markdown("<br>", unsafe_allow_html=True)
-        days_ahead = st.slider("Forecast Range (Days)", 1, 90, 30)
-        up = db.get_upcoming_followups(days_ahead)
-        if up.empty: st.info(f"No tasks scheduled in the next {days_ahead} days.")
-        else:
-            up["T-Minus"] = up["next_followup"].apply(lambda x: (pd.to_datetime(x).date() - date.today()).days)
-            st.dataframe(up[["name","company","phone","category","next_followup","T-Minus"]], use_container_width=True, hide_index=True)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  ANALYTICS
-# ══════════════════════════════════════════════════════════════════════════════
-
-def page_reports():
-    st.markdown('<p class="page-title">Telemetry & Metrics</p>', unsafe_allow_html=True)
-    st.markdown('<p class="page-sub">Visual breakdown of your pipeline and network health.</p>', unsafe_allow_html=True)
-
-    df = db.get_all_clients()
-    if df.empty: return st.info("Not enough data to generate charts.")
-
-    today_d = date.today()
-    total_deal = df["deal_value"].sum()
-    avg_deal   = df["deal_value"].mean()
-    active     = len(df[df["category"] == "Active Client"])
-    overdue_n  = len(df[df["next_followup"].apply(lambda x: pd.to_datetime(x).date() < today_d if pd.notna(x) else False)])
-
-    c1, c2, c3, c4 = st.columns(4)
-    st.markdown("""
-    <style>
-    .rep-card { height: 160px; display: flex; flex-direction: column; justify-content: center; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 1); border-radius: 24px; padding: 24px; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03); margin-bottom: 24px; }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    for col, icon, val, lbl, theme in [
-        (c1, "💰", f"${total_deal:,.0f}",  "Total Capital",    "green"),
-        (c2, "📊", f"${avg_deal:,.0f}",    "Mean Value",       "blue"),
-        (c3, "✅", active,                  "Active Nodes",     "indigo"),
-        (c4, "⚠️", overdue_n,              "System Errors",    "red"),
-    ]: col.markdown(f'<div class="rep-card"><div class="metric-icon">{icon}</div><p class="metric-val">{val}</p><p class="metric-lbl">{lbl}</p></div>', unsafe_allow_html=True)
-
-    r1c1, r1c2 = st.columns(2)
-    with r1c1:
-        st.markdown("<div class='form-section'><h5 style='margin-top:0;'>Class Distribution</h5>", unsafe_allow_html=True); st.bar_chart(df["category"].value_counts(), height=280); st.markdown("</div>", unsafe_allow_html=True)
-    with r1c2:
-        st.markdown("<div class='form-section'><h5 style='margin-top:0;'>Acquisition Vectors</h5>", unsafe_allow_html=True); st.bar_chart(df["source"].value_counts(), height=280); st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("<div class='form-section'><h5 style='margin-top:0;'>Capital Density by Class ($)</h5>", unsafe_allow_html=True); st.bar_chart(df.groupby("category")["deal_value"].sum(), height=320); st.markdown("</div>", unsafe_allow_html=True)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  SYSTEM SETTINGS  (admin only)
+#  ACCESS CONTROL (Clean, Simple, Minimalist UI)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_user_management():
-    st.markdown('<p class="page-title">System Settings</p>', unsafe_allow_html=True)
-    st.markdown('<p class="page-sub">Manage operator access and security protocols.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="page-title">Access Control</p>', unsafe_allow_html=True)
+    st.markdown('<p class="page-sub">Easily manage workspace members and their authorization levels.</p>', unsafe_allow_html=True)
 
-    tab1, tab2 = st.tabs(["👥 Operator Matrix", "➕ Provision Node"])
+    tab1, tab2 = st.tabs(["👥 Active Users", "➕ Add User"])
 
     with tab1:
         st.markdown("<br>", unsafe_allow_html=True)
         users = db.get_all_users()
-        if users.empty: st.info("No operators found.")
+        if users.empty: st.info("No active users found.")
         else:
             for _, u in users.iterrows():
-                initials = "".join(p[0].upper() for p in str(u["full_name"]).split()[:2])
-                role_bg, role_text = ("#e0e7ff", "#4f46e5") if u["role"] == "admin" else ("#f1f5f9", "#475569")
-                status_bg, status_color, status_text = ("#dcfce7", "#16a34a", "ONLINE") if u["is_active"] else ("#fee2e2", "#dc2626", "OFFLINE")
-
-                uc1, uc2, uc3 = st.columns([5, 1.2, 1.2])
-                with uc1:
+                role_badge = "🛡️ Admin" if u["role"] == "admin" else "👤 User"
+                status_badge = "🟢 Active" if u["is_active"] else "🔴 Suspended"
+                
+                c1, c2, c3 = st.columns([4, 1.5, 1.5])
+                with c1:
                     st.markdown(f"""
-                    <div style="background:rgba(255,255,255,0.8); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,1); border-radius:16px; padding:20px 24px; display:flex; align-items:center; gap:20px; box-shadow:0 4px 10px rgba(0,0,0,0.02);">
-                        <div style="width:52px; height:52px; border-radius:12px; background:{role_bg}; display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:800; color:{role_text};">{initials}</div>
-                        <div style="flex:1;">
-                            <div style="font-size:1.05rem; font-weight:800; color:#0f172a;">{u['full_name']}</div>
-                            <div style="font-size:0.85rem; color:#64748b; margin-top:6px; display:flex; gap:10px; align-items:center;">
-                                <span>@{u['username']}</span> • 
-                                <span style="background:{role_bg}; color:{role_text}; padding:2px 8px; border-radius:6px; font-weight:800; font-size:0.7rem;">{u['role'].upper()}</span> • 
-                                <span style="background:{status_bg}; color:{status_color}; padding:2px 8px; border-radius:6px; font-weight:800; font-size:0.7rem;">{status_text}</span>
-                            </div>
-                        </div>
-                    </div>""", unsafe_allow_html=True)
-                with uc2:
-                    st.markdown("<br style='line-height:0.8'>", unsafe_allow_html=True)
+                    <div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); padding: 16px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,1); box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 4px;">{u['full_name']} <span style="color: #64748b; font-weight: 500; font-size: 0.9rem;">(@{u['username']})</span></div>
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #475569;">{role_badge} &nbsp;|&nbsp; {status_badge}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with c2:
+                    st.markdown("<br>", unsafe_allow_html=True)
                     if u["username"] != st.session_state.get("username"):
-                        if st.button("Toggle Power" if u["is_active"] else "Restore Power", key=f"tog_{u['id']}", use_container_width=True): db.toggle_user_status(int(u["id"])); st.rerun()
-                with uc3:
-                    st.markdown("<br style='line-height:0.8'>", unsafe_allow_html=True)
+                        if st.button("Suspend" if u["is_active"] else "Restore", key=f"tog_{u['id']}", use_container_width=True): 
+                            db.toggle_user_status(int(u["id"])); st.rerun()
+                    else:
+                        st.markdown("<div style='text-align: center; margin-top: 10px; font-weight: 700; color: #10b981; font-size: 0.85rem;'>Current User</div>", unsafe_allow_html=True)
+                        
+                with c3:
+                    st.markdown("<br>", unsafe_allow_html=True)
                     if u["username"] != st.session_state.get("username"):
-                        if st.button("🗑 Erase", key=f"del_{u['id']}", use_container_width=True): db.delete_user(int(u["id"])); st.rerun()
-                st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
+                        if st.button("Delete", key=f"del_{u['id']}", use_container_width=True): 
+                            db.delete_user(int(u["id"])); st.rerun()
+
+                st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
 
     with tab2:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### Configuration Wizard")
+        st.markdown("##### Add New Member")
         with st.form("add_user_form", clear_on_submit=True):
-            ac1, ac2 = st.columns(2)
-            with ac1:
-                new_fullname = st.text_input("Identity Tag *", placeholder="e.g. Alex Smith")
-                new_username = st.text_input("System Handle *", placeholder="e.g. alex.smith")
-                new_email    = st.text_input("Comms Relay", placeholder="alex@company.com")
-            with ac2:
-                new_password  = st.text_input("Access Key *", type="password", placeholder="Min 6 characters")
-                new_password2 = st.text_input("Verify Key *", type="password")
-                new_role      = st.selectbox("Clearance Level", ["user", "admin"])
+            new_fullname = st.text_input("Full Name *", placeholder="e.g. Alex Smith")
+            new_username = st.text_input("Username *", placeholder="e.g. alex.smith")
+            new_password  = st.text_input("Password *", type="password", placeholder="Min 6 characters")
+            new_role      = st.selectbox("Role", ["user", "admin"])
 
             st.markdown("<br>", unsafe_allow_html=True)
-            add_submitted = st.form_submit_button("➕ Provision Identity", type="primary", use_container_width=True)
+            add_submitted = st.form_submit_button("➕ Create Account", type="primary", use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
         if add_submitted:
-            errors = []
-            if not new_fullname.strip() or not new_username.strip() or not new_password: errors.append("Missing required fields.")
-            if len(new_password) < 6: errors.append("Access Key too short.")
-            if new_password != new_password2: errors.append("Keys do not match.")
-            if db.username_exists(new_username): errors.append("Handle already active.")
-
-            if errors:
-                for e in errors: st.error(f"❌ {e}")
+            if not new_fullname.strip() or not new_username.strip() or not new_password: 
+                st.error("❌ Missing required fields.")
+            elif len(new_password) < 6: 
+                st.error("❌ Password too short (minimum 6 characters).")
+            elif db.username_exists(new_username): 
+                st.error("❌ Username already taken.")
             else:
-                db.add_user({"full_name": new_fullname, "username": new_username, "email": new_email, "password_hash": hash_password(new_password), "role": new_role})
-                st.success(f"✅ Success! {new_fullname} provisioned to the network."); st.rerun()
+                db.add_user({"full_name": new_fullname, "username": new_username, "email": "", "password_hash": hash_password(new_password), "role": new_role})
+                st.success(f"✅ Success! {new_fullname} added to the workspace."); st.rerun()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -710,11 +639,10 @@ def page_user_management():
 if not st.session_state.get("logged_in"): show_login()
 else:
     page = show_sidebar()
+    
     if   "Dashboard"        in page: page_dashboard()
-    elif "Initialize"       in page: page_add_client()
-    elif "Directory"        in page: page_all_clients()
-    elif "Pipeline"         in page: page_followups()
-    elif "Analytics"        in page: page_reports()
-    elif "Settings"         in page:
+    elif "Add Client"       in page: page_add_client()
+    elif "Directory Grid"   in page: page_all_clients()
+    elif "Access Control"   in page:
         if st.session_state.get("role") == "admin": page_user_management()
-        else: st.error("🔒 ACCESS DENIED: Insufficient clearance.")
+        else: st.error("🔒 ACCESS DENIED: You must be an Admin to access settings.")
