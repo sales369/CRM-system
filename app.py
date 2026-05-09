@@ -120,9 +120,6 @@ header { background: transparent !important; }
 .metric-val  { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; line-height: 1; letter-spacing: -0.03em; }
 .metric-lbl  { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
 
-@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-.pulse-alert { animation: pulseRed 2s infinite; }
-
 .form-section { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 16px; padding: 24px 30px; border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 8px 30px rgba(15, 23, 42, 0.03); margin-bottom: 20px; }
 .form-section h5 { color: #0f172a; font-weight: 800; margin-bottom: 16px; font-size: 1.1rem; letter-spacing: -0.02em;}
 
@@ -135,11 +132,24 @@ header { background: transparent !important; }
 .stButton > button[kind="primary"] { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important; border: none !important; color: white !important; box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25) !important; }
 .stButton > button[kind="primary"]:hover { background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4) !important; transform: translateY(-2px) scale(1.02) !important; }
 
-.strip { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); border-radius: 16px; padding: 16px 24px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,1); border-left-width: 5px; display: flex; flex-direction: column; gap: 6px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02); }
-.strip:hover { transform: translateX(6px); background: #ffffff; box-shadow: 0 8px 25px rgba(15, 23, 42, 0.05); }
-.strip-today { border-left-color: #3b82f6; }
-.strip-overdue { border-left-color: #ef4444; }
-.strip-ok { border-left-color: #10b981; align-items: center; text-align: center; }
+/* ── BREATHING ANIMATIONS FOR TASKS ── */
+@keyframes pulseLate {
+    0% { background: rgba(254, 226, 226, 0.5); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    50% { background: rgba(254, 226, 226, 0.85); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { background: rgba(254, 226, 226, 0.5); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+@keyframes pulseToday {
+    0% { background: rgba(224, 242, 254, 0.5); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+    50% { background: rgba(224, 242, 254, 0.85); box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+    100% { background: rgba(224, 242, 254, 0.5); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+.strip { backdrop-filter: blur(16px); border-radius: 16px; padding: 16px 24px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,1); border-left-width: 6px; display: flex; flex-direction: column; gap: 6px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02); }
+.strip:hover { transform: translateX(6px); filter: brightness(1.05); }
+
+.strip-overdue { animation: pulseLate 3s infinite; border-left-color: #ef4444; }
+.strip-today { animation: pulseToday 3s infinite; border-left-color: #3b82f6; }
+.strip-ok { background: rgba(255, 255, 255, 0.85); border-left-color: #10b981; align-items: center; text-align: center; }
 
 .strip-header { display: flex; justify-content: space-between; align-items: center; }
 .strip-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; }
@@ -152,7 +162,7 @@ header { background: transparent !important; }
 [data-baseweb="tab"] { font-weight: 700 !important; font-size: 1rem !important; color: #64748b !important; background: transparent !important; border: none !important; transition: color 0.2s ease; }
 [aria-selected="true"] { color: #4f46e5 !important; border-bottom: 3px solid #4f46e5 !important; }
 
-/* Expander overrides for the Editor Panel */
+/* Expander overrides */
 .streamlit-expanderHeader { font-weight: 700 !important; color: #0f172a !important; background: rgba(255,255,255,0.8) !important; border-radius: 12px !important; border: 1px solid rgba(255,255,255,1) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s ease; }
 .streamlit-expanderHeader:hover { background: #ffffff !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 details { border: none !important; border-radius: 12px !important; background: transparent; overflow: hidden; margin-top: 10px; }
@@ -202,6 +212,15 @@ def status_label(row) -> str:
             return f"🟡 In {mins}m"
     except:
         return "—"
+
+def highlight_rows(row):
+    """Pandas Styler logic to professionally highlight rows based on status"""
+    status = str(row['Status'])
+    if '🔴' in status:
+        return ['background-color: rgba(254, 226, 226, 0.7);'] * len(row)
+    elif '🟡' in status:
+        return ['background-color: rgba(224, 242, 254, 0.7);'] * len(row)
+    return [''] * len(row)
 
 def change_user_password(user_id, new_password):
     try:
@@ -326,7 +345,7 @@ def page_dashboard():
         if st.button("\u200B\u200B", key="t_tod", use_container_width=True): st.session_state.dash_view = "today"
 
     with c3:
-        st.markdown(f'<div class="dash-card red pulse-alert"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Tasks</p></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Tasks</p></div>', unsafe_allow_html=True)
         if st.button("\u200B\u200B\u200B", key="t_ovr", use_container_width=True): st.session_state.dash_view = "overdue"
 
 
@@ -334,137 +353,118 @@ def page_dashboard():
 
     view = st.session_state.dash_view
 
-    # ── SPLIT LAYOUT ──
-    col_main, col_side = st.columns([7.5, 2.5], gap="large")
-
-    with col_main:
-        if view == "today":
-            st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>⚡ Tasks Due Today</h5>", unsafe_allow_html=True)
-            if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:1.5rem;margin-bottom:2px;opacity:0.9;">☕</div><p class="strip-title">All caught up</p><p class="strip-meta">No tasks scheduled for today.</p></div>', unsafe_allow_html=True)
-            else:
-                for _, r in today_df.iterrows():
-                    time_str = pd.to_datetime(r['next_followup']).strftime('%I:%M %p')
-                    st.markdown(f"""
-                    <div class="strip strip-today">
-                        <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-blue">{r['category']}</span></div>
-                        <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span><span>⏰ {time_str}</span></div>
-                    </div>""", unsafe_allow_html=True)
-
-        elif view == "overdue":
-            st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>⚠️ Overdue Tasks</h5>", unsafe_allow_html=True)
-            if over_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:1.5rem;margin-bottom:2px;opacity:0.9;">✅</div><p class="strip-title">Zero Overdue</p><p class="strip-meta">You are completely up to date.</p></div>', unsafe_allow_html=True)
-            else:
-                for _, r in over_df.iterrows():
-                    time_str = pd.to_datetime(r['next_followup']).strftime('%b %d, %I:%M %p')
-                    st.markdown(f"""
-                    <div class="strip strip-overdue">
-                        <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-red">LATE</span></div>
-                        <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span><span>⏰ Was Due: {time_str}</span></div>
-                    </div>""", unsafe_allow_html=True)
-
-        # ── THE INTEGRATED DIRECTORY GRID ──
-        elif view == "total":
-            st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>👥 Full Client Directory</h5>", unsafe_allow_html=True)
-            
-            fc1, fc2, fc3, fc4 = st.columns([2.5, 1.5, 1.5, 1])
-            with fc1: search = st.text_input("🔍 Search", placeholder="Search by name, company...", label_visibility="collapsed")
-            with fc2: cat    = st.selectbox("Filter", ["All","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
-            with fc3: srt    = st.selectbox("Sort By", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
-            with fc4: 
-                df_test = db.get_all_clients()
-                st.download_button("📥 Export", data=to_excel(df_test) if not df_test.empty else b"", file_name=f"Export.xlsx", use_container_width=True)
-
-            df = db.get_all_clients(search=search or None, category=cat if cat != "All" else None, sort_by=srt)
-
-            if df.empty: 
-                st.info("📭 No clients found in database.")
-            else:
-                df_display = df.copy()
-                df_display["Status"] = df_display.apply(status_label, axis=1)
-                df_display["Deal Value"] = df_display["deal_value"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
-                df_display["next_contact_fmt"] = pd.to_datetime(df_display["next_followup"]).dt.strftime('%b %d, %I:%M %p')
-
-                show_cols = ["name","company","phone","email","category","next_contact_fmt","Status","Deal Value"]
-                rename    = {"name":"Full Name","company":"Company","phone":"Phone","email":"Email", "category":"Category","next_contact_fmt":"Next Contact"}
-
-                st.dataframe(df_display[show_cols].rename(columns=rename), use_container_width=True, height=280, hide_index=True)
-
-                # --- HIDDEN MANAGEMENT CONSOLE ---
-                with st.expander("⚙️ Manage & Edit Selected Client", expanded=False):
-                    st.markdown("<div style='font-size:0.85rem; font-weight:700; color:#0f172a; margin-bottom:8px;'>Select Client to Edit</div>", unsafe_allow_html=True)
-                    sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
-                    
-                    if sel:
-                        target_row = df[df["name"] == sel].iloc[0]
-                        cid = int(target_row["id"])
-                        
-                        t1, t2, t3 = st.tabs(["🕒 Reschedule", "📝 Edit Details", "🗑️ Delete"])
-                        
-                        with t1:
-                            st.markdown("<br>", unsafe_allow_html=True)
-                            sc1, sc2, sc3 = st.columns([2, 2, 1.5])
-                            try: curr_dt = pd.to_datetime(target_row["next_followup"])
-                            except: curr_dt = datetime.now() + timedelta(hours=4)
-                                
-                            with sc1: new_d = st.date_input("New Date", value=curr_dt.date(), key=f"d_{cid}")
-                            with sc2: new_t = st.time_input("New Time", value=curr_dt.time(), key=f"t_{cid}")
-                            with sc3:
-                                st.markdown("<br style='line-height:1'>", unsafe_allow_html=True)
-                                if st.button("Update Time", type="primary", use_container_width=True, key=f"btn_resched_{cid}"):
-                                    new_dt = datetime.combine(new_d, new_t)
-                                    new_dt_str = new_dt.strftime("%Y-%m-%d %H:%M:%S")
-                                    db.update_followup(cid, new_dt_str)
-                                    st.rerun()
-                                    
-                        with t2:
-                            st.markdown("<br>", unsafe_allow_html=True)
-                            with st.form(key=f"edit_form_{cid}"):
-                                ec1, ec2 = st.columns(2)
-                                with ec1:
-                                    e_name = st.text_input("Full Name", value=target_row["name"])
-                                    e_email = st.text_input("Email", value=target_row["email"] if pd.notna(target_row["email"]) else "")
-                                    e_val = st.number_input("Deal Value ($)", value=int(target_row["deal_value"]) if pd.notna(target_row["deal_value"]) else 0, step=1000)
-                                with ec2:
-                                    e_phone = st.text_input("Phone", value=target_row["phone"] if pd.notna(target_row["phone"]) else "")
-                                    e_company = st.text_input("Company", value=target_row["company"] if pd.notna(target_row["company"]) else "")
-                                    
-                                    cat_opts = ["Lead", "Prospect", "Active Client", "Partner", "VIP", "Churned"]
-                                    curr_cat = target_row["category"]
-                                    cat_idx = cat_opts.index(curr_cat) if curr_cat in cat_opts else 0
-                                    e_cat = st.selectbox("Category", cat_opts, index=cat_idx)
-                                
-                                if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
-                                    try:
-                                        db.c.execute('''UPDATE clients SET name=?, email=?, phone=?, company=?, deal_value=?, category=? WHERE id=?''', 
-                                                     (e_name, e_email, e_phone, e_company, e_val, e_cat, cid))
-                                        db.conn.commit()
-                                        st.rerun()
-                                    except Exception as e:
-                                        st.error(f"Database error: {e}")
-                                        
-                        with t3:
-                            st.markdown("<br>", unsafe_allow_html=True)
-                            st.error(f"Warning: Deleting **{sel}** is permanent.")
-                            if st.button("🗑 Confirm Delete", use_container_width=True, key=f"btn_del_{cid}"):
-                                db.delete_client(cid)
-                                st.rerun()
-
-    # ── PERSISTENT SIDE PANEL (DUE TODAY) ──
-    with col_side:
-        st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>⚡ Priority List</h5>", unsafe_allow_html=True)
-        if today_df.empty:
-            st.markdown("<div style='background:rgba(255,255,255,0.5); padding:16px; border-radius:12px; text-align:center; font-size:0.85rem; color:#64748b; font-weight:600;'>No clients due today.</div>", unsafe_allow_html=True)
+    # ── FULL WIDTH RENDERING ──
+    if view == "today":
+        st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>⚡ Tasks Due Today</h5>", unsafe_allow_html=True)
+        if today_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:1.5rem;margin-bottom:2px;opacity:0.9;">☕</div><p class="strip-title">All caught up</p><p class="strip-meta">No tasks scheduled for today.</p></div>', unsafe_allow_html=True)
         else:
-            html = ""
             for _, r in today_df.iterrows():
-                t_str = pd.to_datetime(r['next_followup']).strftime('%I:%M %p')
-                html += f"""
-                <div style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.9); border-left: 4px solid #3b82f6; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
-                    <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">{r['name']}</div>
-                    <div style="font-size: 0.75rem; font-weight: 700; color: #3b82f6; margin-top: 4px;">⏰ {t_str}</div>
-                </div>
-                """
-            st.markdown(html, unsafe_allow_html=True)
+                time_str = pd.to_datetime(r['next_followup']).strftime('%I:%M %p')
+                st.markdown(f"""
+                <div class="strip strip-today">
+                    <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-blue">{r['category']}</span></div>
+                    <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span><span>⏰ {time_str}</span></div>
+                </div>""", unsafe_allow_html=True)
+
+    elif view == "overdue":
+        st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>⚠️ Overdue Tasks</h5>", unsafe_allow_html=True)
+        if over_df.empty: st.markdown('<div class="strip strip-ok"><div style="font-size:1.5rem;margin-bottom:2px;opacity:0.9;">✅</div><p class="strip-title">Zero Overdue</p><p class="strip-meta">You are completely up to date.</p></div>', unsafe_allow_html=True)
+        else:
+            for _, r in over_df.iterrows():
+                time_str = pd.to_datetime(r['next_followup']).strftime('%b %d, %I:%M %p')
+                st.markdown(f"""
+                <div class="strip strip-overdue">
+                    <div class="strip-header"><p class="strip-title">{r['name']} <span style="color:#64748b; font-weight:500;">· {r['company']}</span></p><span class="strip-badge badge-red">LATE</span></div>
+                    <div class="strip-meta"><span>📞 {r['phone'] or 'N/A'}</span><span>✉️ {r['email'] or 'N/A'}</span><span>⏰ Was Due: {time_str}</span></div>
+                </div>""", unsafe_allow_html=True)
+
+    elif view == "total":
+        st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>👥 Full Client Directory</h5>", unsafe_allow_html=True)
+        
+        fc1, fc2, fc3, fc4 = st.columns([2.5, 1.5, 1.5, 1])
+        with fc1: search = st.text_input("🔍 Search", placeholder="Search by name, company...", label_visibility="collapsed")
+        with fc2: cat    = st.selectbox("Filter", ["All","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
+        with fc3: srt    = st.selectbox("Sort By", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
+        with fc4: 
+            df_test = db.get_all_clients()
+            st.download_button("📥 Export", data=to_excel(df_test) if not df_test.empty else b"", file_name=f"Export.xlsx", use_container_width=True)
+
+        df = db.get_all_clients(search=search or None, category=cat if cat != "All" else None, sort_by=srt)
+
+        if df.empty: 
+            st.info("📭 No clients found in database.")
+        else:
+            df_display = df.copy()
+            df_display["Status"] = df_display.apply(status_label, axis=1)
+            df_display["Deal Value"] = df_display["deal_value"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
+            df_display["next_contact_fmt"] = pd.to_datetime(df_display["next_followup"]).dt.strftime('%b %d, %I:%M %p')
+
+            show_cols = ["name","company","phone","email","category","next_contact_fmt","Status","Deal Value"]
+            rename    = {"name":"Full Name","company":"Company","phone":"Phone","email":"Email", "category":"Category","next_contact_fmt":"Next Contact"}
+
+            # Apply robust Pandas Dataframe Styling for professional row highlighting
+            styled_df = df_display[show_cols].rename(columns=rename).style.apply(highlight_rows, axis=1)
+            st.dataframe(styled_df, use_container_width=True, height=280, hide_index=True)
+
+            # --- HIDDEN MANAGEMENT CONSOLE ---
+            with st.expander("⚙️ Manage & Edit Selected Client", expanded=False):
+                st.markdown("<div style='font-size:0.85rem; font-weight:700; color:#0f172a; margin-bottom:8px;'>Select Client to Edit</div>", unsafe_allow_html=True)
+                sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
+                
+                if sel:
+                    target_row = df[df["name"] == sel].iloc[0]
+                    cid = int(target_row["id"])
+                    
+                    t1, t2, t3 = st.tabs(["🕒 Reschedule", "📝 Edit Details", "🗑️ Delete"])
+                    
+                    with t1:
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        sc1, sc2, sc3 = st.columns([2, 2, 1.5])
+                        try: curr_dt = pd.to_datetime(target_row["next_followup"])
+                        except: curr_dt = datetime.now() + timedelta(hours=4)
+                            
+                        with sc1: new_d = st.date_input("New Date", value=curr_dt.date(), key=f"d_{cid}")
+                        with sc2: new_t = st.time_input("New Time", value=curr_dt.time(), key=f"t_{cid}")
+                        with sc3:
+                            st.markdown("<br style='line-height:1'>", unsafe_allow_html=True)
+                            if st.button("Update Time", type="primary", use_container_width=True, key=f"btn_resched_{cid}"):
+                                new_dt = datetime.combine(new_d, new_t)
+                                new_dt_str = new_dt.strftime("%Y-%m-%d %H:%M:%S")
+                                db.update_followup(cid, new_dt_str)
+                                st.rerun()
+                                
+                    with t2:
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        with st.form(key=f"edit_form_{cid}"):
+                            ec1, ec2 = st.columns(2)
+                            with ec1:
+                                e_name = st.text_input("Full Name", value=target_row["name"])
+                                e_email = st.text_input("Email", value=target_row["email"] if pd.notna(target_row["email"]) else "")
+                                e_val = st.number_input("Deal Value ($)", value=int(target_row["deal_value"]) if pd.notna(target_row["deal_value"]) else 0, step=1000)
+                            with ec2:
+                                e_phone = st.text_input("Phone", value=target_row["phone"] if pd.notna(target_row["phone"]) else "")
+                                e_company = st.text_input("Company", value=target_row["company"] if pd.notna(target_row["company"]) else "")
+                                
+                                cat_opts = ["Lead", "Prospect", "Active Client", "Partner", "VIP", "Churned"]
+                                curr_cat = target_row["category"]
+                                cat_idx = cat_opts.index(curr_cat) if curr_cat in cat_opts else 0
+                                e_cat = st.selectbox("Category", cat_opts, index=cat_idx)
+                            
+                            if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
+                                try:
+                                    db.c.execute('''UPDATE clients SET name=?, email=?, phone=?, company=?, deal_value=?, category=? WHERE id=?''', 
+                                                 (e_name, e_email, e_phone, e_company, e_val, e_cat, cid))
+                                    db.conn.commit()
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Database error: {e}")
+                                    
+                    with t3:
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.error(f"Warning: Deleting **{sel}** is permanent.")
+                        if st.button("🗑 Confirm Delete", use_container_width=True, key=f"btn_del_{cid}"):
+                            db.delete_client(cid)
+                            st.rerun()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
