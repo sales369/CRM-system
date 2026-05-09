@@ -28,88 +28,91 @@ st.markdown("""
 .login-mode [data-testid="stSidebar"],
 .login-mode footer { display: none !important; }
 
-/* ── Sidebar ── */
+/* ── Smooth Fade-In Animation ── */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Sidebar (Light Modern Theme) ── */
 [data-testid="stSidebar"] {
-    background: #0f172a !important;
-    border-right: 1px solid #1e293b;
+    background: #ffffff !important;
+    border-right: 1px solid #e2e8f0;
 }
 [data-testid="stSidebar"] section { padding-top: 0 !important; }
-[data-testid="stSidebar"] * { color: #cbd5e1 !important; }
+[data-testid="stSidebar"] * { color: #334155 !important; }
 [data-testid="stSidebar"] .stRadio > label { display: none; }
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] { gap: 2px; }
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] { gap: 4px; }
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label {
     background: transparent;
     border-radius: 8px;
     padding: 10px 14px !important;
     font-size: 0.875rem !important;
-    font-weight: 500 !important;
-    transition: background 0.15s;
+    font-weight: 600 !important;
+    color: #475569 !important;
+    transition: all 0.2s ease;
     cursor: pointer;
 }
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover {
-    background: #1e293b !important;
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    transform: translateX(4px);
 }
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label[data-baseweb="radio"] { display: flex; }
 
 /* ── Main area ── */
-.main .block-container { padding: 2rem 2.5rem 2rem 2.5rem; max-width: 1400px; }
-.main { background: #f1f5f9; }
-
-/* ── Login card ── */
-.login-wrapper {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
-    padding: 2rem;
+.main .block-container { 
+    padding: 2rem 2.5rem 2rem 2.5rem; 
+    max-width: 1400px; 
+    animation: fadeIn 0.4s ease-out;
 }
-.login-card {
-    background: white;
-    border-radius: 20px;
-    padding: 48px 44px;
-    width: 100%;
-    max-width: 420px;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
-}
+.main { background: #fafaf9; } /* Extremely light warm gray */
 
-/* ── Metric cards ── */
+/* ── Metric cards with Interactive Hover ── */
 .metric-card {
     background: white;
     border-radius: 16px;
-    padding: 22px 24px;
+    padding: 24px;
     border: 1px solid #e2e8f0;
-    transition: box-shadow 0.2s, transform 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.metric-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
-.metric-icon { font-size: 1.5rem; margin-bottom: 10px; }
-.metric-val  { font-size: 2rem; font-weight: 700; color: #0f172a; margin: 0 0 2px; line-height:1; }
-.metric-lbl  { font-size: 0.72rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin: 0; }
+.metric-card:hover { 
+    box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08); 
+    transform: translateY(-4px); 
+    border-color: #cbd5e1;
+}
+.metric-icon { font-size: 1.8rem; margin-bottom: 12px; }
+.metric-val  { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height:1; }
+.metric-lbl  { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin: 0; }
 
 /* ── Section headers ── */
-.page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0 0 2px; }
-.page-sub   { font-size: 0.85rem; color: #64748b; margin: 0 0 1.5rem; }
+.page-title { font-size: 1.75rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.02em; }
+.page-sub   { font-size: 0.9rem; color: #64748b; margin: 0 0 1.8rem; }
 
 /* ── Alert strips ── */
-.strip-today   { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 10px; }
-.strip-overdue { background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 10px; }
-.strip-ok      { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 10px; }
-.strip-title   { font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 3px; }
-.strip-meta    { font-size: 0.8rem; color: #64748b; margin: 0; }
+.strip-today   { background: white; border-left: 4px solid #3b82f6; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; border-left-width: 4px; transition: transform 0.2s;}
+.strip-today:hover { transform: translateX(2px); }
+.strip-overdue { background: white; border-left: 4px solid #ef4444; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; border-left-width: 4px; transition: transform 0.2s;}
+.strip-overdue:hover { transform: translateX(2px); }
+.strip-ok      { background: white; border-left: 4px solid #22c55e; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; border-left-width: 4px; }
+.strip-title   { font-size: 0.95rem; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+.strip-meta    { font-size: 0.8rem; color: #64748b; margin: 0; font-weight: 500; }
 
 /* ── Big CTA ── */
 .big-cta button {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
     color: white !important;
     border: none !important;
-    border-radius: 12px !important;
-    font-size: 1rem !important;
+    border-radius: 14px !important;
+    font-size: 1.05rem !important;
     font-weight: 600 !important;
-    padding: 0.75rem 0 !important;
+    padding: 0.85rem 0 !important;
     letter-spacing: 0.01em;
-    box-shadow: 0 4px 15px rgba(99,102,241,0.35) !important;
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25) !important;
+    transition: all 0.2s ease !important;
 }
-.big-cta button:hover { opacity: 0.9 !important; transform: translateY(-1px) !important; }
+.big-cta button:hover { opacity: 0.95 !important; transform: translateY(-2px) scale(1.01) !important; box-shadow: 0 12px 25px rgba(79, 70, 229, 0.35) !important; }
 
 /* ── Form card ── */
 .form-section {
@@ -118,61 +121,57 @@ st.markdown("""
     padding: 28px 32px;
     border: 1px solid #e2e8f0;
     margin-bottom: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
 /* ── Scheduled badge ── */
 .sched-badge {
-    background: #f0fdf4;
-    border: 1px solid #86efac;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
     border-radius: 12px;
     padding: 16px 18px;
+    text-align: center;
 }
-.sched-date { font-size: 1.2rem; font-weight: 700; color: #15803d; margin: 2px 0 0; }
-.sched-lbl  { font-size: 0.72rem; font-weight: 600; color: #16a34a; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
-
-/* ── Status badges inline ── */
-.b-red    { background:#fef2f2; color:#991b1b; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; }
-.b-yellow { background:#fefce8; color:#854d0e; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; }
-.b-green  { background:#f0fdf4; color:#166534; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; }
-
-/* ── User table ── */
-.user-row {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-/* ── Sidebar user pill ── */
-.sb-user {
-    background: #1e293b;
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin: 8px 0 16px;
-}
+.sched-date { font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 4px 0 0; }
+.sched-lbl  { font-size: 0.72rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.08em; margin: 0; }
 
 /* ── Buttons ── */
 .stButton > button {
     border-radius: 10px !important;
     font-weight: 600 !important;
     font-size: 0.875rem !important;
-    transition: all 0.15s !important;
+    transition: all 0.2s ease !important;
+    border: 1px solid #e2e8f0 !important;
 }
-.stButton > button:hover { transform: translateY(-1px) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important; }
+.stButton > button:hover { 
+    transform: translateY(-2px) !important; 
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08) !important; 
+    border-color: #cbd5e1 !important;
+}
 [data-testid="stDownloadButton"] > button {
     border-radius: 10px !important;
     font-weight: 600 !important;
     font-size: 0.875rem !important;
+    background: white !important;
+    border: 1px solid #e2e8f0 !important;
+    transition: all 0.2s ease !important;
+}
+[data-testid="stDownloadButton"] > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.05) !important;
 }
 
 div[data-testid="stTabs"] button { font-weight: 600 !important; }
 
 /* ── Expander ── */
-details { border-radius: 12px !important; border: 1px solid #e2e8f0 !important; }
-details summary { font-weight: 600 !important; }
+details { 
+    border-radius: 12px !important; 
+    border: 1px solid #e2e8f0 !important; 
+    background: white !important;
+    transition: box-shadow 0.2s ease !important;
+}
+details:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.03) !important; }
+details summary { font-weight: 600 !important; color: #0f172a !important; }
 
 hr { border: none; border-top: 1px solid #e2e8f0; margin: 1.5rem 0; }
 </style>
@@ -212,7 +211,7 @@ def status_label(row) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  LOGIN PAGE
+#  LOGIN PAGE (Modern Light SaaS Look)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def show_login():
@@ -222,28 +221,31 @@ def show_login():
         display:flex;
         align-items:center;
         justify-content:center;
-        background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#0f172a 100%);
+        background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
         padding:2rem;
         margin:-6rem -2.5rem -2rem -2.5rem;
     ">
     <div style="
-        background:white;
-        border-radius:20px;
-        padding:48px 44px;
+        background:rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.5);
+        border-radius:24px;
+        padding:56px 48px;
         width:100%;
-        max-width:400px;
-        box-shadow:0 25px 60px rgba(0,0,0,0.35);
+        max-width:440px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
     ">
-        <div style="text-align:center;margin-bottom:32px;">
-            <div style="font-size:2.8rem;margin-bottom:6px;">💼</div>
-            <div style="font-size:1.4rem;font-weight:800;color:#0f172a;letter-spacing:-0.02em;">ClientPulse CRM</div>
-            <div style="font-size:0.8rem;color:#94a3b8;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;">Sign in to your workspace</div>
+        <div style="text-align:center;margin-bottom:36px;">
+            <div style="font-size:3.2rem;margin-bottom:8px; animation: fadeIn 0.6s ease-out;">💼</div>
+            <div style="font-size:1.6rem;font-weight:800;color:#0f172a;letter-spacing:-0.03em;">ClientPulse CRM</div>
+            <div style="font-size:0.85rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;margin-top:6px;">Sign in to your workspace</div>
         </div>
     """, unsafe_allow_html=True)
 
     with st.form("login_form"):
         username = st.text_input("Username", placeholder="Enter your username")
         password = st.text_input("Password", type="password", placeholder="Enter your password")
+        st.markdown("<br>", unsafe_allow_html=True)
         submitted = st.form_submit_button("Sign In →", use_container_width=True, type="primary")
 
     if submitted:
@@ -262,8 +264,8 @@ def show_login():
                 st.error("❌ Invalid username or password.")
 
     st.markdown("""
-        <div style="text-align:center;margin-top:24px;font-size:0.78rem;color:#94a3b8;">
-            Contact your admin to get access
+        <div style="text-align:center;margin-top:28px;font-size:0.8rem;color:#94a3b8;font-weight:500;">
+            Secure access • Contact admin for setup
         </div>
     </div></div>
     """, unsafe_allow_html=True)
@@ -276,10 +278,10 @@ def show_login():
 def show_sidebar():
     with st.sidebar:
         st.markdown("""
-        <div style="text-align:center;padding:28px 0 20px;">
-            <div style="font-size:2rem;">💼</div>
-            <div style="font-size:1.1rem;font-weight:700;color:#f1f5f9;letter-spacing:-0.01em;">ClientPulse</div>
-            <div style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:0.1em;">CRM System</div>
+        <div style="text-align:center;padding:24px 0 24px;">
+            <div style="font-size:2.2rem; margin-bottom: 4px;">💼</div>
+            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;letter-spacing:-0.02em;">ClientPulse</div>
+            <div style="font-size:0.7rem;color:#64748b;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">CRM System</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -289,16 +291,16 @@ def show_sidebar():
 
         initials = "".join(p[0].upper() for p in full_name.split()[:2])
         st.markdown(f"""
-        <div class="sb-user">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <div style="width:34px;height:34px;border-radius:50%;background:#334155;
+        <div class="sb-user" style="background:#f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; margin: 8px 0 20px; transition: all 0.2s ease;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:38px;height:38px;border-radius:10px;background:#e0e7ff;
                             display:flex;align-items:center;justify-content:center;
-                            font-size:0.75rem;font-weight:700;color:#e2e8f0;flex-shrink:0;">
+                            font-size:0.85rem;font-weight:800;color:#4f46e5;flex-shrink:0;">
                     {initials}
                 </div>
                 <div>
-                    <div style="font-size:0.82rem;font-weight:600;color:#e2e8f0;">{full_name}</div>
-                    <div style="font-size:0.7rem;color:#64748b;">
+                    <div style="font-size:0.85rem;font-weight:700;color:#0f172a;">{full_name}</div>
+                    <div style="font-size:0.72rem;color:#64748b;font-weight:500;">
                         {'⚙️ Admin' if role == 'admin' else '👤 User'} · @{username}
                     </div>
                 </div>
@@ -312,11 +314,11 @@ def show_sidebar():
 
         page = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
-        st.markdown("<div style='height:1px;background:#1e293b;margin:12px 0;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:1px;background:#e2e8f0;margin:16px 0;'></div>", unsafe_allow_html=True)
         st.markdown(f"""
-        <div style="padding:10px 14px;background:#1e293b;border-radius:8px;margin-bottom:12px;">
-            <div style="font-size:0.65rem;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Today</div>
-            <div style="font-size:0.82rem;font-weight:600;color:#94a3b8;">{date.today().strftime("%B %d, %Y")}</div>
+        <div style="padding:12px 16px;background:#f8fafc; border: 1px solid #e2e8f0; border-radius:12px;margin-bottom:16px;">
+            <div style="font-size:0.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;">Today's Date</div>
+            <div style="font-size:0.85rem;font-weight:700;color:#0f172a;">{date.today().strftime("%B %d, %Y")}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -334,7 +336,7 @@ def show_sidebar():
 
 def page_dashboard():
     st.markdown('<p class="page-title">Dashboard</p>', unsafe_allow_html=True)
-    st.markdown(f'<p class="page-sub">Welcome back, {st.session_state.get("full_name","User")} 👋</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="page-sub">Welcome back, <b>{st.session_state.get("full_name","User")}</b> 👋 Here is what’s happening today.</p>', unsafe_allow_html=True)
 
     total = db.get_total_clients()
     today_df  = db.get_todays_followups()
@@ -355,7 +357,7 @@ def page_dashboard():
             <p class="metric-lbl">{lbl}</p>
         </div>""", unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
     _, mid, _ = st.columns([1, 2, 1])
     with mid:
@@ -376,9 +378,9 @@ def page_dashboard():
                 for _, r in today_df.iterrows():
                     st.markdown(f"""
                     <div class="strip-today">
-                        <p class="strip-title">👤 {r['name']} — {r['company']}</p>
-                        <p class="strip-meta">📞 {r['phone'] or '—'} &nbsp;·&nbsp; ✉️ {r['email'] or '—'} &nbsp;·&nbsp; 🏷 {r['category']}</p>
-                        <p class="strip-meta" style="margin-top:4px;">📝 {r['notes'] or 'No notes'}</p>
+                        <p class="strip-title">👤 {r['name']} <span style="color:#64748b;font-weight:500;">— {r['company']}</span></p>
+                        <p class="strip-meta">📞 {r['phone'] or '—'} &nbsp;·&nbsp; ✉️ {r['email'] or '—'} &nbsp;·&nbsp; <span style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">🏷 {r['category']}</span></p>
+                        <p class="strip-meta" style="margin-top:8px; padding-top:8px; border-top:1px dashed #e2e8f0;">📝 {r['notes'] or 'No notes provided'}</p>
                     </div>""", unsafe_allow_html=True)
 
         with col_b:
@@ -390,7 +392,7 @@ def page_dashboard():
                     d = (date.today() - pd.to_datetime(r['next_followup']).date()).days
                     st.markdown(f"""
                     <div class="strip-overdue">
-                        <p class="strip-title">⏰ {r['name']} — {r['company']} <span style="font-size:0.75rem;color:#ef4444;">({d}d overdue)</span></p>
+                        <p class="strip-title">⏰ {r['name']} <span style="color:#64748b;font-weight:500;">— {r['company']}</span> <span style="font-size:0.75rem;color:#ef4444;background:#fef2f2;padding:2px 6px;border-radius:4px;">{d}d overdue</span></p>
                         <p class="strip-meta">📞 {r['phone'] or '—'} &nbsp;·&nbsp; ✉️ {r['email'] or '—'}</p>
                     </div>""", unsafe_allow_html=True)
 
@@ -432,8 +434,8 @@ def page_add_client():
             <div class="sched-badge">
                 <p class="sched-lbl">📌 Scheduled Follow-up</p>
                 <p class="sched-date">{nf.strftime("%B %d, %Y")}</p>
-                <p style="font-size:0.78rem;color:#4ade80;margin:4px 0 0;">
-                    In {int(followup_days)} days from last contact
+                <p style="font-size:0.8rem;color:#475569;margin:6px 0 0;font-weight:500;">
+                    In <span style="color:#0f172a;font-weight:700;">{int(followup_days)} days</span> from last contact
                 </p>
             </div>""", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -487,7 +489,7 @@ def page_all_clients():
 
     hc1, hc2 = st.columns([5, 1])
     with hc1:
-        st.markdown(f"<p style='color:#64748b;font-size:0.85rem;margin:0;'>Showing <b>{len(df)}</b> client(s)</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color:#64748b;font-size:0.85rem;margin:0;padding-top:10px;'>Showing <b>{len(df)}</b> client(s)</p>", unsafe_allow_html=True)
     with hc2:
         st.download_button(
             "📥 Export Excel", data=to_excel(df),
@@ -514,14 +516,12 @@ def page_all_clients():
     with rc1: sel    = st.selectbox("Client", df["name"].tolist(), label_visibility="collapsed")
     with rc2: new_d  = st.date_input("New Date", value=date.today() + timedelta(days=7), label_visibility="collapsed")
     with rc3:
-        st.markdown("<br style='line-height:2.1'>", unsafe_allow_html=True)
         if st.button("Update", type="primary", use_container_width=True):
             cid = int(df[df["name"] == sel]["id"].values[0])
             db.update_followup(cid, str(new_d))
             st.success(f"✅ {sel} → {new_d.strftime('%b %d, %Y')}")
             st.rerun()
     with rc4:
-        st.markdown("<br style='line-height:2.1'>", unsafe_allow_html=True)
         if st.button("🗑 Delete", use_container_width=True):
             cid = int(df[df["name"] == sel]["id"].values[0])
             db.delete_client(cid)
@@ -632,7 +632,7 @@ def page_reports():
             <p class="metric-lbl">{lbl}</p>
         </div>""", unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br><br>", unsafe_allow_html=True)
     r1c1, r1c2 = st.columns(2)
     with r1c1:
         st.markdown("##### Clients by category")
@@ -641,7 +641,7 @@ def page_reports():
         st.markdown("##### Clients by source")
         st.bar_chart(df["source"].value_counts(), height=260)
 
-    st.markdown("##### Deal value by category (₹)")
+    st.markdown("<br>##### Deal value by category (₹)", unsafe_allow_html=True)
     st.bar_chart(df.groupby("category")["deal_value"].sum(), height=280)
 
     st.markdown("<hr>", unsafe_allow_html=True)
@@ -669,29 +669,31 @@ def page_user_management():
         else:
             for _, u in users.iterrows():
                 initials = "".join(p[0].upper() for p in str(u["full_name"]).split()[:2])
-                role_color = "#6366f1" if u["role"] == "admin" else "#3b82f6"
-                role_bg    = "#eef2ff" if u["role"] == "admin" else "#eff6ff"
+                role_color = "#4f46e5" if u["role"] == "admin" else "#3b82f6"
+                role_bg    = "#e0e7ff" if u["role"] == "admin" else "#eff6ff"
                 status_color = "#22c55e" if u["is_active"] else "#ef4444"
                 status_text  = "Active" if u["is_active"] else "Inactive"
 
                 uc1, uc2, uc3 = st.columns([5, 1, 1])
                 with uc1:
                     st.markdown(f"""
-                    <div style="background:white;border:1px solid #e2e8f0;border-radius:12px;
-                                padding:14px 18px;display:flex;align-items:center;gap:14px;">
-                        <div style="width:40px;height:40px;border-radius:50%;
-                                    background:{role_bg};display:flex;align-items:center;
-                                    justify-content:center;font-size:0.8rem;font-weight:700;
-                                    color:{role_color};flex-shrink:0;">{initials}</div>
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:12px;
+                                padding:16px 20px; display:flex; align-items:center; gap:16px;
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: transform 0.2s; cursor:default;"
+                         onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="width:44px; height:44px; border-radius:12px;
+                                    background:{role_bg}; display:flex; align-items:center;
+                                    justify-content:center; font-size:0.9rem; font-weight:800;
+                                    color:{role_color}; flex-shrink:0;">{initials}</div>
                         <div style="flex:1;min-width:0;">
-                            <div style="font-size:0.9rem;font-weight:600;color:#0f172a;">{u['full_name']}</div>
-                            <div style="font-size:0.78rem;color:#64748b;">
+                            <div style="font-size:0.95rem; font-weight:700; color:#0f172a;">{u['full_name']}</div>
+                            <div style="font-size:0.8rem; color:#64748b; font-weight:500; margin-top:2px;">
                                 @{u['username']} &nbsp;·&nbsp; {u['email'] or '—'} &nbsp;·&nbsp;
-                                <span style="background:{role_bg};color:{role_color};
-                                             padding:2px 8px;border-radius:20px;font-size:0.72rem;
-                                             font-weight:600;">{u['role'].title()}</span>
+                                <span style="background:{role_bg}; color:{role_color};
+                                             padding:2px 8px; border-radius:6px; font-size:0.72rem;
+                                             font-weight:700;">{u['role'].title()}</span>
                                 &nbsp;·&nbsp;
-                                <span style="color:{status_color};font-size:0.78rem;font-weight:600;">● {status_text}</span>
+                                <span style="color:{status_color}; font-size:0.75rem; font-weight:700;">● {status_text}</span>
                             </div>
                         </div>
                     </div>""", unsafe_allow_html=True)
@@ -709,7 +711,7 @@ def page_user_management():
                             db.delete_user(int(u["id"]))
                             st.success(f"Deleted {u['username']}"); st.rerun()
 
-                st.markdown("<div style='height:6px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
 
     with tab2:
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
@@ -726,6 +728,7 @@ def page_user_management():
                 new_role      = st.selectbox("Role", ["user", "admin"],
                                              format_func=lambda x: "👤 User" if x == "user" else "⚙️ Admin")
 
+            st.markdown("<br>", unsafe_allow_html=True)
             add_submitted = st.form_submit_button("➕  Create User", type="primary", use_container_width=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
