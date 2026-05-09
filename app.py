@@ -14,7 +14,6 @@ st.set_page_config(
 )
 
 # ── 🌌 LIVE ANIMATED LIGHT MESH BACKGROUND ─────────────────────────────────────
-# This creates the stunning moving gradient and floating pastel orbs
 st.markdown("""
 <div class="mesh-bg">
     <div class="orb orb-1"></div>
@@ -113,27 +112,45 @@ st.markdown("""
 .page-title { font-size: 2.4rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.03em; }
 .page-sub   { font-size: 1.05rem; color: #64748b; font-weight: 500; margin: 0 0 2.5rem; letter-spacing: 0.01em; }
 
-/* ── Interactive Dashboard Tiles (Clickable via invisible overlay hack) ── */
-div[data-testid="stHorizontalBlock"]:has(.dash-card) div[data-testid="column"] { position: relative; }
-div[data-testid="stHorizontalBlock"]:has(.dash-card) [data-testid="stButton"] {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999;
-}
-div[data-testid="stHorizontalBlock"]:has(.dash-card) [data-testid="stButton"] button {
-    width: 100%; height: 100%; opacity: 0; cursor: pointer; background: transparent; border: none;
+/* ── PERFECTLY ALIGNED INTERACTIVE TILES ── */
+/* 1. Ensure the column parent acts as a boundary */
+div[data-testid="stHorizontalBlock"]:has(.dash-card) > div[data-testid="column"] { 
+    position: relative; 
+    display: flex;
+    flex-direction: column;
 }
 
+/* 2. Absolute positioning for the invisible Streamlit button */
+div[data-testid="stHorizontalBlock"]:has(.dash-card) div[data-testid="stButton"] {
+    position: absolute !important; 
+    top: 0 !important; left: 0 !important; 
+    width: 100% !important; height: 100% !important; 
+    z-index: 999 !important;
+    margin: 0 !important; padding: 0 !important;
+}
+div[data-testid="stHorizontalBlock"]:has(.dash-card) div[data-testid="stButton"] button {
+    width: 100% !important; height: 100% !important; 
+    opacity: 0 !important; cursor: pointer !important; 
+    background: transparent !important; border: none !important;
+}
+
+/* 3. Uniform Card Styling */
 .dash-card {
+    height: 160px; /* Strictly enforces identical heights */
+    display: flex; flex-direction: column; justify-content: center;
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.9);
-    border-radius: 20px; padding: 28px 24px; position: relative; overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 8px;
+    border-radius: 20px; padding: 24px; position: relative; overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 0;
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
 }
 .dash-card::after { 
     content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
     background: transparent; transition: background 0.4s ease;
 }
+
+/* 4. Hover Effects */
 div[data-testid="column"]:has(button:hover) .dash-card {
     transform: translateY(-6px);
     background: rgba(255, 255, 255, 0.95);
@@ -144,7 +161,7 @@ div[data-testid="column"]:has(button:hover) .dash-card.blue::after   { backgroun
 div[data-testid="column"]:has(button:hover) .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
 div[data-testid="column"]:has(button:hover) .dash-card.purple::after { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
 
-.metric-icon { font-size: 2rem; margin-bottom: 16px; }
+.metric-icon { font-size: 2rem; margin-bottom: 12px; }
 .metric-val  { font-size: 2.6rem; font-weight: 800; color: #0f172a; margin: 0 0 4px; line-height: 1; letter-spacing: -0.02em; }
 .metric-lbl  { font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
 
@@ -376,7 +393,7 @@ def show_sidebar():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DASHBOARD (Interactive Light Glass Tiles)
+#  DASHBOARD (Perfectly Aligned Interactive Light Glass Tiles)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_dashboard():
@@ -393,21 +410,23 @@ def page_dashboard():
 
     c1, c2, c3, c4 = st.columns(4)
 
+    # Using \u200B (zero-width space) to ensure the button has a value but takes up zero line height 
+    # to avoid the alignment breaking!
     with c1:
-        st.markdown(f'<div class="metric-card dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
-        if st.button(" ", key="btn_tot", use_container_width=True): st.session_state.dash_view = "total"
+        st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
+        if st.button("\u200B", key="btn_tot", use_container_width=True): st.session_state.dash_view = "total"
 
     with c2:
-        st.markdown(f'<div class="metric-card dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Due Today</p></div>', unsafe_allow_html=True)
-        if st.button("  ", key="btn_tod", use_container_width=True): st.session_state.dash_view = "today"
+        st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Due Today</p></div>', unsafe_allow_html=True)
+        if st.button("\u200B\u200B", key="btn_tod", use_container_width=True): st.session_state.dash_view = "today"
 
     with c3:
-        st.markdown(f'<div class="metric-card dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Actions</p></div>', unsafe_allow_html=True)
-        if st.button("   ", key="btn_ovr", use_container_width=True): st.session_state.dash_view = "overdue"
+        st.markdown(f'<div class="dash-card red"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Actions</p></div>', unsafe_allow_html=True)
+        if st.button("\u200B\u200B\u200B", key="btn_ovr", use_container_width=True): st.session_state.dash_view = "overdue"
 
     with c4:
-        st.markdown(f'<div class="metric-card dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">Next 7 Days</p></div>', unsafe_allow_html=True)
-        if st.button("    ", key="btn_upc", use_container_width=True): st.session_state.dash_view = "upcoming"
+        st.markdown(f'<div class="dash-card purple"><div class="metric-icon">📅</div><p class="metric-val">{len(upc_df)}</p><p class="metric-lbl">Next 7 Days</p></div>', unsafe_allow_html=True)
+        if st.button("\u200B\u200B\u200B\u200B", key="btn_upc", use_container_width=True): st.session_state.dash_view = "upcoming"
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -686,7 +705,7 @@ def page_reports():
         (c3, "✅", active,                  "Active Accounts",   "indigo"),
         (c4, "⚠️", overdue_n,              "Overdue Tasks",     "red"),
     ]:
-        col.markdown(f'<div class="metric-card {theme}"><div class="metric-icon">{icon}</div><p class="metric-val">{val}</p><p class="metric-lbl">{lbl}</p></div>', unsafe_allow_html=True)
+        col.markdown(f'<div class="dash-card {theme}"><div class="metric-icon">{icon}</div><p class="metric-val">{val}</p><p class="metric-lbl">{lbl}</p></div>', unsafe_allow_html=True)
 
     st.markdown("<br><br>", unsafe_allow_html=True)
     r1c1, r1c2 = st.columns(2)
