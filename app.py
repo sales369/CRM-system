@@ -74,6 +74,7 @@ st.markdown("""
 .particle { position: absolute; bottom: -10px; background: rgba(99, 102, 241, 0.4); border-radius: 50%; animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite; }
 @keyframes floatUp { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(20px); opacity: 0; } }
 
+/* WIDTH FIX: Set max-width to 100% so it fully expands */
 .main .block-container { padding: 1.5rem 3rem !important; max-width: 100%; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
 
@@ -131,17 +132,6 @@ header { background: transparent !important; }
 .streamlit-expanderHeader:hover { background: #ffffff !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 details { border: none !important; border-radius: 12px !important; background: transparent; overflow: hidden; margin-top: 10px; }
 
-/* Client selector panel */
-.client-selector-panel {
-    background: rgba(255,255,255,0.75); backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,1); border-radius: 14px;
-    padding: 18px 22px; margin-top: 12px;
-    box-shadow: 0 4px 20px rgba(15,23,42,0.04);
-}
-.selector-label {
-    font-size: 0.75rem; font-weight: 800; color: #6366f1;
-    text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -355,7 +345,7 @@ def page_dashboard():
     # ── BULK DELETE & INTERACTIVE TABLE BUILDER ──
     df_display = df.copy()
     
-    # 1. Insert a boolean "Select" column at the very front
+    # Insert a boolean "Select" column at the very front
     df_display.insert(0, "Select", False)
     
     df_display["Deal Value"]  = df_display["deal_value"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
@@ -364,20 +354,18 @@ def page_dashboard():
         lambda x: (str(x)[:45] + "…") if len(str(x)) > 45 else str(x)
     )
 
-    # 2. Add "Select" to the list of columns to show
     show_cols  = ["Select", "name", "company", "phone", "email", "category", "Next Contact", "Status", "Deal Value", "Discussion"]
     rename_map = {"name": "Full Name", "company": "Company", "phone": "Phone", "email": "Email", "category": "Category"}
 
     styled_df = df_display[show_cols].rename(columns=rename_map).style.apply(highlight_rows, axis=1)
     
-    # 3. Use st.data_editor instead of st.dataframe
     # We disable editing for everything EXCEPT the "Select" column
     disabled_cols = ["Full Name", "Company", "Phone", "Email", "Category", "Next Contact", "Status", "Deal Value", "Discussion"]
     
     edited_df = st.data_editor(
         styled_df,
         column_config={
-            "Select": st.column_config.CheckboxColumn("☑", help="Select to bulk delete", default=False)
+            "Select": st.column_config.CheckboxColumn("☑", help="Select client(s)", default=False)
         },
         disabled=disabled_cols,
         use_container_width=True, 
@@ -385,18 +373,18 @@ def page_dashboard():
         hide_index=True
     )
 
-    # 4. Check if any rows were selected and show Bulk Delete button
+    # Grab the index numbers of all rows that the user checked
     selected_indices = edited_df.index[edited_df['Select'] == True].tolist()
 
-    if selected_indices:
-        st.markdown("""
+    # If ANY checkboxes are checked, show the Bulk Delete option
+    if len(selected_indices) > 0:
+        st.markdown(f"""
         <div style="padding: 12px 16px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 4px; margin: 10px 0;">
-            <strong style="color: #ef4444;">⚠️ Bulk Action:</strong> You have selected clients for deletion. This action is permanent.
+            <strong style="color: #ef4444;">⚠️ Bulk Action:</strong> {len(selected_indices)} client(s) selected for deletion.
         </div>
         """, unsafe_allow_html=True)
         
         if st.button(f"🗑️ Delete {len(selected_indices)} Selected Client(s)", type="primary"):
-            # Map the selected dataframe index back to the database 'id'
             ids_to_delete = df.iloc[selected_indices]['id'].tolist()
             db.delete_multiple_clients(ids_to_delete)
             st.success(f"✅ Successfully deleted {len(selected_indices)} client(s).")
@@ -405,119 +393,90 @@ def page_dashboard():
     st.markdown("<hr style='margin: 30px 0; border-top: 1px solid rgba(15,23,42,0.06);'>", unsafe_allow_html=True)
 
     # ════════════════════════════════════════════════════════════
-    #  PER-ROW SELECT BOX (For editing & rescheduling)
+    #  DYNAMIC EDIT PANEL (Depends on Checkbox selection)
     # ════════════════════════════════════════════════════════════
-    st.markdown("""
-    <div class="client-selector-panel">
-        <div class="selector-label">⚙️ Select a single client row to Edit Details or Reschedule</div>
-    </div>
-    """, unsafe_allow_html=True)
 
-    row_labels = ["— Choose a client —"] + [
-        f"{i+1}. {row['name']}  |  {row.get('company','') or '—'}"
-        for i, (_, row) in enumerate(df.iterrows())
-    ]
+    if len(selected_indices) == 1:
+        target_row  = df.iloc[selected_indices[0]]
+        cid         = int(target_row["id"])
+        client_name = target_row["name"]
 
-    selected_label = st.selectbox(
-        "Pick client",
-        row_labels,
-        key="dir_row_select",
-        label_visibility="collapsed"
-    )
+        st.markdown(f"""
+        <div style="margin-top:10px; padding:10px 18px; background:rgba(99,102,241,0.07); border-left:4px solid #6366f1;
+                    border-radius:0 10px 10px 0; font-size:0.9rem; font-weight:700; color:#4f46e5;">
+            Selected for Editing: {client_name}
+        </div>
+        """, unsafe_allow_html=True)
 
-    if selected_label == "— Choose a client —":
-        return
+        with st.expander(f"✏️ Manage  ·  {client_name}", expanded=True):
+            t1, t2 = st.tabs(["🕒 Reschedule", "📝 Edit Details"]) # Removed Delete tab since bulk delete handles it
 
-    chosen_idx  = row_labels.index(selected_label) - 1
-    target_row  = df.iloc[chosen_idx]
-    cid         = int(target_row["id"])
-    client_name = target_row["name"]
+            with t1:
+                st.markdown("<br>", unsafe_allow_html=True)
+                sc1, sc2, sc3 = st.columns([2, 2, 1.5])
+                try:
+                    curr_dt = pd.to_datetime(target_row["next_followup"])
+                except Exception:
+                    curr_dt = datetime.now() + timedelta(hours=4)
 
-    st.markdown(f"""
-    <div style="margin-top:10px; padding:10px 18px; background:rgba(99,102,241,0.07); border-left:4px solid #6366f1;
-                border-radius:0 10px 10px 0; font-size:0.9rem; font-weight:700; color:#4f46e5;">
-        Selected: {client_name}  —  use the tabs below to reschedule, edit details, or delete.
-    </div>
-    """, unsafe_allow_html=True)
-
-    with st.expander(f"✏️ Manage  ·  {client_name}", expanded=True):
-        t1, t2, t3 = st.tabs(["🕒 Reschedule", "📝 Edit Details", "🗑️ Delete"])
-
-        with t1:
-            st.markdown("<br>", unsafe_allow_html=True)
-            sc1, sc2, sc3 = st.columns([2, 2, 1.5])
-            try:
-                curr_dt = pd.to_datetime(target_row["next_followup"])
-            except Exception:
-                curr_dt = datetime.now() + timedelta(hours=4)
-
-            with sc1:
-                new_d = st.date_input("New Date", value=curr_dt.date(), key=f"resched_d_{cid}")
-            with sc2:
-                # ── USING STREAMLIT TIME WIDGET ──
-                parsed_time = st.time_input(
-                    "New Time",
-                    value=curr_dt.time(),
-                    key=f"resched_t_{cid}"
-                )
-            with sc3:
-                st.markdown("<br style='line-height:2.3'>", unsafe_allow_html=True)
-                if st.button("✅ Update", type="primary", use_container_width=True, key=f"btn_resched_{cid}"):
-                    new_dt = datetime.combine(new_d, parsed_time)
-                    db.update_followup(cid, new_dt.strftime("%Y-%m-%d %H:%M:%S"))
-                    st.success(f"✅ Rescheduled to {new_dt.strftime('%b %d @ %I:%M %p')}")
-                    st.rerun()
-
-        with t2:
-            st.markdown("<br>", unsafe_allow_html=True)
-            with st.form(key=f"edit_form_{cid}"):
-                ec1, ec2 = st.columns(2)
-                with ec1:
-                    e_name  = st.text_input("Full Name",     value=target_row["name"])
-                    e_email = st.text_input("Email",         value=target_row.get("email", "") or "")
-                    e_val   = st.number_input("Deal Value ($)", value=int(target_row["deal_value"]) if pd.notna(target_row.get("deal_value")) else 0, step=1000)
-                with ec2:
-                    e_phone   = st.text_input("Phone",   value=target_row.get("phone", "") or "")
-                    e_company = st.text_input("Company", value=target_row.get("company", "") or "")
-                    cat_opts  = ["Lead","Prospect","Active Client","Partner","VIP","Churned"]
-                    curr_cat  = target_row.get("category", "Lead")
-                    e_cat     = st.selectbox("Category", cat_opts, index=cat_opts.index(curr_cat) if curr_cat in cat_opts else 0)
-
-                e_discussion = st.text_area(
-                    "💬 Discussion",
-                    value=target_row.get("discussion", "") or "",
-                    height=110,
-                    placeholder="What was discussed with this client — products, pricing, requirements…"
-                )
-
-                if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
-                    try:
-                        # Direct database update for the form inputs
-                        update_sql = """
-                        UPDATE clients 
-                        SET name=%(name)s, email=%(email)s, phone=%(phone)s, company=%(company)s, 
-                            deal_value=%(deal_value)s, category=%(category)s, discussion=%(discussion)s 
-                        WHERE id=%(cid)s
-                        """
-                        with db._connect() as conn:
-                            with conn.cursor() as cur:
-                                cur.execute(update_sql, {
-                                    "name": e_name, "email": e_email, "phone": e_phone, "company": e_company, 
-                                    "deal_value": e_val, "category": e_cat, "discussion": e_discussion, "cid": cid
-                                })
-                            conn.commit()
-                        st.success("✅ Client updated successfully.")
+                with sc1:
+                    new_d = st.date_input("New Date", value=curr_dt.date(), key=f"resched_d_{cid}")
+                with sc2:
+                    parsed_time = st.time_input("New Time", value=curr_dt.time(), key=f"resched_t_{cid}")
+                with sc3:
+                    st.markdown("<br style='line-height:2.3'>", unsafe_allow_html=True)
+                    if st.button("✅ Update", type="primary", use_container_width=True, key=f"btn_resched_{cid}"):
+                        new_dt = datetime.combine(new_d, parsed_time)
+                        db.update_followup(cid, new_dt.strftime("%Y-%m-%d %H:%M:%S"))
+                        st.success(f"✅ Rescheduled to {new_dt.strftime('%b %d @ %I:%M %p')}")
                         st.rerun()
-                    except Exception as e:
-                        st.error(f"Database error: {e}")
 
-        with t3:
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.error(f"⚠️ Deleting **{client_name}** is permanent and cannot be undone.")
-            if st.button("🗑 Confirm Delete", use_container_width=True, key=f"btn_del_{cid}"):
-                db.delete_client(cid)
-                st.session_state.pop("dir_row_select", None)
-                st.rerun()
+            with t2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                with st.form(key=f"edit_form_{cid}"):
+                    ec1, ec2 = st.columns(2)
+                    with ec1:
+                        e_name  = st.text_input("Full Name",     value=target_row["name"])
+                        e_email = st.text_input("Email",         value=target_row.get("email", "") or "")
+                        e_val   = st.number_input("Deal Value ($)", value=int(target_row["deal_value"]) if pd.notna(target_row.get("deal_value")) else 0, step=1000)
+                    with ec2:
+                        e_phone   = st.text_input("Phone",   value=target_row.get("phone", "") or "")
+                        e_company = st.text_input("Company", value=target_row.get("company", "") or "")
+                        cat_opts  = ["Lead","Prospect","Active Client","Partner","VIP","Churned"]
+                        curr_cat  = target_row.get("category", "Lead")
+                        e_cat     = st.selectbox("Category", cat_opts, index=cat_opts.index(curr_cat) if curr_cat in cat_opts else 0)
+
+                    e_discussion = st.text_area(
+                        "💬 Discussion",
+                        value=target_row.get("discussion", "") or "",
+                        height=110,
+                        placeholder="What was discussed with this client — products, pricing, requirements…"
+                    )
+
+                    if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
+                        try:
+                            update_sql = """
+                            UPDATE clients 
+                            SET name=%(name)s, email=%(email)s, phone=%(phone)s, company=%(company)s, 
+                                deal_value=%(deal_value)s, category=%(category)s, discussion=%(discussion)s 
+                            WHERE id=%(cid)s
+                            """
+                            with db._connect() as conn:
+                                with conn.cursor() as cur:
+                                    cur.execute(update_sql, {
+                                        "name": e_name, "email": e_email, "phone": e_phone, "company": e_company, 
+                                        "deal_value": e_val, "category": e_cat, "discussion": e_discussion, "cid": cid
+                                    })
+                                conn.commit()
+                            st.success("✅ Client updated successfully.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Database error: {e}")
+
+    elif len(selected_indices) > 1:
+        st.info("ℹ️ Multiple clients selected. Please check only one box to edit details or reschedule.")
+    else:
+        st.info("👆 Check the box next to a client in the table above to edit their details or reschedule.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -528,7 +487,11 @@ def page_add_client():
     st.markdown('<p class="page-title">Add New Client</p>', unsafe_allow_html=True)
     st.markdown('<p class="page-sub">Enter client details and schedule their follow-up.</p>', unsafe_allow_html=True)
 
-    # ── REMOVED clear_on_submit=True TO PREVENT DATA WIPING BUGS ──
+    # ── PERSISTENT SUCCESS MESSAGE ──
+    if "client_added_success" in st.session_state:
+        st.success(st.session_state.client_added_success)
+        del st.session_state.client_added_success # Delete so it doesn't show forever
+
     with st.form("add_client_form", clear_on_submit=False):
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
         st.markdown("##### 👤 Client Information")
@@ -551,21 +514,16 @@ def page_add_client():
             st.markdown("<div style='font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:8px;'>Next Contact Schedule</div>", unsafe_allow_html=True)
             next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed", key="ac_date")
             
-            # Default to current time + 4 hours
             if "ac_time" not in st.session_state:
                 st.session_state.ac_time = (datetime.now() + timedelta(hours=4)).time()
             
-            # ── USING STREAMLIT TIME WIDGET ──
-            parsed_t = st.time_input(
-                "Time",
-                key="ac_time"
-            )
+            parsed_t = st.time_input("Time", key="ac_time")
             deal_value = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000, key="ac_deal")
 
         with c4:
             nf_preview  = datetime.combine(next_d, parsed_t)
             date_str    = nf_preview.strftime("%A, %b %d")
-            time_str    = nf_preview.strftime("%I:%M %p") # Forces 12hr AM/PM visual formatting
+            time_str    = nf_preview.strftime("%I:%M %p")
 
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(f"""
@@ -616,15 +574,15 @@ def page_add_client():
             })
             
             if ok:
-                st.success(f"✅ **{name}** added successfully! Scheduled for **{nf_datetime.strftime('%b %d @ %I:%M %p')}**.")
+                # Save the success message to state so it survives the rerun
+                st.session_state.client_added_success = f"✅ **{name}** added successfully! Scheduled for **{nf_datetime.strftime('%b %d @ %I:%M %p')}**."
                 
-                # Manually clear the form inputs so the next client starts fresh
+                # Manually clear the form inputs
                 keys_to_clear = ["ac_name", "ac_email", "ac_comp", "ac_phone", "ac_cat", "ac_src", "ac_date", "ac_time", "ac_deal", "ac_disc", "ac_notes"]
                 for k in keys_to_clear:
                     if k in st.session_state:
                         del st.session_state[k]
                 
-                # Force a page reload to show the empty form
                 st.rerun()
             else:
                 st.error("❌ Database error.")
