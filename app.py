@@ -74,7 +74,6 @@ st.markdown("""
 .particle { position: absolute; bottom: -10px; background: rgba(99, 102, 241, 0.4); border-radius: 50%; animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite; }
 @keyframes floatUp { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(20px); opacity: 0; } }
 
-/* WIDTH FIX: Set max-width to 100% so it fully expands */
 .main .block-container { padding: 1.5rem 3rem !important; max-width: 100%; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
 
@@ -353,26 +352,64 @@ def page_dashboard():
         st.info("📭 No clients match the current filters.")
         return
 
-    # ── BUILD DISPLAY TABLE ──
+    # ── BULK DELETE & INTERACTIVE TABLE BUILDER ──
     df_display = df.copy()
+    
+    # 1. Insert a boolean "Select" column at the very front
+    df_display.insert(0, "Select", False)
+    
     df_display["Deal Value"]  = df_display["deal_value"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
     df_display["Next Contact"] = pd.to_datetime(df_display["next_followup"]).dt.strftime('%b %d, %I:%M %p')
     df_display["Discussion"] = df_display.get("discussion", pd.Series([""] * len(df_display))).fillna("").apply(
         lambda x: (str(x)[:45] + "…") if len(str(x)) > 45 else str(x)
     )
 
-    show_cols  = ["name", "company", "phone", "email", "category", "Next Contact", "Status", "Deal Value", "Discussion"]
+    # 2. Add "Select" to the list of columns to show
+    show_cols  = ["Select", "name", "company", "phone", "email", "category", "Next Contact", "Status", "Deal Value", "Discussion"]
     rename_map = {"name": "Full Name", "company": "Company", "phone": "Phone", "email": "Email", "category": "Category"}
 
     styled_df = df_display[show_cols].rename(columns=rename_map).style.apply(highlight_rows, axis=1)
-    st.dataframe(styled_df, use_container_width=True, height=650, hide_index=True)
+    
+    # 3. Use st.data_editor instead of st.dataframe
+    # We disable editing for everything EXCEPT the "Select" column
+    disabled_cols = ["Full Name", "Company", "Phone", "Email", "Category", "Next Contact", "Status", "Deal Value", "Discussion"]
+    
+    edited_df = st.data_editor(
+        styled_df,
+        column_config={
+            "Select": st.column_config.CheckboxColumn("☑", help="Select to bulk delete", default=False)
+        },
+        disabled=disabled_cols,
+        use_container_width=True, 
+        height=650, 
+        hide_index=True
+    )
+
+    # 4. Check if any rows were selected and show Bulk Delete button
+    selected_indices = edited_df.index[edited_df['Select'] == True].tolist()
+
+    if selected_indices:
+        st.markdown("""
+        <div style="padding: 12px 16px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 4px; margin: 10px 0;">
+            <strong style="color: #ef4444;">⚠️ Bulk Action:</strong> You have selected clients for deletion. This action is permanent.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button(f"🗑️ Delete {len(selected_indices)} Selected Client(s)", type="primary"):
+            # Map the selected dataframe index back to the database 'id'
+            ids_to_delete = df.iloc[selected_indices]['id'].tolist()
+            db.delete_multiple_clients(ids_to_delete)
+            st.success(f"✅ Successfully deleted {len(selected_indices)} client(s).")
+            st.rerun()
+
+    st.markdown("<hr style='margin: 30px 0; border-top: 1px solid rgba(15,23,42,0.06);'>", unsafe_allow_html=True)
 
     # ════════════════════════════════════════════════════════════
-    #  PER-ROW SELECT BOX
+    #  PER-ROW SELECT BOX (For editing & rescheduling)
     # ════════════════════════════════════════════════════════════
     st.markdown("""
     <div class="client-selector-panel">
-        <div class="selector-label">⚙️ Select a client row to edit or delete</div>
+        <div class="selector-label">⚙️ Select a single client row to Edit Details or Reschedule</div>
     </div>
     """, unsafe_allow_html=True)
 
