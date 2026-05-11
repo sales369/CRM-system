@@ -48,7 +48,6 @@ class DatabaseManager:
             print(f"[DB] init_user_tables error: {e}")
 
     def init_tables(self):
-        # Changed DATE to TIMESTAMP for time precision, added discussion TEXT
         ddl = """
         CREATE TABLE IF NOT EXISTS clients (
             id               SERIAL PRIMARY KEY,
@@ -75,8 +74,6 @@ class DatabaseManager:
             with self._connect() as conn:
                 with conn.cursor() as cur:
                     cur.execute(ddl)
-                    
-                    # Safe Auto-Migration: Patches your existing table without dropping it!
                     cur.execute("""
                         ALTER TABLE clients ADD COLUMN IF NOT EXISTS created_by INTEGER;
                         ALTER TABLE clients ADD COLUMN IF NOT EXISTS discussion TEXT;
@@ -88,7 +85,6 @@ class DatabaseManager:
             print(f"[DB] init_tables error: {e}")
 
     def ensure_default_admin(self):
-        """Creates default admin account on very first run if no users exist."""
         try:
             df = self._query_df("SELECT COUNT(*) AS cnt FROM users")
             if df.empty or int(df["cnt"].iloc[0]) == 0:
@@ -188,7 +184,6 @@ class DatabaseManager:
     # ══════════════════════════════════════════════════════════════════════════
 
     def add_client(self, data: dict) -> bool:
-        # FIXED: Added 'discussion' to both the columns list and the VALUES list
         sql = """
         INSERT INTO clients
             (name, email, phone, company, category, source,
@@ -245,6 +240,21 @@ class DatabaseManager:
             print(f"[DB] delete_client error: {e}")
             return False
 
+    def delete_multiple_clients(self, client_ids: list) -> bool:
+        """Deletes multiple clients based on a list of IDs."""
+        if not client_ids: return True
+        # Create a string of placeholders: %s, %s, %s...
+        placeholders = ', '.join(['%s'] * len(client_ids))
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(f"DELETE FROM clients WHERE id IN ({placeholders})", tuple(client_ids))
+                conn.commit()
+            return True
+        except Exception as e:
+            print(f"[DB] delete_multiple_clients error: {e}")
+            return False
+
     def update_client_notes(self, client_id: int, notes: str) -> bool:
         try:
             with self._connect() as conn:
@@ -290,7 +300,6 @@ class DatabaseManager:
         return self._query_df(sql, params or None)
 
     def get_todays_followups(self) -> pd.DataFrame:
-        # Changed to DATE() to correctly match timestamps happening today
         return self._query_df(
             "SELECT * FROM clients WHERE DATE(next_followup) = %s ORDER BY name",
             (str(date.today()),)
