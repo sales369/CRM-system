@@ -156,11 +156,6 @@ def get_db():
     db.init_tables()
     db.init_user_tables()
     db.ensure_default_admin()
-    try:
-        db.c.execute("ALTER TABLE clients ADD COLUMN discussion TEXT DEFAULT ''")
-        db.conn.commit()
-    except Exception:
-        pass  
     return db
 
 db = get_db()
@@ -205,8 +200,7 @@ def highlight_rows(row):
 
 def change_user_password(user_id, new_password):
     try:
-        db.c.execute("UPDATE users SET password_hash = ? WHERE id = ?", (hash_password(new_password), user_id))
-        db.conn.commit()
+        db.update_user_password(user_id, hash_password(new_password))
         return True
     except Exception:
         return False
@@ -460,11 +454,20 @@ def page_dashboard():
 
                 if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
                     try:
-                        db.c.execute(
-                            "UPDATE clients SET name=?, email=?, phone=?, company=?, deal_value=?, category=?, discussion=? WHERE id=?",
-                            (e_name, e_email, e_phone, e_company, e_val, e_cat, e_discussion, cid)
-                        )
-                        db.conn.commit()
+                        # Direct database update for the form inputs
+                        update_sql = """
+                        UPDATE clients 
+                        SET name=%(name)s, email=%(email)s, phone=%(phone)s, company=%(company)s, 
+                            deal_value=%(deal_value)s, category=%(category)s, discussion=%(discussion)s 
+                        WHERE id=%(cid)s
+                        """
+                        with db._connect() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute(update_sql, {
+                                    "name": e_name, "email": e_email, "phone": e_phone, "company": e_company, 
+                                    "deal_value": e_val, "category": e_cat, "discussion": e_discussion, "cid": cid
+                                })
+                            conn.commit()
                         st.success("✅ Client updated successfully.")
                         st.rerun()
                     except Exception as e:
@@ -487,18 +490,19 @@ def page_add_client():
     st.markdown('<p class="page-title">Add New Client</p>', unsafe_allow_html=True)
     st.markdown('<p class="page-sub">Enter client details and schedule their follow-up.</p>', unsafe_allow_html=True)
 
-    with st.form("add_client_form", clear_on_submit=True):
+    # ── REMOVED clear_on_submit=True TO PREVENT DATA WIPING BUGS ──
+    with st.form("add_client_form", clear_on_submit=False):
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
         st.markdown("##### 👤 Client Information")
         c1, c2 = st.columns(2)
         with c1:
-            name    = st.text_input("Full Name *",    placeholder="e.g. Jane Doe")
-            email   = st.text_input("Email Address",  placeholder="e.g. jane@company.com")
-            company = st.text_input("Company Name",   placeholder="e.g. Acme Corp")
+            name    = st.text_input("Full Name *",    key="ac_name", placeholder="e.g. Jane Doe")
+            email   = st.text_input("Email Address",  key="ac_email", placeholder="e.g. jane@company.com")
+            company = st.text_input("Company Name",   key="ac_comp", placeholder="e.g. Acme Corp")
         with c2:
-            phone    = st.text_input("Phone Number", placeholder="+1 555-0199")
-            category = st.selectbox("Category", ["Lead","Prospect","Active Client","Partner","VIP","Churned"])
-            source   = st.selectbox("Lead Source", ["Referral","Website","LinkedIn","Cold Outreach","Event","Existing","Other"])
+            phone    = st.text_input("Phone Number", key="ac_phone", placeholder="+1 555-0199")
+            category = st.selectbox("Category", ["Lead","Prospect","Active Client","Partner","VIP","Churned"], key="ac_cat")
+            source   = st.selectbox("Lead Source", ["Referral","Website","LinkedIn","Cold Outreach","Event","Existing","Other"], key="ac_src")
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
@@ -507,17 +511,18 @@ def page_add_client():
 
         with c3:
             st.markdown("<div style='font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:8px;'>Next Contact Schedule</div>", unsafe_allow_html=True)
-            next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed")
-
-            if "add_client_time" not in st.session_state:
-                st.session_state.add_client_time = (datetime.now() + timedelta(hours=4)).time()
+            next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed", key="ac_date")
+            
+            # Default to current time + 4 hours
+            if "ac_time" not in st.session_state:
+                st.session_state.ac_time = (datetime.now() + timedelta(hours=4)).time()
             
             # ── USING STREAMLIT TIME WIDGET ──
             parsed_t = st.time_input(
                 "Time",
-                key="add_client_time"
+                key="ac_time"
             )
-            deal_value = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000)
+            deal_value = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000, key="ac_deal")
 
         with c4:
             nf_preview  = datetime.combine(next_d, parsed_t)
@@ -540,13 +545,15 @@ def page_add_client():
             discussion = st.text_area(
                 "Discussion Topics",
                 placeholder="What topics were discussed? Products, requirements, pricing, concerns…",
-                height=110
+                height=110,
+                key="ac_disc"
             )
         with dn2:
             notes = st.text_area(
                 "Additional Notes",
                 placeholder="Internal notes, next steps, special requirements…",
-                height=110
+                height=110,
+                key="ac_notes"
             )
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -569,10 +576,20 @@ def page_add_client():
                 "notes": notes, "discussion": discussion,
                 "created_by": st.session_state.get("user_id", 1)
             })
+            
             if ok:
                 st.success(f"✅ **{name}** added successfully! Scheduled for **{nf_datetime.strftime('%b %d @ %I:%M %p')}**.")
+                
+                # Manually clear the form inputs so the next client starts fresh
+                keys_to_clear = ["ac_name", "ac_email", "ac_comp", "ac_phone", "ac_cat", "ac_src", "ac_date", "ac_time", "ac_deal", "ac_disc", "ac_notes"]
+                for k in keys_to_clear:
+                    if k in st.session_state:
+                        del st.session_state[k]
+                
+                # Force a page reload to show the empty form
+                st.rerun()
             else:
-                st.error("❌ Database error. Please check the 'discussion' column exists in your clients table.")
+                st.error("❌ Database error.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
