@@ -364,7 +364,9 @@ def page_dashboard():
     rename_map = {"name": "Full Name", "company": "Company", "phone": "Phone", "email": "Email", "category": "Category"}
 
     styled_df = df_display[show_cols].rename(columns=rename_map).style.apply(highlight_rows, axis=1)
-    st.dataframe(styled_df, use_container_width=True, height=300, hide_index=True)
+    
+    # INCREASED HEIGHT FROM 300 to 650
+    st.dataframe(styled_df, use_container_width=True, height=650, hide_index=True)
 
     # ════════════════════════════════════════════════════════════
     #  PER-ROW SELECT BOX
