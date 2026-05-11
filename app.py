@@ -47,7 +47,6 @@ def generate_particles():
 
 st.markdown(generate_particles(), unsafe_allow_html=True)
 
-
 # ── 4. ENTERPRISE CSS ARCHITECTURE ─────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -95,9 +94,6 @@ header { background: transparent !important; }
 .page-title { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; letter-spacing: -0.04em; }
 .page-sub   { font-size: 1rem; color: #64748b; font-weight: 500; margin: 0 0 1.5rem; letter-spacing: 0.01em; }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   DASHBOARD TILES
-   ══════════════════════════════════════════════════════════════════════════ */
 .dash-card {
     height: 110px !important; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; padding: 16px 20px; position: relative; overflow: hidden;
@@ -160,12 +156,11 @@ def get_db():
     db.init_tables()
     db.init_user_tables()
     db.ensure_default_admin()
-    # Safe migration: add discussion column if it doesn't exist yet
     try:
         db.c.execute("ALTER TABLE clients ADD COLUMN discussion TEXT DEFAULT ''")
         db.conn.commit()
     except Exception:
-        pass  # Column already exists — safe to ignore
+        pass  
     return db
 
 db = get_db()
@@ -349,7 +344,6 @@ def page_dashboard():
 
     df["Status"] = df.apply(status_label, axis=1)
 
-    # Apply status filter
     if status_filter == "Due Today":
         df = df[df["Status"].str.contains("🟡", na=False)]
     elif status_filter == "Overdue":
@@ -368,7 +362,6 @@ def page_dashboard():
     df_display = df.copy()
     df_display["Deal Value"]  = df_display["deal_value"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
     df_display["Next Contact"] = pd.to_datetime(df_display["next_followup"]).dt.strftime('%b %d, %I:%M %p')
-    # Truncate discussion for compact display
     df_display["Discussion"] = df_display.get("discussion", pd.Series([""] * len(df_display))).fillna("").apply(
         lambda x: (str(x)[:45] + "…") if len(str(x)) > 45 else str(x)
     )
@@ -380,7 +373,7 @@ def page_dashboard():
     st.dataframe(styled_df, use_container_width=True, height=300, hide_index=True)
 
     # ════════════════════════════════════════════════════════════
-    #  PER-ROW SELECT BOX — choose any client to edit / delete
+    #  PER-ROW SELECT BOX
     # ════════════════════════════════════════════════════════════
     st.markdown("""
     <div class="client-selector-panel">
@@ -388,7 +381,6 @@ def page_dashboard():
     </div>
     """, unsafe_allow_html=True)
 
-    # Build labelled options that mirror each row: "#1 · Name | Company"
     row_labels = ["— Choose a client —"] + [
         f"{i+1}. {row['name']}  |  {row.get('company','') or '—'}"
         for i, (_, row) in enumerate(df.iterrows())
@@ -404,8 +396,7 @@ def page_dashboard():
     if selected_label == "— Choose a client —":
         return
 
-    # Resolve which df row was chosen
-    chosen_idx  = row_labels.index(selected_label) - 1   # -1 for the placeholder
+    chosen_idx  = row_labels.index(selected_label) - 1
     target_row  = df.iloc[chosen_idx]
     cid         = int(target_row["id"])
     client_name = target_row["name"]
@@ -420,7 +411,6 @@ def page_dashboard():
     with st.expander(f"✏️ Manage  ·  {client_name}", expanded=True):
         t1, t2, t3 = st.tabs(["🕒 Reschedule", "📝 Edit Details", "🗑️ Delete"])
 
-        # ── TAB 1: RESCHEDULE ──────────────────────────────────────
         with t1:
             st.markdown("<br>", unsafe_allow_html=True)
             sc1, sc2, sc3 = st.columns([2, 2, 1.5])
@@ -432,7 +422,6 @@ def page_dashboard():
             with sc1:
                 new_d = st.date_input("New Date", value=curr_dt.date(), key=f"resched_d_{cid}")
             with sc2:
-                # ── TIME FIX: text input in 24h HH:MM — no timezone drift ──
                 stored_hhmm = curr_dt.strftime("%H:%M")
                 new_t_str   = st.text_input(
                     "New Time (HH:MM, 24h)",
@@ -452,7 +441,6 @@ def page_dashboard():
                     except ValueError:
                         st.error("❌ Enter time as HH:MM (e.g. 09:30 or 14:00)")
 
-        # ── TAB 2: EDIT DETAILS ────────────────────────────────────
         with t2:
             st.markdown("<br>", unsafe_allow_html=True)
             with st.form(key=f"edit_form_{cid}"):
@@ -468,7 +456,6 @@ def page_dashboard():
                     curr_cat  = target_row.get("category", "Lead")
                     e_cat     = st.selectbox("Category", cat_opts, index=cat_opts.index(curr_cat) if curr_cat in cat_opts else 0)
 
-                # ── DISCUSSION field in edit panel ──
                 e_discussion = st.text_area(
                     "💬 Discussion",
                     value=target_row.get("discussion", "") or "",
@@ -488,7 +475,6 @@ def page_dashboard():
                     except Exception as e:
                         st.error(f"Database error: {e}")
 
-        # ── TAB 3: DELETE ──────────────────────────────────────────
         with t3:
             st.markdown("<br>", unsafe_allow_html=True)
             st.error(f"⚠️ Deleting **{client_name}** is permanent and cannot be undone.")
@@ -507,8 +493,6 @@ def page_add_client():
     st.markdown('<p class="page-sub">Enter client details and schedule their follow-up.</p>', unsafe_allow_html=True)
 
     with st.form("add_client_form", clear_on_submit=True):
-
-        # ── SECTION 1: CLIENT INFO ──
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
         st.markdown("##### 👤 Client Information")
         c1, c2 = st.columns(2)
@@ -519,11 +503,9 @@ def page_add_client():
         with c2:
             phone    = st.text_input("Phone Number", placeholder="+1 555-0199")
             category = st.selectbox("Category", ["Lead","Prospect","Active Client","Partner","VIP","Churned"])
-            # ── 'Existing' added to Lead Source ──
             source   = st.selectbox("Lead Source", ["Referral","Website","LinkedIn","Cold Outreach","Event","Existing","Other"])
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ── SECTION 2: SCHEDULING ──
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
         st.markdown("##### 📅 Pipeline Scheduling")
         c3, c4 = st.columns(2)
@@ -532,7 +514,6 @@ def page_add_client():
             st.markdown("<div style='font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:8px;'>Next Contact Schedule</div>", unsafe_allow_html=True)
             next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed")
 
-            # ── TIME FIX: plain text HH:MM — survives form resets without drift ──
             if "add_client_time" not in st.session_state:
                 st.session_state.add_client_time = (datetime.now() + timedelta(hours=4)).strftime("%H:%M")
                 
@@ -545,7 +526,6 @@ def page_add_client():
             deal_value = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000)
 
         with c4:
-            # Live preview — parse safely
             try:
                 parsed_t    = datetime.strptime(next_t_str.strip(), "%H:%M").time()
                 nf_preview  = datetime.combine(next_d, parsed_t)
@@ -566,7 +546,6 @@ def page_add_client():
             </div>""", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # ── SECTION 3: DISCUSSION & NOTES ──
         st.markdown('<div class="form-section">', unsafe_allow_html=True)
         st.markdown("##### 💬 Discussion & Notes")
         dn1, dn2 = st.columns(2)
@@ -586,7 +565,6 @@ def page_add_client():
 
         submitted = st.form_submit_button("💾 Save Client", type="primary", use_container_width=True)
 
-    # ── HANDLE SUBMISSION (outside form) ──
     if submitted:
         if not name.strip():
             st.error("❌ Full Name is required.")
