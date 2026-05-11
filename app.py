@@ -1,618 +1,1083 @@
 import streamlit as st
 import pandas as pd
-from datetime import date, timedelta, datetime
-import io
-import hashlib
-import random
+import psycopg2
+from psycopg2.extras import execute_values
+from psycopg2.pool import SimpleConnectionPool
+import json
+from io import BytesIO
 import os
-import base64
-from database import DatabaseManager
+import re
 
-# ── 1. CORE CONFIGURATION ──────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+#  PAGE CONFIG
+# ─────────────────────────────────────────────
 st.set_page_config(
-    page_title="ClientPulse CRM",
-    page_icon="✨",
+    page_title="PriceDesk",
+    page_icon="📋",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed",
 )
 
-# ── 2. LOGO LOADER UTILITY ─────────────────────────────────────────────────────
-def get_logo_html(width="100px", margin_bottom="16px", centered=True):
-    align = "margin: 0 auto;" if centered else "margin: 0;"
-    try:
-        if os.path.exists("logo.png"):
-            with open("logo.png", "rb") as f:
-                encoded = base64.b64encode(f.read()).decode("utf-8")
-            return f'<img src="data:image/png;base64,{encoded}" style="width: {width}; height: auto; {align} margin-bottom: {margin_bottom}; display: block;">'
-    except Exception:
-        pass
-    return f"""<div style="width: {width}; height: {width}; background: linear-gradient(135deg, #4f46e5, #9333ea); 
-               border-radius: 25%; display: flex; align-items: center; justify-content: center; 
-               font-size: calc(max(20px, {width}/2.5)); {align} margin-bottom: {margin_bottom}; 
-               box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25); color:white;">✨</div>"""
+# ─────────────────────────────────────────────
+#  SESSION DEFAULTS
+# ─────────────────────────────────────────────
+for k, v in {
+    "user": None,
+    "page": "Price Lookup",
+    "table_data": pd.DataFrame(),
+    "num_rows": 3,
+}.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
-# ── 3. LIVE BACKGROUND ENGINE ──────────────────────────────────────────────────
-def generate_particles():
-    html = '<div class="mesh-engine"><div class="gradient-bg"></div>'
-    html += '<div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>'
-    for i in range(35):
-        size = random.randint(4, 9)
-        left = random.randint(0, 100)
-        anim_duration = random.randint(15, 35)
-        anim_delay = random.randint(0, 20)
-        opacity = random.uniform(0.2, 0.6)
-        html += f'<div class="particle" style="width:{size}px; height:{size}px; left:{left}vw; animation-duration:{anim_duration}s; animation-delay:-{anim_delay}s; opacity:{opacity};"></div>'
-    html += '</div>'
-    return html
-
-st.markdown(generate_particles(), unsafe_allow_html=True)
-
-
-# ── 4. ENTERPRISE CSS ARCHITECTURE ─────────────────────────────────────────────
+# ─────────────────────────────────────────────
+#  GLOBAL CSS
+# ─────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap');
 
-.stApp, .stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, 
-.stApp span, .stApp label, .stApp input, .stApp button, .stApp div, .stApp td, .stApp th {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-}
-.material-icons, .material-symbols-rounded, [data-testid="stIconMaterial"], svg {
-    font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
-}
-
-.stApp { background: transparent !important; }
-.mesh-engine { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -9999; overflow: hidden; pointer-events: none; background: #f8fafc; }
-.gradient-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(-45deg, #f0f9ff, #eef2ff, #fdf4ff, #e0f2fe); background-size: 400% 400%; animation: liveThemeShift 20s ease infinite alternate; }
-@keyframes liveThemeShift { 0% { background-position: 0% 50%; filter: hue-rotate(0deg); } 50% { background-position: 100% 50%; filter: hue-rotate(15deg); } 100% { background-position: 0% 50%; filter: hue-rotate(30deg); } }
-
-.orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.6; animation: auraFloat 25s infinite alternate ease-in-out; }
-.orb-1 { width: 45vw; height: 45vw; top: -10vw; left: -10vw; background: #c7d2fe; }
-.orb-2 { width: 40vw; height: 40vw; bottom: -5vw; right: -5vw; background: #fbcfe8; animation-delay: -5s; }
-.orb-3 { width: 35vw; height: 35vw; top: 30vh; left: 40vw; background: #bae6fd; animation-delay: -10s; }
-@keyframes auraFloat { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(60px,-60px) scale(1.1); } }
-
-.particle { position: absolute; bottom: -10px; background: rgba(99, 102, 241, 0.4); border-radius: 50%; animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite; }
-@keyframes floatUp { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(20px); opacity: 0; } }
-
-.main .block-container { padding: 1.5rem 3rem !important; max-width: 1440px; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes slideUpFade { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
-
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.15); border-radius: 10px; }
-
-.login-mode header, .login-mode [data-testid="stSidebar"], .login-mode footer { display: none !important; }
-header { background: transparent !important; }
-
-[data-testid="stSidebar"] { background: rgba(255, 255, 255, 0.6) !important; backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-right: 1px solid rgba(255,255,255,0.8) !important; box-shadow: 4px 0 24px rgba(15, 23, 42, 0.02); }
-[data-testid="stSidebarNav"] { padding-top: 0 !important; }
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] { gap: 4px; padding: 0 10px; }
-[data-testid="stSidebar"] .stRadio label { background: transparent; border-radius: 10px; padding: 10px 16px !important; font-size: 0.95rem !important; font-weight: 600 !important; color: #475569 !important; transition: all 0.2s ease; cursor: pointer; border: 1px solid transparent; }
-[data-testid="stSidebar"] .stRadio label:hover, [data-testid="stSidebar"] .stRadio label[data-checked="true"] { background: rgba(255,255,255,0.9) !important; color: #0f172a !important; transform: translateX(4px); box-shadow: 0 4px 12px rgba(15,23,42,0.03); border: 1px solid rgba(255,255,255,1); }
-[data-testid="stSidebar"] .stRadio label[data-baseweb="radio"] { display: flex; }
-
-.page-title { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; letter-spacing: -0.04em; }
-.page-sub   { font-size: 1rem; color: #64748b; font-weight: 500; margin: 0 0 1.5rem; letter-spacing: 0.01em; }
-
-
-/* ══════════════════════════════════════════════════════════════════════════
-   🚀 STATIC DASHBOARD TILES
-   ══════════════════════════════════════════════════════════════════════════ */
-.dash-card {
-    height: 110px !important; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; padding: 16px 20px; position: relative; overflow: hidden;
-    transition: all 0.3s ease; margin: 0 !important; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03); display: flex; flex-direction: column; justify-content: center; z-index: 1;
+:root {
+    --primary:     #1E40AF;
+    --primary-lt:  #EFF6FF;
+    --primary-mid: #BFDBFE;
+    --accent:      #0EA5E9;
+    --success:     #059669;
+    --success-lt:  #ECFDF5;
+    --success-mid: #A7F3D0;
+    --danger:      #DC2626;
+    --danger-lt:   #FEF2F2;
+    --danger-mid:  #FECACA;
+    --text:        #0F172A;
+    --muted:       #475569;
+    --muted-lt:    #94A3B8;
+    --border:      #CBD5E1;
+    --border-lt:   #E2E8F0;
+    --card:        rgba(255,255,255,0.82);
 }
 
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card { transform: translateY(-4px); background: rgba(255, 255, 255, 0.95); box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 0 15px rgba(255,255,255,0.6); border-color: #ffffff; }
+#MainMenu, footer, header { visibility: hidden; }
+* { box-sizing: border-box; }
 
-.dash-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: transparent; transition: background 0.4s ease; }
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.red::after    { background: linear-gradient(90deg, #ef4444, #f87171); }
+/* ══ Hide sidebar & collapse toggle entirely ══ */
+section[data-testid="stSidebar"],
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapseButton"] {
+    display: none !important;
+}
 
-.metric-icon { font-size: 1.6rem; margin-bottom: 4px; line-height: 1; text-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.metric-val  { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; line-height: 1; letter-spacing: -0.03em; }
-.metric-lbl  { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; }
+/* ══ App background ══ */
+.stApp {
+    font-family: 'Outfit', sans-serif;
+    color: var(--text);
+    background: #dde8f8 !important;
+    background-image:
+        radial-gradient(ellipse 900px 600px at 10% 10%,  rgba(99,102,241,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 700px 500px at 90% 80%,  rgba(14,165,233,0.16) 0%, transparent 70%),
+        radial-gradient(ellipse 600px 400px at 50% 50%,  rgba(30,64,175,0.10) 0%, transparent 70%),
+        linear-gradient(160deg, #dde8f8 0%, #e8eeff 40%, #ddf3fb 100%) !important;
+    min-height: 100vh;
+    background-attachment: fixed !important;
+}
+.stApp::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+        linear-gradient(rgba(30,64,175,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30,64,175,0.03) 1px, transparent 1px);
+    background-size: 44px 44px;
+    pointer-events: none; z-index: 0;
+}
 
-@keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-.pulse-alert { animation: pulseRed 2s infinite; }
+/* ══ Top Navbar HTML strip ══ */
+.top-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(203,213,225,0.7);
+    box-shadow: 0 2px 20px rgba(30,64,175,0.08);
+    padding: 0 24px;
+    height: 64px;
+    margin-bottom: 0;
+}
+.navbar-brand { display:flex; align-items:center; gap:11px; }
+.navbar-logo {
+    width:36px; height:36px;
+    background: linear-gradient(135deg,#1E40AF,#0EA5E9);
+    border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1rem;
+    box-shadow: 0 3px 10px rgba(30,64,175,0.28);
+    flex-shrink:0;
+}
+.navbar-title {
+    font-family:'Sora',sans-serif; font-size:1.15rem; font-weight:800;
+    background:linear-gradient(135deg,#1E40AF,#0EA5E9);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    letter-spacing:-0.02em; line-height:1.1;
+}
+.navbar-sub { font-size:0.56rem; color:#94A3B8; letter-spacing:0.09em; text-transform:uppercase; }
+.navbar-user-chip {
+    display:flex; align-items:center; gap:9px;
+    padding:5px 14px 5px 6px;
+    background:linear-gradient(135deg,#EFF6FF,#E0F2FE);
+    border:1px solid #BFDBFE; border-radius:40px;
+    margin-left:8px;
+}
+.navbar-avatar {
+    width:27px; height:27px;
+    background:linear-gradient(135deg,#1E40AF,#0EA5E9);
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:0.7rem; color:#fff; font-weight:700; font-family:'Sora',sans-serif;
+}
+.navbar-uname { font-size:0.8rem; font-weight:700; color:#1E40AF; font-family:'Sora',sans-serif; }
 
-.form-section { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 16px; padding: 24px 30px; border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 8px 30px rgba(15, 23, 42, 0.03); margin-bottom: 20px; }
-.form-section h5 { color: #0f172a; font-weight: 800; margin-bottom: 16px; font-size: 1.1rem; letter-spacing: -0.02em;}
+/* ══ Nav button row (the st.columns row below navbar HTML) ══ */
+.nav-row-wrap {
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(203,213,225,0.55);
+    padding: 8px 20px 8px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
 
-[data-baseweb="input"] > div, [data-baseweb="select"] > div, [data-baseweb="textarea"] > div { border-radius: 10px !important; background-color: rgba(255,255,255,0.7) !important; border: 1px solid rgba(15, 23, 42, 0.08) !important; transition: all 0.2s ease !important; }
-[data-baseweb="input"] > div:hover, [data-baseweb="select"] > div:hover { border-color: rgba(15, 23, 42, 0.2) !important; background-color: #ffffff !important; }
-[data-baseweb="input"] > div:focus-within, [data-baseweb="select"] > div:focus-within { border-color: #6366f1 !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important; background-color: #ffffff !important; }
+/* ══ Nav pill buttons ══ */
+.nav-pill > div > button,
+.nav-pill-active > div > button {
+    border-radius: 8px !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    padding: 0px 18px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.01em !important;
+    transition: all 0.15s ease !important;
+}
+.nav-pill > div > button {
+    background: transparent !important;
+    color: #475569 !important;
+    border: 1.5px solid transparent !important;
+    box-shadow: none !important;
+}
+.nav-pill > div > button:hover {
+    background: #EFF6FF !important;
+    color: #1E40AF !important;
+    border-color: #BFDBFE !important;
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+}
+.nav-pill-active > div > button {
+    background: linear-gradient(135deg,#1E40AF 0%,#0EA5E9 100%) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(30,64,175,0.32) !important;
+}
+.nav-pill-active > div > button:hover {
+    opacity: 0.9 !important;
+    transform: none !important;
+    box-shadow: 0 4px 14px rgba(30,64,175,0.32) !important;
+}
 
-.stButton > button { border-radius: 10px !important; font-weight: 700 !important; font-size: 0.95rem !important; padding: 0.5rem 1.4rem !important; transition: all 0.2s ease !important; border: 1px solid rgba(15, 23, 42, 0.05) !important; background: rgba(255,255,255,0.9) !important; color: #1e293b !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important; }
-.stButton > button:hover { background: #ffffff !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(15, 23, 42, 0.06) !important; border-color: rgba(15, 23, 42, 0.1) !important; }
-.stButton > button[kind="primary"] { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important; border: none !important; color: white !important; box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25) !important; }
-.stButton > button[kind="primary"]:hover { background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4) !important; transform: translateY(-2px) scale(1.02) !important; }
+/* ══ Sign out pill ══ */
+.signout-pill > div > button {
+    background: transparent !important;
+    color: #DC2626 !important;
+    border: 1.5px solid #FECACA !important;
+    border-radius: 8px !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 0.83rem !important;
+    font-weight: 600 !important;
+    padding: 0px 14px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    box-shadow: none !important;
+    white-space: nowrap !important;
+}
+.signout-pill > div > button:hover {
+    background: #FEF2F2 !important;
+    border-color: #F87171 !important;
+    color: #DC2626 !important;
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+}
 
-[data-baseweb="tab-list"] { gap: 30px; border-bottom: 2px solid rgba(15, 23, 42, 0.05) !important; padding-bottom: 4px; }
-[data-baseweb="tab"] { font-weight: 700 !important; font-size: 1rem !important; color: #64748b !important; background: transparent !important; border: none !important; transition: color 0.2s ease; }
-[aria-selected="true"] { color: #4f46e5 !important; border-bottom: 3px solid #4f46e5 !important; }
+/* ══ Refresh pill ══ */
+.refresh-pill > div > button {
+    background: transparent !important;
+    color: #475569 !important;
+    border: 1.5px solid #E2E8F0 !important;
+    border-radius: 8px !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 0.83rem !important;
+    font-weight: 600 !important;
+    padding: 0px 12px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    box-shadow: none !important;
+}
+.refresh-pill > div > button:hover {
+    background: #EFF6FF !important;
+    color: #1E40AF !important;
+    border-color: #BFDBFE !important;
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+}
 
-/* Expander overrides */
-.streamlit-expanderHeader { font-weight: 700 !important; color: #0f172a !important; background: rgba(255,255,255,0.8) !important; border-radius: 12px !important; border: 1px solid rgba(255,255,255,1) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s ease; }
-.streamlit-expanderHeader:hover { background: #ffffff !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-details { border: none !important; border-radius: 12px !important; background: transparent; overflow: hidden; margin-top: 10px; }
+/* ══ Main area action buttons ══ */
+.block-container .stButton > button {
+    background: linear-gradient(135deg,#1E40AF,#0EA5E9) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    padding: 0.5rem 1.3rem !important;
+    box-shadow: 0 3px 12px rgba(30,64,175,0.25) !important;
+    transition: all .2s !important;
+}
+.block-container .stButton > button:hover {
+    opacity: .88 !important;
+    transform: translateY(-1px) !important;
+}
+.stDownloadButton > button {
+    background: linear-gradient(135deg,#059669,#0EA5E9) !important;
+    color: #fff !important; border: none !important; border-radius: 10px !important;
+    font-family: 'Outfit', sans-serif !important; font-weight: 600 !important;
+    font-size: 0.85rem !important;
+}
+
+/* ══ Main content ══ */
+.block-container {
+    padding: 0 2rem 3rem !important;
+    max-width: 100% !important;
+    position: relative; z-index: 1;
+}
+
+/* ══ Metric cards ══ */
+.metric-row { display:flex; gap:12px; margin-bottom:1.4rem; flex-wrap:wrap; }
+.metric-card {
+    background: var(--card); backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.9); border-radius: 16px;
+    padding: 18px 20px; min-width: 140px; flex: 1;
+    box-shadow: 0 2px 16px rgba(30,64,175,0.08);
+    position: relative; overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+}
+.metric-card::before {
+    content: ''; position: absolute; top:0; left:0; right:0; height:3px;
+    background: linear-gradient(90deg,#1E40AF,#0EA5E9,#6366F1);
+    border-radius: 16px 16px 0 0;
+}
+.metric-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(30,64,175,0.14); }
+.metric-card .mc-label { font-size:.63rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
+.metric-card .mc-value { font-size:1.6rem; font-weight:800; font-family:'Sora',sans-serif; line-height:1; background:linear-gradient(135deg,#1E40AF,#0EA5E9); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.metric-card .mc-sub   { font-size:.69rem; color:var(--muted-lt); margin-top:5px; }
+
+/* ══ Section cards ══ */
+.section-card {
+    background: var(--card); backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.9); border-radius: 16px;
+    padding: 20px 22px 22px; margin-bottom: 1.2rem;
+    box-shadow: 0 2px 16px rgba(30,64,175,0.07);
+}
+.section-label {
+    font-size:.65rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:14px; padding-bottom:10px;
+    border-bottom:1px solid var(--border-lt);
+}
+
+/* ══ Page header ══ */
+.page-header {
+    display:flex; align-items:center; gap:14px;
+    margin-bottom:1.6rem; padding-bottom:1rem;
+    border-bottom:1px solid rgba(203,213,225,0.5);
+}
+.ph-icon {
+    width:44px; height:44px;
+    background:linear-gradient(135deg,#1E40AF,#0EA5E9);
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; box-shadow:0 4px 16px rgba(30,64,175,0.25); flex-shrink:0;
+}
+.ph-title { font-size:1.4rem!important; margin:0!important; font-family:'Sora',sans-serif!important; font-weight:700!important; }
+.ph-sub   { margin:0; color:var(--muted); font-size:0.77rem; margin-top:3px; }
+
+/* ══ Inputs ══ */
+.stTextInput>div>div>input,
+.stNumberInput>div>div>input,
+.stSelectbox>div>div {
+    border-radius:10px!important; border:1.5px solid var(--border)!important;
+    font-family:'Outfit',sans-serif!important; font-size:0.87rem!important;
+    background:rgba(255,255,255,0.85)!important;
+}
+.stTextInput>div>div>input:focus {
+    border-color:var(--primary)!important;
+    box-shadow:0 0 0 3px rgba(30,64,175,0.12)!important; background:#fff!important;
+}
+[data-testid="stFileUploader"] {
+    border:2px dashed #BFDBFE!important;
+    border-radius:14px!important; background:rgba(239,246,255,0.7)!important;
+}
+[data-testid="stDataFrame"],[data-testid="stDataEditor"] {
+    border-radius:12px; overflow:hidden; border:1px solid var(--border-lt)!important;
+}
+
+/* ══ Badges ══ */
+.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.68rem; font-weight:700; letter-spacing:.05em; margin:2px; }
+.badge-blue  { background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE; }
+.badge-green { background:#ECFDF5; color:#059669; border:1px solid #A7F3D0; }
+.badge-red   { background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; }
+.part-col-label { font-size:.65rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding-left:2px; }
+
+/* ══ Login ══ */
+.login-card { background:rgba(255,255,255,0.9); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.95); border-radius:22px; padding:0 0 34px; box-shadow:0 24px 64px rgba(30,64,175,0.14); max-width:420px; width:100%; overflow:hidden; }
+.login-hdr  { background:linear-gradient(135deg,#1E40AF,#0EA5E9 60%,#6366F1); padding:34px 40px 30px; text-align:center; position:relative; }
+.login-hdr::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:20px; background:rgba(255,255,255,0.9); border-radius:20px 20px 0 0; }
+.login-ico  { width:60px; height:60px; background:rgba(255,255,255,0.22); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:1.7rem; margin:0 auto 12px; border:2px solid rgba(255,255,255,0.4); }
+.login-name { font-family:'Sora',sans-serif; font-size:1.7rem; font-weight:800; color:#fff; margin-bottom:4px; }
+.login-tag  { color:rgba(255,255,255,0.75); font-size:.76rem; }
+.login-body { padding:26px 34px 0; }
+.login-hi   { font-family:'Sora',sans-serif; font-size:1rem; font-weight:700; color:#0F172A; margin-bottom:3px; }
+.login-sub  { color:#475569; font-size:.77rem; margin-bottom:20px; }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  DATABASE & HELPERS
-# ══════════════════════════════════════════════════════════════════════════════
+# ─────────────────────────────────────────────
+#  DB POOL
+# ─────────────────────────────────────────────
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    st.error("DATABASE_URL environment variable is not set.")
+    st.stop()
 
 @st.cache_resource
-def get_db():
-    db = DatabaseManager()
-    db.init_tables()
-    db.init_user_tables()
-    db.ensure_default_admin()
-    return db
+def get_pool():
+    return SimpleConnectionPool(1, 5, DATABASE_URL)
 
-db = get_db()
+pool = get_pool()
+def get_conn():  return pool.getconn()
+def release(c):  pool.putconn(c)
 
-def hash_password(password: str) -> str: return hashlib.sha256(password.encode()).hexdigest()
-def to_excel(df: pd.DataFrame) -> bytes:
-    out = io.BytesIO()
-    with pd.ExcelWriter(out, engine="openpyxl") as w: df.to_excel(w, index=False, sheet_name="Clients")
-    return out.getvalue()
 
-def status_label(row) -> str:
-    nf_val = row.get("next_followup")
-    if pd.isna(nf_val) or not nf_val: return "—"
+# ─────────────────────────────────────────────
+#  SCHEMA INIT
+# ─────────────────────────────────────────────
+@st.cache_resource
+def init_schema():
+    c = get_conn(); cur = c.cursor()
     try:
-        nf = pd.to_datetime(nf_val)
-        now = datetime.now()
-        if nf < now:
-            diff = now - nf
-            if diff.days > 0: return f"🔴 Overdue ({diff.days}d)"
-            hrs = diff.seconds // 3600
-            mins = (diff.seconds % 3600) // 60
-            if hrs > 0: return f"🔴 Overdue ({hrs}h)"
-            return f"🔴 Overdue ({mins}m)"
-        else:
-            diff = nf - now
-            if diff.days > 0: return f"🟢 In {diff.days}d"
-            hrs = diff.seconds // 3600
-            mins = (diff.seconds % 3600) // 60
-            if hrs > 0: return f"🟡 Today (in {hrs}h)"
-            return f"🟡 In {mins}m"
-    except:
-        return "—"
-
-def highlight_rows(row):
-    """Professional background colors for overdue and today tasks in the dataframe"""
-    status = str(row['Status'])
-    if '🔴' in status: return ['background-color: rgba(254, 226, 226, 0.7);'] * len(row)
-    if '🟡' in status: return ['background-color: rgba(224, 242, 254, 0.7);'] * len(row)
-    return [''] * len(row)
-
-def change_user_password(user_id, new_password):
-    try:
-        new_hash = hash_password(new_password)
-        db.c.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_id))
-        db.conn.commit()
-        return True
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS parts_table (
+                id SERIAL PRIMARY KEY, part_no TEXT, brand TEXT, price NUMERIC, supplier TEXT
+            );
+            ALTER TABLE parts_table ADD COLUMN IF NOT EXISTS supplier TEXT;
+            ALTER TABLE parts_table ADD COLUMN IF NOT EXISTS currency TEXT;
+            ALTER TABLE parts_table ADD COLUMN IF NOT EXISTS delivery_time TEXT;
+            DO $$
+            BEGIN
+              IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='unique_part_supplier') THEN
+                ALTER TABLE parts_table ADD CONSTRAINT unique_part_supplier UNIQUE(part_no,brand,supplier);
+              END IF;
+            END$$;
+            CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT);
+            CREATE TABLE IF NOT EXISTS saved_offers (
+                id SERIAL PRIMARY KEY, username TEXT, data JSONB, created_at TIMESTAMP DEFAULT NOW()
+            );
+            INSERT INTO users(username,password) SELECT 'admin','admin'
+            WHERE NOT EXISTS (SELECT 1 FROM users WHERE username='admin');
+            CREATE TABLE IF NOT EXISTS clients (
+                id SERIAL PRIMARY KEY,
+                name TEXT,
+                company TEXT,
+                phone TEXT,
+                email TEXT,
+                lead_source TEXT,
+                discussion TEXT,
+                call_time TEXT,
+                added_by TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            ALTER TABLE clients ADD COLUMN IF NOT EXISTS discussion TEXT;
+            ALTER TABLE clients ADD COLUMN IF NOT EXISTS call_time TEXT;
+        """)
+        c.commit()
     except Exception as e:
-        return False
+        c.rollback(); raise e
+    finally:
+        release(c)
+
+init_schema()
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  LOGIN PAGE
-# ══════════════════════════════════════════════════════════════════════════════
+# ─────────────────────────────────────────────
+#  HELPERS
+# ─────────────────────────────────────────────
+def clean_col(name):
+    return re.sub(r'[^a-z0-9]','', name.strip().lower())
 
-def show_login():
-    st.markdown("""
-    <style>
-    .main .block-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 0 !important; }
-    [data-testid="stForm"] {
-        background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-        border: 1px solid rgba(255, 255, 255, 1) !important; border-radius: 24px; padding: 32px 40px !important; width: 100%; max-width: 400px; margin: 0 auto;
-        box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.08), inset 0 0 0 1px rgba(255,255,255,0.5);
-    }
-    </style>
-    """, unsafe_allow_html=True)
+@st.cache_data(ttl=120, show_spinner=False)
+def fetch_brands():
+    c = get_conn(); cur = c.cursor()
+    try:
+        cur.execute("SELECT DISTINCT brand FROM parts_table ORDER BY brand")
+        return [x[0] for x in cur.fetchall()]
+    finally:
+        release(c)
 
-    with st.form("login_form"):
-        st.markdown(f"""
-        <div style="text-align:center; margin-bottom:24px;">
-            {get_logo_html(width="100px", margin_bottom="16px")}
-            <div style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 2px;">ClientPulse CRM</div>
-            <div style="font-size: 0.85rem; color: #64748b; font-weight: 500;">Please log in to your account</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        username = st.text_input("Username", placeholder="Enter your username")
-        password = st.text_input("Password", type="password", placeholder="Enter your password")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        submitted = st.form_submit_button("Log In ➜", use_container_width=True, type="primary")
-
-        if submitted:
-            if not username or not password: st.error("Please enter credentials.")
+def lookup_prices(items):
+    c = get_conn(); cur = c.cursor(); results = []
+    try:
+        for r in items:
+            part=r["part_no"].strip(); brand=r["brand"].strip(); qty=max(int(r.get("qty") or 1),1)
+            if not part or not brand: continue
+            cur.execute("""
+                SELECT supplier,price,currency,delivery_time FROM parts_table
+                WHERE TRIM(LOWER(part_no))=TRIM(LOWER(%s)) AND TRIM(LOWER(brand))=TRIM(LOWER(%s))
+                ORDER BY price ASC
+            """, (part,brand))
+            rows=cur.fetchall()
+            if rows:
+                for supplier,price,currency,delivery_time in rows:
+                    results.append({"Brand":brand,"Part No":part,"Supplier":supplier,
+                                    "Currency":currency or "","Delivery Time":delivery_time or "",
+                                    "Qty":qty,"Unit Price":float(price),"Amount":qty*float(price)})
             else:
-                user = db.authenticate_user(username, hash_password(password))
-                if user:
-                    st.session_state.logged_in  = True
-                    st.session_state.username   = user["username"]
-                    st.session_state.role       = user["role"]
-                    st.session_state.full_name  = user["full_name"]
-                    st.session_state.user_id    = user["id"]
-                    st.rerun()
-                else: st.error("❌ Invalid username or password.")
+                results.append({"Brand":brand,"Part No":part,"Supplier":"Not Found",
+                                "Currency":"","Delivery Time":"",
+                                "Qty":qty,"Unit Price":0.0,"Amount":0.0})
+    finally:
+        release(c)
+    return results
+
+def check_login(u, p):
+    c = get_conn(); cur = c.cursor()
+    try:
+        cur.execute("SELECT id FROM users WHERE username=%s AND password=%s",(u,p))
+        return cur.fetchone()
+    finally:
+        release(c)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  SIDEBAR NAVIGATION
-# ══════════════════════════════════════════════════════════════════════════════
-
-def show_sidebar():
-    with st.sidebar:
-        st.markdown(f"""
-        <div style="padding: 16px 12px 24px; display: flex; align-items: center; gap: 12px;">
-            {get_logo_html(width="54px", margin_bottom="0", centered=False)}
-            <div>
-                <div style="font-size: 1.2rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; line-height: 1;">ClientPulse</div>
-                <div style="font-size: 0.6rem; color: #6366f1; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 800; margin-top: 4px;">CRM PLATFORM</div>
-            </div>
+# ─────────────────────────────────────────────
+#  LOGIN PAGE
+# ─────────────────────────────────────────────
+if st.session_state.user is None:
+    _, mid, _ = st.columns([1,1.1,1])
+    with mid:
+        st.markdown('<div class="login-card">', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="login-hdr">
+            <img src="https://raw.githubusercontent.com/sales369/price-fetching/main/logo.png"
+                 style="width:90px;height:auto;margin:0 auto 10px;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
+                 alt="PriceDesk Logo" />
+            <div class="login-name">PriceDesk</div>
+            <div class="login-tag">PARTS PRICING PLATFORM</div>
         </div>
-        """, unsafe_allow_html=True)
+        <div style="height:16px;"></div>""", unsafe_allow_html=True)
+        st.markdown('<div class="login-body">', unsafe_allow_html=True)
+        st.markdown('<div class="login-hi">Welcome back</div>', unsafe_allow_html=True)
+        st.markdown('<div class="login-sub">Sign in to continue to your workspace</div>', unsafe_allow_html=True)
+        u_in = st.text_input("Username", placeholder="Enter your username", key="li_u")
+        p_in = st.text_input("Password", type="password", placeholder="Enter your password", key="li_p")
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        if st.button("Sign In →", use_container_width=True):
+            if check_login(u_in, p_in):
+                st.session_state.user = {"username": u_in}
+                st.rerun()
+            else:
+                st.error("Invalid username or password.")
+        st.markdown('</div></div>', unsafe_allow_html=True)
+    st.stop()
 
-        role = st.session_state.get("role", "user")
-        full_name = st.session_state.get("full_name", "User")
-        initials = "".join(p[0].upper() for p in full_name.split()[:2])
 
-        st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,1); border-radius: 12px; padding: 12px 14px; margin: 0 12px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);">
-            <div style="width: 34px; height: 34px; border-radius: 8px; background: #e0e7ff; border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800; color: #4f46e5; flex-shrink: 0;">{initials}</div>
-            <div style="overflow: hidden;">
-                <div style="font-size: 0.85rem; font-weight: 800; color: #0f172a; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">{full_name}</div>
-                <div style="font-size: 0.65rem; color: #64748b; font-weight: 600; margin-top: 2px; text-transform:uppercase; letter-spacing:0.05em;">{'🛡️ Admin' if role == 'admin' else '👤 User'}</div>
-            </div>
-        </div>
-        <div style="padding: 0 12px; font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;">Menu</div>
-        """, unsafe_allow_html=True)
+# ─────────────────────────────────────────────
+#  TOP NAVBAR
+# ─────────────────────────────────────────────
+username  = st.session_state.user["username"]
+is_admin  = (username == "admin")
+cur_page  = st.session_state.page
+nav_pages = ["Price Lookup","Saved Quotations","Client Directory","Add Client"] + (["Data Upload","Access Control"] if is_admin else [])
+nav_icons = {"Price Lookup":"📊","Saved Quotations":"📁","Client Directory":"👥","Add Client":"➕","Data Upload":"📤","Access Control":"🔐"}
+user_initials = username[:2].upper()
 
-        nav_options = ["🏠  Dashboard", "➕  Add Client", "⚙️  Settings"]
-        page = st.radio("Navigation", nav_options, label_visibility="collapsed")
-        
-        st.markdown("<div style='height:1px;background:rgba(15, 23, 42, 0.06);margin:20px 12px 16px;'></div>", unsafe_allow_html=True)
-        
-        if st.button("🚪  Sign Out", use_container_width=True):
-            for k in ["logged_in","username","role","full_name","user_id"]: st.session_state.pop(k, None)
+# ── Static brand bar (HTML only — no interactivity needed here) ──
+st.markdown(f"""
+<div class="top-navbar">
+  <div class="navbar-brand">
+    <img src="https://raw.githubusercontent.com/sales369/price-fetching/main/logo.png"
+         style="height:40px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(30,64,175,0.18));"
+         alt="PriceDesk Logo" />
+    <div>
+      <div class="navbar-title">PriceDesk</div>
+      <div class="navbar-sub">Parts Pricing Platform</div>
+    </div>
+  </div>
+  <div class="navbar-user-chip">
+    <div class="navbar-avatar">{user_initials}</div>
+    <div class="navbar-uname">{username}</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Interactive nav buttons row ──
+# Build columns: [nav buttons...] [spacer] [refresh] [signout]
+n_nav = len(nav_pages)
+# each nav pill ~150px, refresh ~52px, signout ~110px, rest is spacer
+col_widths = [1.5] * n_nav + [4, 0.6, 1.1]
+cols = st.columns(col_widths)
+
+for i, p in enumerate(nav_pages):
+    css_cls = "nav-pill-active" if p == cur_page else "nav-pill"
+    with cols[i]:
+        st.markdown(f'<div class="{css_cls}">', unsafe_allow_html=True)
+        if st.button(f"{nav_icons[p]}  {p}", key=f"nav_{p}", use_container_width=True):
+            st.session_state.page = p
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# spacer col does nothing
+with cols[n_nav + 1]:
+    st.markdown('<div class="refresh-pill">', unsafe_allow_html=True)
+    if st.button("🔄", key="refresh_btn", help="Refresh brands"):
+        fetch_brands.clear()
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with cols[n_nav + 2]:
+    st.markdown('<div class="signout-pill">', unsafe_allow_html=True)
+    if st.button("⏏ Sign Out", key="signout_btn", use_container_width=True):
+        st.session_state.clear()
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+
+page = st.session_state.page
+
+
+# ═══════════════════════════════════════════
+#  PAGE: PRICE LOOKUP
+# ═══════════════════════════════════════════
+if page == "Price Lookup":
+
+    st.markdown("""
+    <div class="page-header">
+      <div class="ph-icon">📊</div>
+      <div><div class="ph-title">Price Lookup</div>
+           <div class="ph-sub">Search parts across all suppliers instantly</div></div>
+    </div>""", unsafe_allow_html=True)
+
+    brand_list = fetch_brands()
+
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Enter Parts to Search</div>', unsafe_allow_html=True)
+
+    ca, cb, cc, _ = st.columns([0.9,0.9,1,5])
+    with ca:
+        if st.button("＋ Add Row"):
+            st.session_state.num_rows = min(st.session_state.num_rows+1, 20); st.rerun()
+    with cb:
+        if st.button("－ Remove"):
+            st.session_state.num_rows = max(st.session_state.num_rows-1, 1); st.rerun()
+    with cc:
+        if st.button("✕ Clear All"):
+            st.session_state.num_rows = 3; st.session_state.table_data = pd.DataFrame()
+            for i in range(25):
+                for k in [f"brand_{i}",f"part_{i}",f"qty_{i}"]:
+                    if k in st.session_state: del st.session_state[k]
             st.rerun()
 
-    return page
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    h1,h2,h3,_ = st.columns([1.6,2.2,0.8,0.6])
+    with h1: st.markdown('<div class="part-col-label">Brand</div>', unsafe_allow_html=True)
+    with h2: st.markdown('<div class="part-col-label">Part Number</div>', unsafe_allow_html=True)
+    with h3: st.markdown('<div class="part-col-label">Qty</div>', unsafe_allow_html=True)
 
+    n = st.session_state.num_rows
+    for i in range(n):
+        r1,r2,r3,_ = st.columns([1.6,2.2,0.8,0.6])
+        with r1: st.selectbox("",[""] + brand_list, key=f"brand_{i}", label_visibility="collapsed")
+        with r2: st.text_input("", placeholder="e.g. 04152-YZZA6", key=f"part_{i}", label_visibility="collapsed")
+        with r3: st.number_input("", min_value=1, value=1, step=1, key=f"qty_{i}", label_visibility="collapsed")
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  UNIFIED DASHBOARD & DIRECTORY
-# ══════════════════════════════════════════════════════════════════════════════
+    st.markdown('</div>', unsafe_allow_html=True)
 
-def page_dashboard():
-    st.markdown('<p class="page-title">Dashboard</p>', unsafe_allow_html=True)
-    st.markdown(f'<p class="page-sub">Welcome back, {st.session_state.get("full_name","User")}. Use the filters below to manage your workflow.</p>', unsafe_allow_html=True)
+    b1,_,__ = st.columns([1.2,1,6])
+    with b1:
+        go = st.button("🔍 Get Pricing", use_container_width=True)
 
-    total = db.get_total_clients()
-    today_df  = db.get_todays_followups()
-    over_df   = db.get_overdue_followups()
+    if go:
+        items=[]
+        for i in range(n):
+            b=st.session_state.get(f"brand_{i}",""); p=st.session_state.get(f"part_{i}","").strip()
+            q=st.session_state.get(f"qty_{i}",1)
+            if b and b!="" and p: items.append({"brand":b,"part_no":p,"qty":q})
+        if items:
+            with st.spinner("Fetching prices…"):
+                results=lookup_prices(items)
+            st.session_state.table_data=pd.DataFrame(results)
+        else:
+            st.warning("Please enter at least one Brand and Part No.")
 
-    # ── STATIC METRIC TILES (No buttons, no hacks, 100% bug-free) ──
-    c1, c2, c3 = st.columns(3)
-
-    with c1:
-        st.markdown(f'<div class="dash-card indigo"><div class="metric-icon">👥</div><p class="metric-val">{total}</p><p class="metric-lbl">Total Clients</p></div>', unsafe_allow_html=True)
-
-    with c2:
-        st.markdown(f'<div class="dash-card blue"><div class="metric-icon">⚡</div><p class="metric-val">{len(today_df)}</p><p class="metric-lbl">Due Today</p></div>', unsafe_allow_html=True)
-
-    with c3:
-        st.markdown(f'<div class="dash-card red pulse-alert"><div class="metric-icon">⚠️</div><p class="metric-val">{len(over_df)}</p><p class="metric-lbl">Overdue Tasks</p></div>', unsafe_allow_html=True)
-
-
-    st.markdown("<hr style='margin: 25px 0 15px 0; border-top: 1px solid rgba(15,23,42,0.06);'>", unsafe_allow_html=True)
-
-    # ── THE INTEGRATED DIRECTORY GRID WITH STATUS FILTER ──
-    st.markdown("<h5 style='color:#0f172a; font-weight:800; margin-bottom:12px;'>👥 Client Directory</h5>", unsafe_allow_html=True)
-    
-    # 5 Column layout for new Status filter
-    fc1, fc2, fc3, fc4, fc5 = st.columns([2, 1.5, 1.5, 1.5, 1])
-    with fc1: search = st.text_input("🔍 Search", placeholder="Search by name, company...", label_visibility="collapsed")
-    with fc2: status_filter = st.selectbox("Status", ["All", "Due Today", "Overdue", "Upcoming"], label_visibility="collapsed")
-    with fc3: cat    = st.selectbox("Filter", ["All Categories","Lead","Prospect","Active Client","Partner","VIP","Churned"], label_visibility="collapsed")
-    with fc4: srt    = st.selectbox("Sort By", ["Next Follow-up","Name","Company","Deal Value"], label_visibility="collapsed")
-    
-    # Clean Category String
-    clean_cat = None if cat == "All Categories" else cat
-
-    # Fetch Base Data
-    df = db.get_all_clients(search=search or None, category=clean_cat, sort_by=srt)
+    df = st.session_state.table_data
 
     if not df.empty:
-        df["Status"] = df.apply(status_label, axis=1)
+        found=df[df["Supplier"]!="Not Found"]
+        n_parts=int(df["Part No"].nunique()); n_suppliers=int(found["Supplier"].nunique()) if not found.empty else 0
+        best_price=float(found["Unit Price"].min()) if not found.empty else 0.0; n_records=int(len(found))
 
-        # Apply Status Filter Logic
-        if status_filter == "Due Today":
-            df = df[df["Status"].str.contains("🟡", na=False)]
-        elif status_filter == "Overdue":
-            df = df[df["Status"].str.contains("🔴", na=False)]
-        elif status_filter == "Upcoming":
-            df = df[df["Status"].str.contains("🟢", na=False)]
+        st.markdown(f"""
+        <div class="metric-row">
+          <div class="metric-card"><div class="mc-label">Parts Searched</div><div class="mc-value">{n_parts}</div><div class="mc-sub">unique part numbers</div></div>
+          <div class="metric-card"><div class="mc-label">Suppliers Found</div><div class="mc-value">{n_suppliers}</div><div class="mc-sub">across all parts</div></div>
+          <div class="metric-card"><div class="mc-label">Best Unit Price</div><div class="mc-value">{best_price:,.0f}</div><div class="mc-sub">lowest unit price</div></div>
+          <div class="metric-card"><div class="mc-label">Price Records</div><div class="mc-value">{n_records}</div><div class="mc-sub">supplier rows returned</div></div>
+        </div>""", unsafe_allow_html=True)
 
-        with fc5: 
-            st.download_button("📥 Export", data=to_excel(df) if not df.empty else b"", file_name=f"Export.xlsx", use_container_width=True)
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-label">All Supplier Prices</div>', unsafe_allow_html=True)
 
-        if df.empty:
-            st.info("📭 No clients match the current filters.")
-        else:
-            df_display = df.copy()
-            df_display["Deal Value"] = df_display["deal_value"].apply(lambda x: f"${x:,.0f}" if pd.notna(x) else "—")
-            df_display["next_contact_fmt"] = pd.to_datetime(df_display["next_followup"]).dt.strftime('%b %d, %I:%M %p')
+        def highlight_rows(row):
+            if row["Supplier"]=="Not Found": return ["background-color:#FEF2F2;color:#991B1B"]*len(row)
+            mask=(df["Part No"]==row["Part No"])&(df["Brand"]==row["Brand"])
+            valid=df.loc[mask&(df["Supplier"]!="Not Found"),"Unit Price"]
+            if not valid.empty and row["Unit Price"]==valid.min():
+                return ["background-color:#F0FDF4;color:#065F46;font-weight:600"]*len(row)
+            return [""]*len(row)
 
-            show_cols = ["name","company","phone","email","category","next_contact_fmt","Status","Deal Value"]
-            rename    = {"name":"Full Name","company":"Company","phone":"Phone","email":"Email", "category":"Category","next_contact_fmt":"Next Contact"}
-
-            # Apply robust Pandas Dataframe Styling for professional row highlighting
-            styled_df = df_display[show_cols].rename(columns=rename).style.apply(highlight_rows, axis=1)
-            st.dataframe(styled_df, use_container_width=True, height=280, hide_index=True)
-
-            # --- HIDDEN MANAGEMENT CONSOLE ---
-            with st.expander("⚙️ Manage & Edit Selected Client", expanded=False):
-                st.markdown("<div style='font-size:0.85rem; font-weight:700; color:#0f172a; margin-bottom:8px;'>Select Client to Edit</div>", unsafe_allow_html=True)
-                sel = st.selectbox("Target", df["name"].tolist(), label_visibility="collapsed")
-                
-                if sel:
-                    target_row = df[df["name"] == sel].iloc[0]
-                    cid = int(target_row["id"])
-                    
-                    t1, t2, t3 = st.tabs(["🕒 Reschedule", "📝 Edit Details", "🗑️ Delete"])
-                    
-                    with t1:
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        sc1, sc2, sc3 = st.columns([2, 2, 1.5])
-                        try: curr_dt = pd.to_datetime(target_row["next_followup"])
-                        except: curr_dt = datetime.now() + timedelta(hours=4)
-                            
-                        with sc1: new_d = st.date_input("New Date", value=curr_dt.date(), key=f"d_{cid}")
-                        with sc2: new_t = st.time_input("New Time", value=curr_dt.time(), key=f"t_{cid}")
-                        with sc3:
-                            st.markdown("<br style='line-height:1'>", unsafe_allow_html=True)
-                            if st.button("Update Time", type="primary", use_container_width=True, key=f"btn_resched_{cid}"):
-                                new_dt = datetime.combine(new_d, new_t)
-                                new_dt_str = new_dt.strftime("%Y-%m-%d %H:%M:%S")
-                                db.update_followup(cid, new_dt_str)
-                                st.rerun()
-                                
-                    with t2:
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        with st.form(key=f"edit_form_{cid}"):
-                            ec1, ec2 = st.columns(2)
-                            with ec1:
-                                e_name = st.text_input("Full Name", value=target_row["name"])
-                                e_email = st.text_input("Email", value=target_row["email"] if pd.notna(target_row["email"]) else "")
-                                e_val = st.number_input("Deal Value ($)", value=int(target_row["deal_value"]) if pd.notna(target_row["deal_value"]) else 0, step=1000)
-                            with ec2:
-                                e_phone = st.text_input("Phone", value=target_row["phone"] if pd.notna(target_row["phone"]) else "")
-                                e_company = st.text_input("Company", value=target_row["company"] if pd.notna(target_row["company"]) else "")
-                                
-                                cat_opts = ["Lead", "Prospect", "Active Client", "Partner", "VIP", "Churned"]
-                                curr_cat = target_row["category"]
-                                cat_idx = cat_opts.index(curr_cat) if curr_cat in cat_opts else 0
-                                e_cat = st.selectbox("Category", cat_opts, index=cat_idx)
-                            
-                            if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
-                                try:
-                                    db.c.execute('''UPDATE clients SET name=?, email=?, phone=?, company=?, deal_value=?, category=? WHERE id=?''', 
-                                                 (e_name, e_email, e_phone, e_company, e_val, e_cat, cid))
-                                    db.conn.commit()
-                                    st.rerun()
-                                except Exception as e:
-                                    st.error(f"Database error: {e}")
-                                    
-                    with t3:
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        st.error(f"Warning: Deleting **{sel}** is permanent.")
-                        if st.button("🗑 Confirm Delete", use_container_width=True, key=f"btn_del_{cid}"):
-                            db.delete_client(cid)
-                            st.rerun()
-    else:
-        st.info("📭 Database is currently empty.")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  ADD CLIENT
-# ══════════════════════════════════════════════════════════════════════════════
-
-def page_add_client():
-    st.markdown('<p class="page-title">Add New Client</p>', unsafe_allow_html=True)
-    st.markdown('<p class="page-sub">Enter client details and schedule their follow-up.</p>', unsafe_allow_html=True)
-
-    with st.form("add_client_form", clear_on_submit=True):
-        st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 👤 Client Information")
-        c1, c2 = st.columns(2)
-        with c1:
-            name    = st.text_input("Full Name *", placeholder="e.g. Jane Doe")
-            email   = st.text_input("Email Address", placeholder="e.g. jane@company.com")
-            company = st.text_input("Company Name", placeholder="e.g. Acme Corp")
-        with c2:
-            phone    = st.text_input("Phone Number", placeholder="+1 555-0199")
-            category = st.selectbox("Category", ["Lead", "Prospect", "Active Client", "Partner", "VIP", "Churned"])
-            source   = st.selectbox("Lead Source", ["Referral", "Website", "LinkedIn", "Cold Outreach", "Event", "Other"])
+        styled=(df.style.apply(highlight_rows,axis=1)
+                  .format({"Unit Price":"{:,.0f}","Amount":"{:,.0f}"}))
+        st.dataframe(styled, use_container_width=True, hide_index=True, height=360)
+        st.markdown("""
+        <div style="display:flex;gap:16px;margin-top:10px;font-size:.74rem;color:#64748B;">
+          <span><span class="badge badge-green">Green</span> Cheapest for that part</span>
+          <span><span class="badge badge-red">Red</span> Not found in database</span>
+        </div>""", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 📅 Pipeline Scheduling")
-        c3, c4 = st.columns(2)
-        
-        with c3:
-            st.markdown("<div style='font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:8px;'>Next Contact Schedule</div>", unsafe_allow_html=True)
-            sc1, sc2 = st.columns(2)
-            with sc1:
-                next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed")
-            with sc2:
-                default_time = (datetime.now() + timedelta(hours=4)).time()
-                next_t = st.time_input("Time", value=default_time, label_visibility="collapsed")
-            
-            deal_value = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000)
-            
-        with c4:
-            nf_datetime = datetime.combine(next_d, next_t)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown(f"""
-            <div style="background:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,1); border-radius:12px; padding:16px; text-align:center; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
-                <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Target Execution</p>
-                <p style="font-size:1.3rem; font-weight:800; color:#0f172a; margin:4px 0;">{nf_datetime.strftime("%A, %b %d")}</p>
-                <p style="font-size:1.1rem; color:#4f46e5; font-weight:700; margin:0;">@ {nf_datetime.strftime("%I:%M %p")}</p>
-            </div>""", unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 📝 Additional Notes")
-        notes = st.text_area("Notes", placeholder="Enter specific requirements, meeting notes...", height=80)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        submitted = st.form_submit_button("💾 Save Client", type="primary", use_container_width=True)
-
-    if submitted:
-        if not name.strip(): st.error("❌ Full Name is required.")
-        else:
-            f_days = (nf_datetime.date() - date.today()).days
-            f_days = f_days if f_days > 0 else 0
-            
-            nf_str = nf_datetime.strftime("%Y-%m-%d %H:%M:%S")
-            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            ok = db.add_client({
-                "name": name, "email": email, "phone": phone, "company": company, "category": category, "source": source, 
-                "last_contacted": now_str, "followup_days": f_days, "next_followup": nf_str, 
-                "deal_value": deal_value, "notes": notes, "created_by": st.session_state.get("user_id", 1)
-            })
-            if ok: st.success(f"✅ Success! **{name}** added. Scheduled for **{nf_datetime.strftime('%b %d @ %I:%M %p')}**.")
-            else: st.error("❌ Database error.")
+        a1,a2,_ = st.columns([1.3,1.3,5])
+        with a1:
+            if st.button("💾 Save Quotation", use_container_width=True):
+                c=get_conn(); cur=c.cursor()
+                try:
+                    cur.execute("INSERT INTO saved_offers(username,data) VALUES(%s,%s)",
+                                (username, json.dumps(df.to_dict(orient="records"))))
+                    c.commit(); st.success("Quotation saved.")
+                except Exception as e:
+                    c.rollback(); st.error(f"Save failed: {e}")
+                finally:
+                    release(c)
+        with a2:
+            buf=BytesIO(); df.to_excel(buf,index=False); buf.seek(0)
+            st.download_button("📥 Export Excel", buf, file_name="price_lookup.xlsx",
+                               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                               use_container_width=True)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  SETTINGS / ACCESS CONTROL
-# ══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════
+#  PAGE: SAVED QUOTATIONS
+# ═══════════════════════════════════════════
+elif page == "Saved Quotations":
 
-def page_settings():
-    st.markdown('<p class="page-title">Settings</p>', unsafe_allow_html=True)
-    st.markdown('<p class="page-sub">Manage your account and workspace preferences.</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="page-header">
+      <div class="ph-icon">📁</div>
+      <div><div class="ph-title">Saved Quotations</div>
+           <div class="ph-sub">View, download and manage past quotations</div></div>
+    </div>""", unsafe_allow_html=True)
 
-    is_admin = st.session_state.get("role") == "admin"
-    current_user_id = st.session_state.get("user_id")
+    c=get_conn(); cur=c.cursor()
+    try:
+        cur.execute("SELECT id,username,data,created_at::date FROM saved_offers ORDER BY created_at DESC")
+        rows=cur.fetchall()
+    finally:
+        release(c)
 
-    if is_admin:
-        tabs = st.tabs(["👥 Active Users", "➕ Add User", "🔑 Change Password"])
-    else:
-        tabs = st.tabs(["🔑 Change Password"])
+    if not rows:
+        st.markdown("""
+        <div class="section-card" style="text-align:center;padding:60px 24px;">
+          <div style="font-size:2.8rem;margin-bottom:12px;">📭</div>
+          <div style="font-size:1rem;font-weight:700;font-family:'Sora',sans-serif;">No saved quotations yet</div>
+          <div style="color:#64748B;font-size:.82rem;margin-top:8px;">Go to Price Lookup and save your first quotation.</div>
+        </div>""", unsafe_allow_html=True)
+        st.stop()
 
-    if is_admin:
-        with tabs[0]:
-            st.markdown("<br>", unsafe_allow_html=True)
-            users = db.get_all_users()
-            if users.empty: st.info("No active users found.")
+    all_data=[]
+    for oid,user,data,date_only in rows:
+        df_o=pd.DataFrame(json.loads(data) if isinstance(data,str) else data)
+        df_o["Employee"]=user; df_o["Saved On"]=str(date_only); df_o["_offer_id"]=oid
+        all_data.append(df_o)
+    final_df=pd.concat(all_data,ignore_index=True)
+
+    st.markdown(f"""
+    <div class="metric-row">
+      <div class="metric-card"><div class="mc-label">Total Quotations</div><div class="mc-value">{len(rows)}</div><div class="mc-sub">saved records</div></div>
+      <div class="metric-card"><div class="mc-label">Employees</div><div class="mc-value">{final_df["Employee"].nunique()}</div><div class="mc-sub">contributors</div></div>
+      <div class="metric-card"><div class="mc-label">Latest Save</div><div class="mc-value" style="font-size:1rem;">{str(rows[0][3])}</div><div class="mc-sub">most recent</div></div>
+    </div>""", unsafe_allow_html=True)
+
+    display_df=final_df.drop(columns=["_offer_id"],errors="ignore").copy()
+    display_df.insert(0,"Select",False)
+
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">All Records</div>', unsafe_allow_html=True)
+    edited_df=st.data_editor(display_df, use_container_width=True, hide_index=True, height=400, key="saved_editor")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    b1,b2,_ = st.columns([1.3,1.3,5])
+    with b1:
+        buf=BytesIO(); final_df.drop(columns=["_offer_id"],errors="ignore").to_excel(buf,index=False); buf.seek(0)
+        st.download_button("📥 Download All", buf, file_name="all_quotations.xlsx",
+                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                           use_container_width=True)
+    with b2:
+        if st.button("🗑 Delete Selected", use_container_width=True):
+            sel_mask=edited_df["Select"]==True
+            if sel_mask.any():
+                ids_to_del=list(final_df.loc[sel_mask[sel_mask].index,"_offer_id"].unique())
+                if ids_to_del:
+                    conn2=get_conn(); cur2=conn2.cursor()
+                    try:
+                        cur2.execute("DELETE FROM saved_offers WHERE id=ANY(%s)",(ids_to_del,))
+                        conn2.commit(); st.success(f"Deleted {len(ids_to_del)} quotation(s).")
+                    except Exception as e:
+                        conn2.rollback(); st.error(f"Delete failed: {e}")
+                    finally:
+                        release(conn2)
+                    st.rerun()
             else:
-                for _, u in users.iterrows():
-                    role_badge = "🛡️ Admin" if u["role"] == "admin" else "👤 User"
-                    status_badge = "🟢 Active" if u["is_active"] else "🔴 Suspended"
-                    
-                    c1, c2, c3 = st.columns([4, 1.5, 1.5])
-                    with c1:
-                        st.markdown(f"""
-                        <div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,1); box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
-                            <div style="font-size: 1rem; font-weight: 800; color: #0f172a; margin-bottom: 2px;">{u['full_name']} <span style="color: #64748b; font-weight: 500; font-size: 0.8rem;">(@{u['username']})</span></div>
-                            <div style="font-size: 0.75rem; font-weight: 600; color: #475569;">{role_badge} &nbsp;|&nbsp; {status_badge}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with c2:
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        if u["username"] != st.session_state.get("username"):
-                            if st.button("Suspend" if u["is_active"] else "Activate", key=f"tog_{u['id']}", use_container_width=True): 
-                                db.toggle_user_status(int(u["id"])); st.rerun()
-                        else:
-                            st.markdown("<div style='text-align: center; margin-top: 10px; font-weight: 700; color: #10b981; font-size: 0.8rem;'>Current User</div>", unsafe_allow_html=True)
-                            
-                    with c3:
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        if u["username"] != st.session_state.get("username"):
-                            if st.button("Delete", key=f"del_{u['id']}", use_container_width=True): 
-                                db.delete_user(int(u["id"])); st.rerun()
-                    st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
+                st.warning("Select at least one row to delete.")
 
-        with tabs[1]:
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown('<div class="form-section">', unsafe_allow_html=True)
-            st.markdown("##### Add New User")
-            with st.form("add_user_form", clear_on_submit=True):
-                new_fullname = st.text_input("Full Name *", placeholder="e.g. Alex Smith")
-                new_username = st.text_input("Username *", placeholder="e.g. alex.smith")
-                new_password  = st.text_input("Password *", type="password", placeholder="Min 6 characters")
-                new_role      = st.selectbox("Role", ["user", "admin"])
 
-                st.markdown("<br>", unsafe_allow_html=True)
-                add_submitted = st.form_submit_button("➕ Create User", type="primary", use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+# ═══════════════════════════════════════════
+#  PAGE: DATA UPLOAD
+# ═══════════════════════════════════════════
+elif page == "Data Upload":
 
-            if add_submitted:
-                if not new_fullname.strip() or not new_username.strip() or not new_password: 
-                    st.error("❌ Missing required fields.")
-                elif len(new_password) < 6: 
-                    st.error("❌ Password too short (minimum 6 characters).")
-                elif db.username_exists(new_username): 
-                    st.error("❌ Username already taken.")
-                else:
-                    db.add_user({"full_name": new_fullname, "username": new_username, "email": "", "password_hash": hash_password(new_password), "role": new_role})
-                    st.success(f"✅ Success! {new_fullname} added."); st.rerun()
+    st.markdown("""
+    <div class="page-header">
+      <div class="ph-icon">📤</div>
+      <div><div class="ph-title">Master Data Upload</div>
+           <div class="ph-sub">Upload Excel price sheets to update the parts database</div></div>
+    </div>""", unsafe_allow_html=True)
 
-    pwd_tab = tabs[2] if is_admin else tabs[0]
-    with pwd_tab:
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### Security: Update Password")
-        with st.form("change_password_form", clear_on_submit=True):
-            old_p = st.text_input("Current Password *", type="password")
-            new_p = st.text_input("New Password *", type="password", placeholder="Min 6 characters")
-            new_p2 = st.text_input("Confirm New Password *", type="password")
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            pwd_submitted = st.form_submit_button("Update Password", type="primary", use_container_width=True)
+    st.markdown("""
+    <div class="section-card">
+      <div class="section-label">Required Column Names</div>
+      <span class="badge badge-blue">Make / Brand</span>
+      <span class="badge badge-blue">Part Number</span>
+      <span class="badge badge-blue">JPY Price</span>
+      <span class="badge badge-blue">Supplier</span>
+      <span class="badge badge-blue">Currency</span>
+      <span class="badge badge-blue">Delivery Time</span>
+      <div style="font-size:.79rem;color:#64748B;margin-top:12px;line-height:1.7;">
+        Column names are <strong>case-insensitive</strong>. Same part uploaded again will <strong>update</strong> price — no duplicates. Currency and Delivery Time are optional.
+      </div>
+    </div>""", unsafe_allow_html=True)
+
+    file=st.file_uploader("Upload Excel file (.xlsx)",type=["xlsx"])
+    if file:
+        df_raw=pd.read_excel(file,dtype=str)
+        col_map={clean_col(c):c for c in df_raw.columns}
+        ALIASES={"brand":["make","brand","manufacturer"],"part_no":["partnumber","partno","part","partnum","partnumbers"],
+                 "price":["jpyprice","price","unitprice","jpy","jprice","unitrate"],"supplier":["supplier","vendor","source"],
+                 "currency":["currency","cur","ccy"],"delivery_time":["deliverytime","delivery","leadtime","deliverydays"]}
+        rename={}
+        for target,aliases in ALIASES.items():
+            for alias in aliases:
+                if alias in col_map: rename[col_map[alias]]=target; break
+        df_raw.rename(columns=rename,inplace=True)
+        missing=[c for c in ["brand","part_no","price","supplier"] if c not in df_raw.columns]
+        if missing:
+            st.error(f"Could not map: **{missing}**  Detected: `{list(df_raw.columns)}`"); st.stop()
+        for col in ["brand","part_no","supplier"]:
+            df_raw[col]=df_raw[col].astype(str).str.replace(r'[\n"\r]','',regex=True).str.strip()
+        for col in ["currency","delivery_time"]:
+            if col not in df_raw.columns: df_raw[col]=""
+            else: df_raw[col]=df_raw[col].astype(str).str.replace(r'[\n"\r]','',regex=True).str.strip()
+        df_raw["price"]=pd.to_numeric(df_raw["price"],errors="coerce").fillna(0)
+        df_raw=df_raw[(df_raw["part_no"]!="")&(df_raw["brand"]!="")&(df_raw["supplier"]!="")
+                      &(df_raw["part_no"]!="nan")&(df_raw["brand"]!="nan")]
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown(f'<div class="section-label">Preview — {len(df_raw):,} valid rows</div>', unsafe_allow_html=True)
+        preview_cols=[c for c in ["brand","part_no","price","currency","delivery_time","supplier"] if c in df_raw.columns]
+        st.dataframe(df_raw[preview_cols].head(30),
+                     use_container_width=True, hide_index=True, height=280)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        if pwd_submitted:
-            if not old_p or not new_p or not new_p2:
-                st.error("❌ Please fill out all fields.")
-            elif new_p != new_p2:
-                st.error("❌ New passwords do not match.")
-            elif len(new_p) < 6:
-                st.error("❌ New password must be at least 6 characters.")
+        if st.button(f"⬆ Upload {len(df_raw):,} Rows to Database"):
+            values=list(df_raw[["part_no","brand","price","supplier","currency","delivery_time"]].itertuples(index=False,name=None))
+            c=get_conn(); cur=c.cursor()
+            try:
+                execute_values(cur,"""
+                    INSERT INTO parts_table(part_no,brand,price,supplier,currency,delivery_time) VALUES %s
+                    ON CONFLICT(part_no,brand,supplier) DO UPDATE SET price=EXCLUDED.price,currency=EXCLUDED.currency,delivery_time=EXCLUDED.delivery_time
+                """,values,page_size=500)
+                c.commit(); fetch_brands.clear(); st.success(f"Uploaded {len(values):,} rows.")
+            except Exception as e:
+                c.rollback(); st.error(f"Upload failed: {e}")
+            finally:
+                release(c)
+            st.rerun()
+
+
+# ═══════════════════════════════════════════
+#  PAGE: ACCESS CONTROL
+# ═══════════════════════════════════════════
+elif page == "Access Control":
+
+    st.markdown("""
+    <div class="page-header">
+      <div class="ph-icon">🔐</div>
+      <div><div class="ph-title">Access Control</div>
+           <div class="ph-sub">Manage user accounts and permissions</div></div>
+    </div>""", unsafe_allow_html=True)
+
+    col_a,col_b=st.columns(2,gap="large")
+
+    with col_a:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-label">Create New User</div>', unsafe_allow_html=True)
+        nu =st.text_input("Username",placeholder="e.g. john.doe",key="nu")
+        np_=st.text_input("Password",type="password",placeholder="Secure password",key="np")
+        st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+        if st.button("✚ Create User",use_container_width=True):
+            if nu and np_:
+                c=get_conn(); cur=c.cursor()
+                try:
+                    cur.execute("INSERT INTO users(username,password) VALUES(%s,%s)",(nu,np_))
+                    c.commit(); st.success(f"User '{nu}' created.")
+                except Exception as e:
+                    c.rollback(); st.error(f"Error: {e}")
+                finally:
+                    release(c)
             else:
-                user_check = db.authenticate_user(st.session_state.username, hash_password(old_p))
-                if not user_check:
-                    st.error("❌ Incorrect current password.")
-                else:
-                    success = change_user_password(current_user_id, new_p)
-                    if success: st.success("✅ Password updated successfully!")
-                    else: st.error("❌ System Error: Failed to update password.")
+                st.warning("Fill in both fields.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_b:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-label">Remove Employee</div>', unsafe_allow_html=True)
+        c=get_conn(); cur=c.cursor()
+        try:
+            cur.execute("SELECT username FROM users WHERE username!='admin' ORDER BY username")
+            users=[x[0] for x in cur.fetchall()]
+        finally:
+            release(c)
+        if users:
+            del_u=st.selectbox("Select employee to remove",users)
+            st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+            if st.button("🗑 Delete Employee",use_container_width=True):
+                c=get_conn(); cur=c.cursor()
+                try:
+                    cur.execute("DELETE FROM users WHERE username=%s",(del_u,))
+                    c.commit(); st.success(f"User '{del_u}' removed.")
+                except Exception as e:
+                    c.rollback(); st.error(f"Error: {e}")
+                finally:
+                    release(c)
+                st.rerun()
+        else:
+            st.info("No other users found.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">All Users</div>', unsafe_allow_html=True)
+    c=get_conn(); cur=c.cursor()
+    try:
+        cur.execute("SELECT username FROM users ORDER BY username")
+        all_u=pd.DataFrame(cur.fetchall(),columns=["Username"])
+    finally:
+        release(c)
+    all_u["Role"]=all_u["Username"].apply(lambda x:"🔑 Admin" if x=="admin" else "👤 Employee")
+    st.dataframe(all_u,use_container_width=True,hide_index=True,height=220)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  MAIN ROUTER
-# ══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════
+#  PAGE: CLIENT DIRECTORY
+# ═══════════════════════════════════════════
+elif page == "Client Directory":
 
-if not st.session_state.get("logged_in"): show_login()
-else:
-    page = show_sidebar()
-    
-    if   "Dashboard"        in page: page_dashboard()
-    elif "Add Client"       in page: page_add_client()
-    elif "Settings"         in page: page_settings()
+    st.markdown("""
+    <div class="page-header">
+      <div class="ph-icon">👥</div>
+      <div><div class="ph-title">Client Directory</div>
+           <div class="ph-sub">View, edit and manage all query clients</div></div>
+    </div>""", unsafe_allow_html=True)
+
+    # ── Load clients ──
+    c = get_conn(); cur = c.cursor()
+    try:
+        cur.execute("""
+            SELECT id, name, company, phone, email, lead_source, discussion, call_time, added_by,
+                   TO_CHAR(created_at, 'DD Mon YYYY') as created_date
+            FROM clients ORDER BY created_at DESC
+        """)
+        client_rows = cur.fetchall()
+    finally:
+        release(c)
+
+    cols_def = ["id","Name","Company","Phone","Email","Lead Source","Discussion","Call Time","Added By","Date"]
+
+    if not client_rows:
+        st.markdown("""
+        <div class="section-card" style="text-align:center;padding:60px 24px;">
+          <div style="font-size:2.8rem;margin-bottom:12px;">📭</div>
+          <div style="font-size:1rem;font-weight:700;font-family:'Sora',sans-serif;">No clients added yet</div>
+          <div style="color:#64748B;font-size:.82rem;margin-top:8px;">Go to Add Client to add your first query client.</div>
+        </div>""", unsafe_allow_html=True)
+    else:
+        client_df = pd.DataFrame(client_rows, columns=cols_def)
+
+        # Metric row
+        st.markdown(f"""
+        <div class="metric-row">
+          <div class="metric-card"><div class="mc-label">Total Clients</div><div class="mc-value">{len(client_df)}</div><div class="mc-sub">query clients</div></div>
+          <div class="metric-card"><div class="mc-label">Lead Sources</div><div class="mc-value">{client_df["Lead Source"].nunique()}</div><div class="mc-sub">channels</div></div>
+          <div class="metric-card"><div class="mc-label">Added By</div><div class="mc-value">{client_df["Added By"].nunique()}</div><div class="mc-sub">team members</div></div>
+        </div>""", unsafe_allow_html=True)
+
+        # ── Edit / Delete via selectbox ──
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-label">Select a Client to Edit or Delete</div>', unsafe_allow_html=True)
+
+        display_options = ["— None —"] + [
+            f"{row['Name']} | {row['Company']} | {row['Phone']}"
+            for _, row in client_df.iterrows()
+        ]
+        selected_label = st.selectbox("Select client", display_options, key="client_select", label_visibility="collapsed")
+
+        if selected_label != "— None —":
+            sel_idx = display_options.index(selected_label) - 1
+            sel_row = client_df.iloc[sel_idx]
+            sel_id  = int(sel_row["id"])
+
+            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+
+            # ── Edit form ──
+            with st.expander("✏️ Edit Selected Client", expanded=True):
+                e1, e2 = st.columns(2)
+                with e1:
+                    e_name     = st.text_input("Name",        value=sel_row["Name"],        key="e_name")
+                    e_company  = st.text_input("Company",     value=sel_row["Company"],     key="e_company")
+                    e_phone    = st.text_input("Phone",       value=sel_row["Phone"],       key="e_phone")
+                    e_email    = st.text_input("Email",       value=sel_row["Email"],       key="e_email")
+                with e2:
+                    lead_opts  = ["Cold Call","WhatsApp","Referral","Walk-in","Online","Existing","Other"]
+                    cur_src    = sel_row["Lead Source"] if sel_row["Lead Source"] in lead_opts else "Other"
+                    e_lead     = st.selectbox("Lead Source", lead_opts, index=lead_opts.index(cur_src), key="e_lead")
+                    e_time     = st.text_input("Call Time (e.g. 10:30 AM)", value=sel_row["Call Time"] or "", key="e_time")
+                    e_disc     = st.text_area("Discussion", value=sel_row["Discussion"] or "", height=100, key="e_disc")
+
+                ua, ub, _ = st.columns([1.3, 1.3, 5])
+                with ua:
+                    if st.button("💾 Save Changes", use_container_width=True, key="save_edit"):
+                        conn2 = get_conn(); cur2 = conn2.cursor()
+                        try:
+                            cur2.execute("""
+                                UPDATE clients SET name=%s, company=%s, phone=%s, email=%s,
+                                lead_source=%s, call_time=%s, discussion=%s WHERE id=%s
+                            """, (e_name, e_company, e_phone, e_email, e_lead, e_time, e_disc, sel_id))
+                            conn2.commit()
+                            st.success("Client updated successfully.")
+                        except Exception as e:
+                            conn2.rollback(); st.error(f"Update failed: {e}")
+                        finally:
+                            release(conn2)
+                        st.rerun()
+                with ub:
+                    if st.button("🗑 Delete Client", use_container_width=True, key="del_client"):
+                        conn2 = get_conn(); cur2 = conn2.cursor()
+                        try:
+                            cur2.execute("DELETE FROM clients WHERE id=%s", (sel_id,))
+                            conn2.commit()
+                            st.success("Client deleted.")
+                        except Exception as e:
+                            conn2.rollback(); st.error(f"Delete failed: {e}")
+                        finally:
+                            release(conn2)
+                        st.rerun()
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # ── Full table ──
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-label">All Clients</div>', unsafe_allow_html=True)
+        disp = client_df.drop(columns=["id"])
+        st.dataframe(disp, use_container_width=True, hide_index=True, height=400)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # Download
+        buf2 = BytesIO(); disp.to_excel(buf2, index=False); buf2.seek(0)
+        st.download_button("📥 Download Client List", buf2, file_name="clients.xlsx",
+                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+
+# ═══════════════════════════════════════════
+#  PAGE: ADD CLIENT
+# ═══════════════════════════════════════════
+elif page == "Add Client":
+
+    st.markdown("""
+    <div class="page-header">
+      <div class="ph-icon">➕</div>
+      <div><div class="ph-title">Add Client</div>
+           <div class="ph-sub">Register a new query client</div></div>
+    </div>""", unsafe_allow_html=True)
+
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Client Details</div>', unsafe_allow_html=True)
+
+    f1, f2 = st.columns(2)
+    with f1:
+        c_name    = st.text_input("Full Name *",    placeholder="e.g. Rajesh Kumar",    key="c_name")
+        c_company = st.text_input("Company",        placeholder="e.g. ABC Auto Parts",  key="c_company")
+        c_phone   = st.text_input("Phone *",        placeholder="e.g. +91 98765 43210", key="c_phone")
+        c_email   = st.text_input("Email",          placeholder="e.g. rajesh@abc.com",  key="c_email")
+    with f2:
+        lead_sources = ["Cold Call", "WhatsApp", "Referral", "Walk-in", "Online", "Existing", "Other"]
+        c_lead    = st.selectbox("Lead Source", lead_sources, key="c_lead")
+        # Time as plain text to avoid timezone / format issues
+        c_time    = st.text_input("Call Time (e.g. 10:30 AM or 14:00)", placeholder="10:30 AM", key="c_time")
+        c_disc    = st.text_area("Discussion", placeholder="What was discussed with this client…",
+                                 height=120, key="c_disc")
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+    if st.button("✚ Add Client", use_container_width=False, key="add_client_btn"):
+        if not c_name.strip() or not c_phone.strip():
+            st.warning("Name and Phone are required.")
+        else:
+            conn3 = get_conn(); cur3 = conn3.cursor()
+            try:
+                cur3.execute("""
+                    INSERT INTO clients(name, company, phone, email, lead_source, discussion, call_time, added_by)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (c_name.strip(), c_company.strip(), c_phone.strip(), c_email.strip(),
+                      c_lead, c_disc.strip(), c_time.strip(), username))
+                conn3.commit()
+                st.success(f"✅ Client '{c_name}' added successfully!")
+                # Clear inputs by rerunning
+                for k in ["c_name","c_company","c_phone","c_email","c_lead","c_time","c_disc"]:
+                    if k in st.session_state: del st.session_state[k]
+                st.rerun()
+            except Exception as e:
+                conn3.rollback(); st.error(f"Failed to add client: {e}")
+            finally:
+                release(conn3)
+
+    st.markdown('</div>', unsafe_allow_html=True)
