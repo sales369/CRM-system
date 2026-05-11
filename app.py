@@ -391,7 +391,8 @@ def init_schema():
                 ALTER TABLE parts_table ADD CONSTRAINT unique_part_supplier UNIQUE(part_no,brand,supplier);
               END IF;
             END$$;
-            CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT);
+            CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE);
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT;
             CREATE TABLE IF NOT EXISTS saved_offers (
                 id SERIAL PRIMARY KEY, username TEXT, data JSONB, created_at TIMESTAMP DEFAULT NOW()
             );
