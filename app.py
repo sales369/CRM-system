@@ -47,7 +47,7 @@ def generate_particles():
 
 st.markdown(generate_particles(), unsafe_allow_html=True)
 
-# ── 4. ENTERPRISE CSS ARCHITECTURE ─────────────────────────────────────────────
+# ── 4. ENTERPRISE CSS ARCHITECTURE (WITH ANIMATIONS) ───────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -74,9 +74,18 @@ st.markdown("""
 .particle { position: absolute; bottom: -10px; background: rgba(99, 102, 241, 0.4); border-radius: 50%; animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite; }
 @keyframes floatUp { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(20px); opacity: 0; } }
 
-/* WIDTH FIX: Set max-width to 100% so it fully expands */
-.main .block-container { padding: 1.5rem 3rem !important; max-width: 100%; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes slideUpFade { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
+/* WIDTH FIX & SLIDE ANIMATION */
+.main .block-container { padding: 1.5rem 3rem !important; max-width: 100%; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes slideUpFade { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+
+/* ALERT/MESSAGE SLIDE IN ANIMATION */
+[data-testid="stAlert"], [data-testid="stException"] {
+    animation: slideInRight 0.4s ease-out forwards;
+}
+@keyframes slideInRight {
+    0% { opacity: 0; transform: translateX(30px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -95,12 +104,16 @@ header { background: transparent !important; }
 .page-title { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; letter-spacing: -0.04em; }
 .page-sub   { font-size: 1rem; color: #64748b; font-weight: 500; margin: 0 0 1.5rem; letter-spacing: 0.01em; }
 
+/* DASHBOARD CARDS WITH BOUNCE IN */
 .dash-card {
     height: 110px !important; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 16px; padding: 16px 20px; position: relative; overflow: hidden;
-    transition: all 0.3s ease; margin: 0 !important; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03); display: flex; flex-direction: column; justify-content: center; z-index: 1;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); margin: 0 !important; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03); display: flex; flex-direction: column; justify-content: center; z-index: 1;
+    animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 }
-[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card { transform: translateY(-4px); background: rgba(255, 255, 255, 0.95); box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 0 15px rgba(255,255,255,0.6); border-color: #ffffff; }
+@keyframes bounceIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+[data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card { transform: translateY(-6px) scale(1.02); background: rgba(255, 255, 255, 0.95); box-shadow: 0 12px 30px -5px rgba(15, 23, 42, 0.1), 0 0 15px rgba(255,255,255,0.6); border-color: #ffffff; }
 .dash-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: transparent; transition: background 0.4s ease; }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.indigo::after { background: linear-gradient(90deg, #6366f1, #818cf8); }
 [data-testid="stHorizontalBlock"]:first-of-type [data-testid="column"]:hover .dash-card.blue::after   { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
@@ -119,10 +132,14 @@ header { background: transparent !important; }
 [data-baseweb="input"] > div:hover, [data-baseweb="select"] > div:hover { border-color: rgba(15, 23, 42, 0.2) !important; background-color: #ffffff !important; }
 [data-baseweb="input"] > div:focus-within, [data-baseweb="select"] > div:focus-within { border-color: #6366f1 !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important; background-color: #ffffff !important; }
 
-.stButton > button { border-radius: 10px !important; font-weight: 700 !important; font-size: 0.95rem !important; padding: 0.5rem 1.4rem !important; transition: all 0.2s ease !important; border: 1px solid rgba(15, 23, 42, 0.05) !important; background: rgba(255,255,255,0.9) !important; color: #1e293b !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important; }
+/* BUTTON HOVER & CLICK ANIMATIONS */
+.stButton > button { border-radius: 10px !important; font-weight: 700 !important; font-size: 0.95rem !important; padding: 0.5rem 1.4rem !important; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important; border: 1px solid rgba(15, 23, 42, 0.05) !important; background: rgba(255,255,255,0.9) !important; color: #1e293b !important; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important; }
 .stButton > button:hover { background: #ffffff !important; transform: translateY(-2px) !important; box-shadow: 0 6px 15px rgba(15, 23, 42, 0.06) !important; border-color: rgba(15, 23, 42, 0.1) !important; }
+.stButton > button:active { transform: scale(0.95) translateY(0) !important; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important; }
+
 .stButton > button[kind="primary"] { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important; border: none !important; color: white !important; box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25) !important; }
 .stButton > button[kind="primary"]:hover { background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4) !important; transform: translateY(-2px) scale(1.02) !important; }
+.stButton > button[kind="primary"]:active { transform: scale(0.95) !important; }
 
 [data-baseweb="tab-list"] { gap: 30px; border-bottom: 2px solid rgba(15, 23, 42, 0.05) !important; padding-bottom: 4px; }
 [data-baseweb="tab"] { font-weight: 700 !important; font-size: 1rem !important; color: #64748b !important; background: transparent !important; border: none !important; transition: color 0.2s ease; }
@@ -249,6 +266,10 @@ def show_login():
                     st.session_state.role      = user["role"]
                     st.session_state.full_name = user["full_name"]
                     st.session_state.user_id   = user["id"]
+                    
+                    # Trigger login animation toast
+                    st.session_state.toast_msg = f"Welcome back, {user['full_name']}!"
+                    st.session_state.toast_icon = "👋"
                     st.rerun()
                 else:
                     st.error("❌ Invalid username or password.")
@@ -370,7 +391,7 @@ def page_dashboard():
 
     styled_df = df_display[show_cols].rename(columns=rename_map).style.apply(highlight_rows, axis=1)
     
-    # We disable editing for everything EXCEPT the "Select" column
+    # Disable editing for everything EXCEPT the "Select" column
     disabled_cols = ["Full Name", "Company", "Phone", "Email", "Category", "Next Contact", "Status", "Deal Value", "Discussion"]
     
     edited_df = st.data_editor(
@@ -390,7 +411,7 @@ def page_dashboard():
     # If ANY checkboxes are checked, show the Bulk Delete option
     if len(selected_indices) > 0:
         st.markdown(f"""
-        <div style="padding: 12px 16px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 4px; margin: 10px 0;">
+        <div style="padding: 12px 16px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 4px; margin: 10px 0; animation: slideInRight 0.3s ease-out forwards;">
             <strong style="color: #ef4444;">⚠️ Bulk Action:</strong> {len(selected_indices)} client(s) selected for deletion.
         </div>
         """, unsafe_allow_html=True)
@@ -398,7 +419,10 @@ def page_dashboard():
         if st.button(f"🗑️ Delete {len(selected_indices)} Selected Client(s)", type="primary"):
             ids_to_delete = df.iloc[selected_indices]['id'].tolist()
             db.delete_multiple_clients(ids_to_delete)
-            st.success(f"✅ Successfully deleted {len(selected_indices)} client(s).")
+            
+            # Fire animation and success state
+            st.session_state.toast_msg = f"Successfully deleted {len(selected_indices)} client(s)."
+            st.session_state.toast_icon = "🗑️"
             st.rerun()
 
     st.markdown("<hr style='margin: 30px 0; border-top: 1px solid rgba(15,23,42,0.06);'>", unsafe_allow_html=True)
@@ -414,13 +438,13 @@ def page_dashboard():
 
         st.markdown(f"""
         <div style="margin-top:10px; padding:10px 18px; background:rgba(99,102,241,0.07); border-left:4px solid #6366f1;
-                    border-radius:0 10px 10px 0; font-size:0.9rem; font-weight:700; color:#4f46e5;">
+                    border-radius:0 10px 10px 0; font-size:0.9rem; font-weight:700; color:#4f46e5; animation: slideInRight 0.3s ease-out forwards;">
             Selected for Editing: {client_name}
         </div>
         """, unsafe_allow_html=True)
 
         with st.expander(f"✏️ Manage  ·  {client_name}", expanded=True):
-            t1, t2 = st.tabs(["🕒 Reschedule", "📝 Edit Details"]) # Removed Delete tab since bulk delete handles it
+            t1, t2 = st.tabs(["🕒 Reschedule", "📝 Edit Details"]) 
 
             with t1:
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -433,14 +457,15 @@ def page_dashboard():
                 with sc1:
                     new_d = st.date_input("New Date", value=curr_dt.date(), key=f"resched_d_{cid}")
                 with sc2:
-                    # ── USING STREAMLIT TIME WIDGET ──
                     parsed_time = st.time_input("New Time", value=curr_dt.time(), key=f"resched_t_{cid}")
                 with sc3:
                     st.markdown("<br style='line-height:2.3'>", unsafe_allow_html=True)
-                    if st.button("✅ Update", type="primary", use_container_width=True, key=f"btn_resched_{cid}"):
+                    if st.button("✅ Update Timing", type="primary", use_container_width=True, key=f"btn_resched_{cid}"):
                         new_dt = datetime.combine(new_d, parsed_time)
                         db.update_followup(cid, new_dt.strftime("%Y-%m-%d %H:%M:%S"))
-                        st.success(f"✅ Rescheduled to {new_dt.strftime('%b %d @ %I:%M %p')}")
+                        
+                        st.session_state.toast_msg = f"Rescheduled {client_name} to {new_dt.strftime('%b %d')}"
+                        st.session_state.toast_icon = "🕒"
                         st.rerun()
 
             with t2:
@@ -465,7 +490,7 @@ def page_dashboard():
                         placeholder="What was discussed with this client — products, pricing, requirements…"
                     )
 
-                    if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
+                    if st.form_submit_button("💾 Save Details", type="primary", use_container_width=True):
                         try:
                             # Direct database update for the form inputs
                             update_sql = """
@@ -481,7 +506,9 @@ def page_dashboard():
                                         "deal_value": e_val, "category": e_cat, "discussion": e_discussion, "cid": cid
                                     })
                                 conn.commit()
-                            st.success("✅ Client updated successfully.")
+                            
+                            st.session_state.toast_msg = f"{client_name}'s details saved!"
+                            st.session_state.toast_icon = "💾"
                             st.rerun()
                         except Exception as e:
                             st.error(f"Database error: {e}")
@@ -489,7 +516,7 @@ def page_dashboard():
     elif len(selected_indices) > 1:
         st.info("ℹ️ Multiple clients selected. Please check only one box to edit details or reschedule.")
     else:
-        st.info("👆 Check the box next to a client in the table above to edit their details or reschedule.")
+        st.info("👆 Check the box next to a single client in the table above to edit their details or reschedule.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -503,9 +530,8 @@ def page_add_client():
     # ── PERSISTENT SUCCESS MESSAGE ──
     if "client_added_success" in st.session_state:
         st.success(st.session_state.client_added_success)
-        del st.session_state.client_added_success # Delete so it doesn't show forever
+        del st.session_state.client_added_success 
 
-    # ── REMOVED st.form ENTIRELY TO ENABLE LIVE PREVIEW UPDATES ──
     st.markdown('<div class="form-section">', unsafe_allow_html=True)
     st.markdown("##### 👤 Client Information")
     c1, c2 = st.columns(2)
@@ -536,7 +562,7 @@ def page_add_client():
     with c4:
         nf_preview  = datetime.combine(next_d, parsed_t)
         date_str    = nf_preview.strftime("%A, %b %d")
-        time_str    = nf_preview.strftime("%I:%M %p")
+        time_str    = nf_preview.strftime("%I:%M %p") 
 
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(f"""
@@ -587,8 +613,10 @@ def page_add_client():
             })
             
             if ok:
-                # Save the success message to state so it survives the rerun
                 st.session_state.client_added_success = f"✅ **{name}** added successfully! Scheduled for **{nf_datetime.strftime('%b %d @ %I:%M %p')}**."
+                st.session_state.toast_msg = "New client added to pipeline!"
+                st.session_state.toast_icon = "🎉"
+                st.session_state.show_balloons = True
                 
                 # Manually clear the form inputs
                 keys_to_clear = ["ac_name", "ac_email", "ac_comp", "ac_phone", "ac_cat", "ac_src", "ac_date", "ac_time", "ac_deal", "ac_disc", "ac_notes"]
@@ -636,14 +664,20 @@ def page_settings():
                         st.markdown("<br>", unsafe_allow_html=True)
                         if u["username"] != st.session_state.get("username"):
                             if st.button("Suspend" if u["is_active"] else "Activate", key=f"tog_{u['id']}", use_container_width=True):
-                                db.toggle_user_status(int(u["id"])); st.rerun()
+                                db.toggle_user_status(int(u["id"]))
+                                st.session_state.toast_msg = f"User status updated."
+                                st.session_state.toast_icon = "⚙️"
+                                st.rerun()
                         else:
                             st.markdown("<div style='text-align:center; margin-top:10px; font-weight:700; color:#10b981; font-size:0.8rem;'>Current User</div>", unsafe_allow_html=True)
                     with c3:
                         st.markdown("<br>", unsafe_allow_html=True)
                         if u["username"] != st.session_state.get("username"):
                             if st.button("Delete", key=f"del_{u['id']}", use_container_width=True):
-                                db.delete_user(int(u["id"])); st.rerun()
+                                db.delete_user(int(u["id"]))
+                                st.session_state.toast_msg = f"User deleted."
+                                st.session_state.toast_icon = "🗑️"
+                                st.rerun()
                     st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
 
         with tabs[1]:
@@ -669,7 +703,9 @@ def page_settings():
                 else:
                     db.add_user({"full_name": new_fullname, "username": new_username, "email": "",
                                  "password_hash": hash_password(new_password), "role": new_role})
-                    st.success(f"✅ {new_fullname} added."); st.rerun()
+                    st.session_state.toast_msg = f"User {new_fullname} created!"
+                    st.session_state.toast_icon = "🛡️"
+                    st.rerun()
 
     pwd_tab = tabs[2] if is_admin else tabs[0]
     with pwd_tab:
@@ -696,18 +732,32 @@ def page_settings():
                     st.error("❌ Incorrect current password.")
                 else:
                     if change_user_password(current_user_id, new_p):
-                        st.success("✅ Password updated successfully!")
+                        st.session_state.toast_msg = "Password updated securely."
+                        st.session_state.toast_icon = "🔒"
+                        st.rerun()
                     else:
                         st.error("❌ System Error: Failed to update password.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  MAIN ROUTER
+#  MAIN ROUTER WITH GLOBAL NOTIFICATION ENGINE
 # ══════════════════════════════════════════════════════════════════════════════
 
 if not st.session_state.get("logged_in"):
     show_login()
 else:
+    # ── THE GLOBAL NOTIFICATION ENGINE ──
+    # This catches state variables after a rerun and fires animations/toasts
+    if "show_balloons" in st.session_state:
+        st.balloons()
+        del st.session_state.show_balloons
+
+    if "toast_msg" in st.session_state:
+        st.toast(st.session_state.toast_msg, icon=st.session_state.get("toast_icon", "✅"))
+        del st.session_state.toast_msg
+        if "toast_icon" in st.session_state:
+            del st.session_state.toast_icon
+
     page = show_sidebar()
     if   "Dashboard"  in page: page_dashboard()
     elif "Add Client" in page: page_add_client()
