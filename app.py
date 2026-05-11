@@ -141,4 +141,4 @@ class DatabaseManager:
 
     def delete_user(self, uid):
         self.c.execute("DELETE FROM users WHERE id = ?", (uid,))
-        self.conn.commit()s
+        self.conn.commit()
