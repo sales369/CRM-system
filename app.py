@@ -533,10 +533,12 @@ def page_add_client():
             next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed")
 
             # ── TIME FIX: plain text HH:MM — survives form resets without drift ──
-            default_hhmm = (datetime.now() + timedelta(hours=4)).strftime("%H:%M")
-            next_t_str   = st.text_input(
+            if "add_client_time" not in st.session_state:
+                st.session_state.add_client_time = (datetime.now() + timedelta(hours=4)).strftime("%H:%M")
+                
+            next_t_str = st.text_input(
                 "Time (24h, HH:MM)",
-                value=default_hhmm,
+                key="add_client_time",
                 placeholder="e.g. 14:30",
                 help="Enter time in 24-hour format: HH:MM"
             )
