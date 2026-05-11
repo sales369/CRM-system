@@ -132,6 +132,17 @@ header { background: transparent !important; }
 .streamlit-expanderHeader:hover { background: #ffffff !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 details { border: none !important; border-radius: 12px !important; background: transparent; overflow: hidden; margin-top: 10px; }
 
+/* Client selector panel */
+.client-selector-panel {
+    background: rgba(255,255,255,0.75); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,1); border-radius: 14px;
+    padding: 18px 22px; margin-top: 12px;
+    box-shadow: 0 4px 20px rgba(15,23,42,0.04);
+}
+.selector-label {
+    font-size: 0.75rem; font-weight: 800; color: #6366f1;
+    text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -422,6 +433,7 @@ def page_dashboard():
                 with sc1:
                     new_d = st.date_input("New Date", value=curr_dt.date(), key=f"resched_d_{cid}")
                 with sc2:
+                    # ── USING STREAMLIT TIME WIDGET ──
                     parsed_time = st.time_input("New Time", value=curr_dt.time(), key=f"resched_t_{cid}")
                 with sc3:
                     st.markdown("<br style='line-height:2.3'>", unsafe_allow_html=True)
@@ -455,6 +467,7 @@ def page_dashboard():
 
                     if st.form_submit_button("💾 Save Changes", type="primary", use_container_width=True):
                         try:
+                            # Direct database update for the form inputs
                             update_sql = """
                             UPDATE clients 
                             SET name=%(name)s, email=%(email)s, phone=%(phone)s, company=%(company)s, 
@@ -492,68 +505,68 @@ def page_add_client():
         st.success(st.session_state.client_added_success)
         del st.session_state.client_added_success # Delete so it doesn't show forever
 
-    with st.form("add_client_form", clear_on_submit=False):
-        st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 👤 Client Information")
-        c1, c2 = st.columns(2)
-        with c1:
-            name    = st.text_input("Full Name *",    key="ac_name", placeholder="e.g. Jane Doe")
-            email   = st.text_input("Email Address",  key="ac_email", placeholder="e.g. jane@company.com")
-            company = st.text_input("Company Name",   key="ac_comp", placeholder="e.g. Acme Corp")
-        with c2:
-            phone    = st.text_input("Phone Number", key="ac_phone", placeholder="+1 555-0199")
-            category = st.selectbox("Category", ["Lead","Prospect","Active Client","Partner","VIP","Churned"], key="ac_cat")
-            source   = st.selectbox("Lead Source", ["Referral","Website","LinkedIn","Cold Outreach","Event","Existing","Other"], key="ac_src")
-        st.markdown('</div>', unsafe_allow_html=True)
+    # ── REMOVED st.form ENTIRELY TO ENABLE LIVE PREVIEW UPDATES ──
+    st.markdown('<div class="form-section">', unsafe_allow_html=True)
+    st.markdown("##### 👤 Client Information")
+    c1, c2 = st.columns(2)
+    with c1:
+        name    = st.text_input("Full Name *",    key="ac_name", placeholder="e.g. Jane Doe")
+        email   = st.text_input("Email Address",  key="ac_email", placeholder="e.g. jane@company.com")
+        company = st.text_input("Company Name",   key="ac_comp", placeholder="e.g. Acme Corp")
+    with c2:
+        phone    = st.text_input("Phone Number", key="ac_phone", placeholder="+1 555-0199")
+        category = st.selectbox("Category", ["Lead","Prospect","Active Client","Partner","VIP","Churned"], key="ac_cat")
+        source   = st.selectbox("Lead Source", ["Referral","Website","LinkedIn","Cold Outreach","Event","Existing","Other"], key="ac_src")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 📅 Pipeline Scheduling")
-        c3, c4 = st.columns(2)
+    st.markdown('<div class="form-section">', unsafe_allow_html=True)
+    st.markdown("##### 📅 Pipeline Scheduling")
+    c3, c4 = st.columns(2)
 
-        with c3:
-            st.markdown("<div style='font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:8px;'>Next Contact Schedule</div>", unsafe_allow_html=True)
-            next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed", key="ac_date")
-            
-            if "ac_time" not in st.session_state:
-                st.session_state.ac_time = (datetime.now() + timedelta(hours=4)).time()
-            
-            parsed_t = st.time_input("Time", key="ac_time")
-            deal_value = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000, key="ac_deal")
+    with c3:
+        st.markdown("<div style='font-size:0.85rem; font-weight:600; color:#475569; margin-bottom:8px;'>Next Contact Schedule</div>", unsafe_allow_html=True)
+        next_d = st.date_input("Date", value=date.today(), label_visibility="collapsed", key="ac_date")
+        
+        if "ac_time" not in st.session_state:
+            st.session_state.ac_time = (datetime.now() + timedelta(hours=4)).time()
+        
+        parsed_t = st.time_input("Time", key="ac_time")
+        deal_value = st.number_input("Deal Value ($)", min_value=0, value=0, step=5000, key="ac_deal")
 
-        with c4:
-            nf_preview  = datetime.combine(next_d, parsed_t)
-            date_str    = nf_preview.strftime("%A, %b %d")
-            time_str    = nf_preview.strftime("%I:%M %p")
+    with c4:
+        nf_preview  = datetime.combine(next_d, parsed_t)
+        date_str    = nf_preview.strftime("%A, %b %d")
+        time_str    = nf_preview.strftime("%I:%M %p")
 
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown(f"""
-            <div style="background:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,1); border-radius:12px; padding:16px; text-align:center; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
-                <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Target Execution</p>
-                <p style="font-size:1.3rem; font-weight:800; color:#0f172a; margin:4px 0;">{date_str}</p>
-                <p style="font-size:1.1rem; color:#4f46e5; font-weight:700; margin:0;">@ {time_str}</p>
-            </div>""", unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="background:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,1); border-radius:12px; padding:16px; text-align:center; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+            <p style="font-size:0.75rem; font-weight:800; color:#6366f1; text-transform:uppercase; letter-spacing:0.1em; margin:0;">Target Execution</p>
+            <p style="font-size:1.3rem; font-weight:800; color:#0f172a; margin:4px 0;">{date_str}</p>
+            <p style="font-size:1.1rem; color:#4f46e5; font-weight:700; margin:0;">@ {time_str}</p>
+        </div>""", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('<div class="form-section">', unsafe_allow_html=True)
-        st.markdown("##### 💬 Discussion & Notes")
-        dn1, dn2 = st.columns(2)
-        with dn1:
-            discussion = st.text_area(
-                "Discussion Topics",
-                placeholder="What topics were discussed? Products, requirements, pricing, concerns…",
-                height=110,
-                key="ac_disc"
-            )
-        with dn2:
-            notes = st.text_area(
-                "Additional Notes",
-                placeholder="Internal notes, next steps, special requirements…",
-                height=110,
-                key="ac_notes"
-            )
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="form-section">', unsafe_allow_html=True)
+    st.markdown("##### 💬 Discussion & Notes")
+    dn1, dn2 = st.columns(2)
+    with dn1:
+        discussion = st.text_area(
+            "Discussion Topics",
+            placeholder="What topics were discussed? Products, requirements, pricing, concerns…",
+            height=110,
+            key="ac_disc"
+        )
+    with dn2:
+        notes = st.text_area(
+            "Additional Notes",
+            placeholder="Internal notes, next steps, special requirements…",
+            height=110,
+            key="ac_notes"
+        )
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        submitted = st.form_submit_button("💾 Save Client", type="primary", use_container_width=True)
+    submitted = st.button("💾 Save Client", type="primary", use_container_width=True)
 
     if submitted:
         if not name.strip():
