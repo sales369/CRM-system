@@ -672,17 +672,4 @@ def page_settings():
                     if change_user_password(current_user_id, new_p):
                         st.success("✅ Password updated successfully!")
                     else:
-                        st.error("❌ System Error: Failed to update password.")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  MAIN ROUTER
-# ══════════════════════════════════════════════════════════════════════════════
-
-if not st.session_state.get("logged_in"):
-    show_login()
-else:
-    page = show_sidebar()
-    if   "Dashboard"  in page: page_dashboard()
-    elif "Add Client" in page: page_add_client()
-    elif "Settings"   in page: page_settings()
+                        st.error("❌ System Error: Failed
