@@ -31,21 +31,26 @@ def get_logo_html(width="100px", margin_bottom="16px", centered=True):
                font-size: calc(max(20px, {width}/2.5)); {align} margin-bottom: {margin_bottom}; 
                box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25); color:white;">✨</div>"""
 
-# ── 3. LIVE BACKGROUND ENGINE ──────────────────────────────────────────────────
-def generate_particles():
-    html = '<div class="mesh-engine"><div class="gradient-bg"></div>'
-    html += '<div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>'
-    for i in range(35):
-        size = random.randint(4, 9)
+# ── 3. NEW "AURORA" LIVE BACKGROUND ENGINE ─────────────────────────────────────
+def generate_live_background():
+    html = '<div class="live-bg"><div class="bg-gradient"></div>'
+    # 3 Large Organic Morphing Blobs
+    html += '<div class="organic-blob blob-1"></div>'
+    html += '<div class="organic-blob blob-2"></div>'
+    html += '<div class="organic-blob blob-3"></div>'
+    # Floating Light Specs
+    for i in range(25):
+        size = random.randint(3, 8)
         left = random.randint(0, 100)
-        anim_duration = random.randint(15, 35)
+        top = random.randint(0, 100)
+        anim_duration = random.randint(20, 40)
         anim_delay = random.randint(0, 20)
-        opacity = random.uniform(0.2, 0.6)
-        html += f'<div class="particle" style="width:{size}px; height:{size}px; left:{left}vw; animation-duration:{anim_duration}s; animation-delay:-{anim_delay}s; opacity:{opacity};"></div>'
+        opacity = random.uniform(0.15, 0.5)
+        html += f'<div class="light-spec" style="width:{size}px; height:{size}px; left:{left}vw; top:{top}vh; animation-duration:{anim_duration}s; animation-delay:-{anim_delay}s; opacity:{opacity};"></div>'
     html += '</div>'
     return html
 
-st.markdown(generate_particles(), unsafe_allow_html=True)
+st.markdown(generate_live_background(), unsafe_allow_html=True)
 
 # ── 4. ENTERPRISE CSS ARCHITECTURE (WITH ANIMATIONS) ───────────────────────────
 st.markdown("""
@@ -61,18 +66,25 @@ st.markdown("""
 }
 
 .stApp { background: transparent !important; }
-.mesh-engine { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -9999; overflow: hidden; pointer-events: none; background: #f8fafc; }
-.gradient-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(-45deg, #f0f9ff, #eef2ff, #fdf4ff, #e0f2fe); background-size: 400% 400%; animation: liveThemeShift 20s ease infinite alternate; }
-@keyframes liveThemeShift { 0% { background-position: 0% 50%; filter: hue-rotate(0deg); } 50% { background-position: 100% 50%; filter: hue-rotate(15deg); } 100% { background-position: 0% 50%; filter: hue-rotate(30deg); } }
 
-.orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.6; animation: auraFloat 25s infinite alternate ease-in-out; }
-.orb-1 { width: 45vw; height: 45vw; top: -10vw; left: -10vw; background: #c7d2fe; }
-.orb-2 { width: 40vw; height: 40vw; bottom: -5vw; right: -5vw; background: #fbcfe8; animation-delay: -5s; }
-.orb-3 { width: 35vw; height: 35vw; top: 30vh; left: 40vw; background: #bae6fd; animation-delay: -10s; }
-@keyframes auraFloat { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(60px,-60px) scale(1.1); } }
+/* ── NEW BACKGROUND CSS ── */
+.live-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -9999; overflow: hidden; pointer-events: none; background: #f8fafc; }
+.bg-gradient { position: absolute; top: 0; left: 0; width: 200%; height: 200%; background: linear-gradient(120deg, #f0f9ff, #eef2ff, #fdf4ff, #e0f2fe); background-size: 50% 50%; animation: gradientFlow 30s ease infinite alternate; }
+@keyframes gradientFlow { 0% { transform: translate(0, 0); } 100% { transform: translate(-20%, -20%); } }
 
-.particle { position: absolute; bottom: -10px; background: rgba(99, 102, 241, 0.4); border-radius: 50%; animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite; }
-@keyframes floatUp { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(20px); opacity: 0; } }
+.organic-blob { position: absolute; filter: blur(70px); opacity: 0.65; animation: morphBlob 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1); }
+.blob-1 { width: 55vw; height: 55vw; top: -15vh; left: -15vw; background: #c7d2fe; animation-delay: 0s; }
+.blob-2 { width: 60vw; height: 60vw; bottom: -25vh; right: -15vw; background: #fbcfe8; animation-delay: -5s; animation-direction: alternate-reverse; }
+.blob-3 { width: 45vw; height: 45vw; top: 30vh; left: 35vw; background: #bae6fd; animation-delay: -10s; }
+
+@keyframes morphBlob {
+    0% { transform: translate(0, 0) scale(1) rotate(0deg); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+    50% { transform: translate(8vw, 12vh) scale(1.05) rotate(15deg); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    100% { transform: translate(-5vw, 5vh) scale(0.95) rotate(-10deg); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+}
+
+.light-spec { position: absolute; background: #ffffff; border-radius: 50%; box-shadow: 0 0 12px rgba(255,255,255,0.9); animation-name: driftSpec; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes driftSpec { 0% { transform: translateY(0) translateX(0) scale(0.8); opacity: 0; } 25% { opacity: 1; transform: scale(1); } 75% { opacity: 1; } 100% { transform: translateY(-25vh) translateX(30px) scale(0.5); opacity: 0; } }
 
 /* WIDTH FIX & SLIDE ANIMATION */
 .main .block-container { padding: 1.5rem 3rem !important; max-width: 100%; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -457,6 +469,7 @@ def page_dashboard():
                 with sc1:
                     new_d = st.date_input("New Date", value=curr_dt.date(), key=f"resched_d_{cid}")
                 with sc2:
+                    # ── USING STREAMLIT TIME WIDGET ──
                     parsed_time = st.time_input("New Time", value=curr_dt.time(), key=f"resched_t_{cid}")
                 with sc3:
                     st.markdown("<br style='line-height:2.3'>", unsafe_allow_html=True)
@@ -747,7 +760,6 @@ if not st.session_state.get("logged_in"):
     show_login()
 else:
     # ── THE GLOBAL NOTIFICATION ENGINE ──
-    # This catches state variables after a rerun and fires animations/toasts
     if "show_balloons" in st.session_state:
         st.balloons()
         del st.session_state.show_balloons
