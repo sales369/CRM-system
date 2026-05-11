@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import date, timedelta, datetime
 import io
 import hashlib
+import random
 import os
 import base64
 from database import DatabaseManager
@@ -30,19 +31,21 @@ def get_logo_html(width="100px", margin_bottom="16px", centered=True):
                font-size: calc(max(20px, {width}/2.5)); {align} margin-bottom: {margin_bottom}; 
                box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25); color:white;">✨</div>"""
 
-# ── 3. MODERN SaaS LIVE BACKGROUND (PRISM + GRID) ──────────────────────────────
-def generate_live_background():
-    html = '<div class="live-bg">'
-    # Slow moving soft gradient washes
-    html += '<div class="bg-shape shape-1"></div>'
-    html += '<div class="bg-shape shape-2"></div>'
-    html += '<div class="bg-shape shape-3"></div>'
-    # Professional subtle grid overlay
-    html += '<div class="bg-grid"></div>'
+# ── 3. LIVE BACKGROUND ENGINE ──────────────────────────────────────────────────
+def generate_particles():
+    html = '<div class="mesh-engine"><div class="gradient-bg"></div>'
+    html += '<div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>'
+    for i in range(35):
+        size = random.randint(4, 9)
+        left = random.randint(0, 100)
+        anim_duration = random.randint(15, 35)
+        anim_delay = random.randint(0, 20)
+        opacity = random.uniform(0.2, 0.6)
+        html += f'<div class="particle" style="width:{size}px; height:{size}px; left:{left}vw; animation-duration:{anim_duration}s; animation-delay:-{anim_delay}s; opacity:{opacity};"></div>'
     html += '</div>'
     return html
 
-st.markdown(generate_live_background(), unsafe_allow_html=True)
+st.markdown(generate_particles(), unsafe_allow_html=True)
 
 # ── 4. ENTERPRISE CSS ARCHITECTURE (WITH ANIMATIONS) ───────────────────────────
 st.markdown("""
@@ -58,27 +61,18 @@ st.markdown("""
 }
 
 .stApp { background: transparent !important; }
+.mesh-engine { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -9999; overflow: hidden; pointer-events: none; background: #f8fafc; }
+.gradient-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(-45deg, #f0f9ff, #eef2ff, #fdf4ff, #e0f2fe); background-size: 400% 400%; animation: liveThemeShift 20s ease infinite alternate; }
+@keyframes liveThemeShift { 0% { background-position: 0% 50%; filter: hue-rotate(0deg); } 50% { background-position: 100% 50%; filter: hue-rotate(15deg); } 100% { background-position: 0% 50%; filter: hue-rotate(30deg); } }
 
-/* ── NEW CLEAN SaaS BACKGROUND CSS ── */
-.live-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -9999; background-color: #f8fafc; overflow: hidden; }
-.bg-shape { position: absolute; filter: blur(120px); border-radius: 50%; animation: gentleDrift 20s infinite alternate ease-in-out; }
-.shape-1 { width: 60vw; height: 60vw; top: -20vh; left: -10vw; background-color: rgba(199, 210, 254, 0.6); } /* Indigo */
-.shape-2 { width: 50vw; height: 50vw; bottom: -20vh; right: -10vw; background-color: rgba(251, 207, 232, 0.5); animation-delay: -5s; animation-duration: 25s; } /* Pink */
-.shape-3 { width: 40vw; height: 40vw; top: 30vh; left: 30vw; background-color: rgba(186, 230, 253, 0.5); animation-delay: -10s; animation-duration: 30s; } /* Sky Blue */
+.orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.6; animation: auraFloat 25s infinite alternate ease-in-out; }
+.orb-1 { width: 45vw; height: 45vw; top: -10vw; left: -10vw; background: #c7d2fe; }
+.orb-2 { width: 40vw; height: 40vw; bottom: -5vw; right: -5vw; background: #fbcfe8; animation-delay: -5s; }
+.orb-3 { width: 35vw; height: 35vw; top: 30vh; left: 40vw; background: #bae6fd; animation-delay: -10s; }
+@keyframes auraFloat { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(60px,-60px) scale(1.1); } }
 
-@keyframes gentleDrift {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(10vw, 10vh) scale(1.1); }
-}
-
-/* Subtle blueprint/tech grid overlay */
-.bg-grid {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background-image: linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.7;
-}
+.particle { position: absolute; bottom: -10px; background: rgba(99, 102, 241, 0.4); border-radius: 50%; animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes floatUp { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(20px); opacity: 0; } }
 
 /* WIDTH FIX & SLIDE ANIMATION */
 .main .block-container { padding: 1.5rem 3rem !important; max-width: 100%; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -463,7 +457,6 @@ def page_dashboard():
                 with sc1:
                     new_d = st.date_input("New Date", value=curr_dt.date(), key=f"resched_d_{cid}")
                 with sc2:
-                    # ── USING STREAMLIT TIME WIDGET ──
                     parsed_time = st.time_input("New Time", value=curr_dt.time(), key=f"resched_t_{cid}")
                 with sc3:
                     st.markdown("<br style='line-height:2.3'>", unsafe_allow_html=True)
@@ -754,6 +747,7 @@ if not st.session_state.get("logged_in"):
     show_login()
 else:
     # ── THE GLOBAL NOTIFICATION ENGINE ──
+    # This catches state variables after a rerun and fires animations/toasts
     if "show_balloons" in st.session_state:
         st.balloons()
         del st.session_state.show_balloons
