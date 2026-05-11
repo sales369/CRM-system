@@ -74,7 +74,8 @@ st.markdown("""
 .particle { position: absolute; bottom: -10px; background: rgba(99, 102, 241, 0.4); border-radius: 50%; animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite; }
 @keyframes floatUp { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(20px); opacity: 0; } }
 
-.main .block-container { padding: 1.5rem 3rem !important; max-width: 1440px; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+/* WIDTH FIX: Set max-width to 100% so it fully expands */
+.main .block-container { padding: 1.5rem 3rem !important; max-width: 100%; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -364,8 +365,6 @@ def page_dashboard():
     rename_map = {"name": "Full Name", "company": "Company", "phone": "Phone", "email": "Email", "category": "Category"}
 
     styled_df = df_display[show_cols].rename(columns=rename_map).style.apply(highlight_rows, axis=1)
-    
-    # INCREASED HEIGHT FROM 300 to 650
     st.dataframe(styled_df, use_container_width=True, height=650, hide_index=True)
 
     # ════════════════════════════════════════════════════════════
