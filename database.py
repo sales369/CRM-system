@@ -1,7 +1,7 @@
 import os
 import hashlib
 import pandas as pd
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import psycopg2
 
 class DatabaseManager:
@@ -48,6 +48,7 @@ class DatabaseManager:
             print(f"[DB] init_user_tables error: {e}")
 
     def init_tables(self):
+        # Changed DATE to TIMESTAMP for time precision, added discussion TEXT
         ddl = """
         CREATE TABLE IF NOT EXISTS clients (
             id               SERIAL PRIMARY KEY,
@@ -57,25 +58,30 @@ class DatabaseManager:
             company          VARCHAR(255),
             category         VARCHAR(100)  DEFAULT 'Lead',
             source           VARCHAR(100)  DEFAULT 'Other',
-            last_contacted   DATE,
+            last_contacted   TIMESTAMP,
             followup_days    INTEGER       DEFAULT 7,
-            next_followup    DATE,
+            next_followup    TIMESTAMP,
             deal_value       NUMERIC(12,2) DEFAULT 0,
             notes            TEXT,
+            discussion       TEXT,
             created_by       INTEGER,
             created_at       TIMESTAMP     DEFAULT NOW(),
             updated_at       TIMESTAMP     DEFAULT NOW()
         );
         CREATE INDEX IF NOT EXISTS idx_next_followup ON clients(next_followup);
-        CREATE INDEX IF NOT EXISTS idx_category       ON clients(category);
+        CREATE INDEX IF NOT EXISTS idx_category        ON clients(category);
         """
         try:
             with self._connect() as conn:
                 with conn.cursor() as cur:
                     cur.execute(ddl)
+                    
+                    # Safe Auto-Migration: Patches your existing table without dropping it!
                     cur.execute("""
-                        ALTER TABLE clients
-                        ADD COLUMN IF NOT EXISTS created_by INTEGER;
+                        ALTER TABLE clients ADD COLUMN IF NOT EXISTS created_by INTEGER;
+                        ALTER TABLE clients ADD COLUMN IF NOT EXISTS discussion TEXT;
+                        ALTER TABLE clients ALTER COLUMN next_followup TYPE TIMESTAMP USING next_followup::timestamp;
+                        ALTER TABLE clients ALTER COLUMN last_contacted TYPE TIMESTAMP USING last_contacted::timestamp;
                     """)
                 conn.commit()
         except Exception as e:
@@ -182,15 +188,16 @@ class DatabaseManager:
     # ══════════════════════════════════════════════════════════════════════════
 
     def add_client(self, data: dict) -> bool:
+        # FIXED: Added 'discussion' to both the columns list and the VALUES list
         sql = """
         INSERT INTO clients
             (name, email, phone, company, category, source,
              last_contacted, followup_days, next_followup,
-             deal_value, notes, created_by)
+             deal_value, notes, discussion, created_by)
         VALUES
             (%(name)s, %(email)s, %(phone)s, %(company)s, %(category)s, %(source)s,
              %(last_contacted)s, %(followup_days)s, %(next_followup)s,
-             %(deal_value)s, %(notes)s, %(created_by)s)
+             %(deal_value)s, %(notes)s, %(discussion)s, %(created_by)s)
         """
         try:
             with self._connect() as conn:
@@ -212,7 +219,7 @@ class DatabaseManager:
                             """UPDATE clients
                                SET next_followup=%s, last_contacted=%s, updated_at=NOW()
                              WHERE id=%s""",
-                            (new_date, str(date.today()), client_id)
+                            (new_date, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), client_id)
                         )
                     else:
                         cur.execute(
@@ -283,23 +290,25 @@ class DatabaseManager:
         return self._query_df(sql, params or None)
 
     def get_todays_followups(self) -> pd.DataFrame:
+        # Changed to DATE() to correctly match timestamps happening today
         return self._query_df(
-            "SELECT * FROM clients WHERE next_followup = %s ORDER BY name",
+            "SELECT * FROM clients WHERE DATE(next_followup) = %s ORDER BY name",
             (str(date.today()),)
         )
 
     def get_overdue_followups(self) -> pd.DataFrame:
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         return self._query_df(
             "SELECT * FROM clients WHERE next_followup < %s ORDER BY next_followup ASC",
-            (str(date.today()),)
+            (now_str,)
         )
 
     def get_upcoming_followups(self, days: int = 7) -> pd.DataFrame:
         end = date.today() + timedelta(days=days)
         return self._query_df(
             """SELECT * FROM clients
-                WHERE next_followup > %s
-                  AND next_followup <= %s
+                WHERE DATE(next_followup) > %s
+                  AND DATE(next_followup) <= %s
                 ORDER BY next_followup ASC""",
             (str(date.today()), str(end))
         )
